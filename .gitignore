@@ -1,0 +1,18 @@
+# Maven
+target/
+
+# Java
+*.class
+*.jar
+*.war
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+
+# Sistema
+.DS_Store
