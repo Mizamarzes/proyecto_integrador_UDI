@@ -1,0 +1,110 @@
+// =====================================================================
+// ENPH - Cuadernillo 2 Urbano
+// Página D. Gastos diarios + D1. Comidas preparadas fuera del hogar
+// Modelo relacional (formato dbdiagram.io) - destino: Oracle
+// =====================================================================
+
+Project enph_cuadernillo2 {
+  database_type: 'Oracle'
+  Note: 'Proyecto Integrador IV - UDI. Captura de la página diaria del Cuadernillo 2 urbano (capítulos D y D1).'
+}
+
+// En Oracle se implementa como CHECK constraint
+Enum tipo_gasto {
+  HOGAR      [note: 'Código 1 del cuadernillo']
+  PERSONAL   [note: 'Código 2 del cuadernillo']
+}
+
+// ---------------------------------------------------------------------
+// Encabezado de la página (una por día, 14 días)
+// ---------------------------------------------------------------------
+
+Table registro_diario {
+  id number(10) [pk, increment]
+  hogar_id number(10) [not null, note: 'Hogar al que pertenece la página']
+  numero_dia number(2) [not null, note: '1..14']
+  fecha date [not null, note: '1.2 Fecha (el día de la semana 1.1 se deriva)']
+  total_renglones number(3) [note: '2. Total renglones con información (D + D1)']
+  observaciones varchar2(1000)
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10)
+
+  indexes {
+    (hogar_id, numero_dia) [unique]
+    (hogar_id, fecha) [unique]
+  }
+}
+
+// ---------------------------------------------------------------------
+// D. Gastos diarios (un renglón por artículo o servicio)
+// ---------------------------------------------------------------------
+
+Table gasto_diario {
+  id number(10) [pk, increment]
+  registro_diario_id number(10) [not null]
+  numero_orden number(3) [not null, note: '(3)']
+  nombre_articulo varchar2(200) [not null, note: '(4) Artículo o servicio']
+  cantidad number(10,2) [not null, note: '(5.1)']
+  unidad_medida_id number(10) [not null, note: '(5.2) Código 1..8']
+  unidad_medida_otra varchar2(60) [note: 'Si unidad = 8. Otra']
+  equivalencia_gr_cm3 number(10,2) [note: '(5.3) Solo unidades no tradicionales']
+  forma_adquisicion_id number(10) [not null, note: '(6) Código 1..7']
+  forma_adquisicion_otra varchar2(100) [note: 'Si forma = 7. Otra']
+  lugar_compra_id number(10) [note: '(7) Nulo si no fue compra']
+  valor number(12,2) [not null, note: '(8) Pagado o estimado a precio de mercado']
+  frecuencia_compra_id number(10) [note: '(9) Nulo si no fue compra']
+  tipo tipo_gasto [not null, note: '(10) 1 hogar / 2 personal']
+  beneficiario_mesada varchar2(120) [note: 'Nombre de la persona si es una mesada']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10)
+
+  indexes {
+    (registro_diario_id, numero_orden) [unique]
+  }
+}
+
+// ---------------------------------------------------------------------
+// D1. Comidas preparadas fuera del hogar (RF-09)
+// ---------------------------------------------------------------------
+
+Table comida_fuera_hogar {
+  id number(10) [pk, increment]
+  registro_diario_id number(10) [not null]
+  numero_orden number(3) [not null, note: '(3)']
+  descripcion varchar2(200) [not null, note: '(4)']
+  cantidad number(10,2) [not null, note: '(5)']
+  forma_adquisicion_id number(10) [not null, note: '(6)']
+  forma_adquisicion_otra varchar2(100)
+  lugar_compra_id number(10) [note: '(7)']
+  valor number(12,2) [not null, note: '(8)']
+  frecuencia_compra_id number(10) [note: '(9)']
+  tipo tipo_gasto [not null, note: '(10)']
+  a_domicilio char(1) [not null, default: 'N', note: '(11) S/N']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10)
+
+  indexes {
+    (registro_diario_id, numero_orden) [unique]
+  }
+}
+
+// (4.1) Tipo de comida: RF-09 exige al menos uno (casillas de verificación)
+Table comida_tipo_comida {
+  comida_fuera_hogar_id number(10) [not null]
+  tipo_comida_id number(10) [not null, note: 'Desayuno, Almuerzo, Cena, Onces/medias nueves/merienda']
+
+  indexes {
+    (comida_fuera_hogar_id, tipo_comida_id) [pk]
+  }
+}
+
+// =====================================================================
+// Relaciones
+// =====================================================================
+
+Ref: gasto_diario.registro_diario_id > registro_diario.id [delete: cascade]
+Ref: comida_fuera_hogar.registro_diario_id > registro_diario.id [delete: cascade]
+Ref: comida_tipo_comida.comida_fuera_hogar_id > comida_fuera_hogar.id [delete: cascade]

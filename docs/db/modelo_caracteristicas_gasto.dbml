@@ -1,0 +1,83 @@
+// =====================================================================
+// ENPH - Cuadernillo 2 Urbano
+// Capítulo C. Características del gasto en alimentos de los hogares
+// Modelo relacional (formato dbdiagram.io) - destino: Oracle
+// =====================================================================
+
+Project enph_cuadernillo2 {
+  database_type: 'Oracle'
+  Note: 'Proyecto Integrador IV - UDI. Capítulo C, lo diligencia el encuestador en la primera visita (RF-07).'
+}
+
+// ---------------------------------------------------------------------
+// Catálogos
+// ---------------------------------------------------------------------
+
+// 1. Alimentos o grupos de alimentos (01..25)
+Table grupo_alimento {
+  id number(10) [pk, increment]
+  codigo varchar2(2) [not null, unique, note: '01..25']
+  nombre varchar2(200) [not null, note: 'Ej: 01 Pan, arepas, bollos y almojábanas']
+}
+
+// 2. Frecuencia de compra
+Table frecuencia_compra {
+  id number(10) [pk, increment]
+  codigo varchar2(4) [not null, unique, note: '1, 2, 2.1, 3, 4, 5, 6, 7, 9']
+  nombre varchar2(40) [not null, note: 'Nunca, Diario, Varias veces por semana, Semanal, Quincenal, Mensual, Bimestral, Trimestral, Esporádico']
+  supera_bisemana char(1) [not null, default: 'N', note: 'S para mensual, bimestral, trimestral y esporádico: activa las preguntas 3.1 y 3.2']
+}
+
+// 4. Mercado de: (95..98)
+Table tipo_mercado {
+  id number(10) [pk, increment]
+  codigo number(2) [not null, unique, note: '95, 96, 97, 98']
+  nombre varchar2(120) [not null, note: 'Carnes, huevos, leche...; Frutas y verduras; Granos, harinas...; Mercado único']
+}
+
+// ---------------------------------------------------------------------
+// Capítulo C: un renglón por cada uno de los 25 grupos de alimentos
+// ---------------------------------------------------------------------
+
+Table caracteristica_gasto {
+  id number(10) [pk, increment]
+  hogar_id number(10) [not null, note: 'Hogar encuestado']
+  grupo_alimento_id number(10) [not null, note: '1. Alimento o grupo de alimentos']
+  frecuencia_compra_id number(10) [not null, note: '2. Frecuencia de compra']
+  valor_ultima_compra number(12,2) [note: '3.1 ¿Cuál fue el valor de la última compra? Solo si supera la bisemana']
+  comprara_en_periodo char(1) [note: '3.2 ¿Comprará durante los 14 días? S/N. Solo si supera la bisemana']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10)
+
+  indexes {
+    (hogar_id, grupo_alimento_id) [unique, note: 'Un solo renglón por grupo y hogar']
+  }
+}
+
+// ---------------------------------------------------------------------
+// Valor total del mercado: cuando la frecuencia supera la bisemana
+// y no se logró obtener el gasto desagregado por grupo
+// ---------------------------------------------------------------------
+
+Table mercado_total {
+  id number(10) [pk, increment]
+  hogar_id number(10) [not null, note: 'Hogar encuestado']
+  tipo_mercado_id number(10) [not null, note: '4. Mercado de']
+  valor_total number(12,2) [not null, note: '5. Valor total del mercado']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10)
+
+  indexes {
+    (hogar_id, tipo_mercado_id) [unique]
+  }
+}
+
+// =====================================================================
+// Relaciones
+// =====================================================================
+
+Ref: caracteristica_gasto.grupo_alimento_id > grupo_alimento.id
+Ref: caracteristica_gasto.frecuencia_compra_id > frecuencia_compra.id
+Ref: mercado_total.tipo_mercado_id > tipo_mercado.id

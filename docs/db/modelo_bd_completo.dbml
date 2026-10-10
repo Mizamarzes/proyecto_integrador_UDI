@@ -1,0 +1,407 @@
+// =====================================================================
+// ENPH - Cuadernillo 2 Urbano: Gastos diarios del hogar
+// Modelo relacional (formato dbdiagram.io) - destino: Oracle
+// =====================================================================
+
+Project enph_cuadernillo2 {
+  database_type: 'Oracle'
+  Note: 'Proyecto Integrador IV - UDI. Captura del Cuadernillo 2 urbano (capítulos A, B, C, D, D1, D2).'
+}
+
+// ---------------------------------------------------------------------
+// Enums (en Oracle se implementan como CHECK constraints)
+// ---------------------------------------------------------------------
+
+Enum estado_caso {
+  ABIERTO    [note: 'Dentro de los 14 días, admite registros']
+  CERRADO    [note: 'Día 14 finalizado, bloquea inserciones (RF-06)']
+  REABIERTO  [note: 'Reabierto por un administrador']
+}
+
+Enum tipo_gasto {
+  HOGAR      [note: 'Código 1 del cuadernillo']
+  PERSONAL   [note: 'Código 2 del cuadernillo']
+}
+
+Enum rol_control {
+  RECOLECTOR
+  SUPERVISOR
+  CRITICO_DIGITADOR
+}
+
+// ---------------------------------------------------------------------
+// Ubicación geográfica (Capítulo A: 1. Región, 2. Departamento, 3. Municipio)
+// ---------------------------------------------------------------------
+
+Table region {
+  id number(10) [pk, increment]
+  nombre varchar2(60) [not null, unique]
+}
+
+Table departamento {
+  id number(10) [pk, increment]
+  codigo_dane varchar2(2) [not null, unique]
+  nombre varchar2(60) [not null]
+  region_id number(10) [not null]
+}
+
+Table municipio {
+  id number(10) [pk, increment]
+  codigo_dane varchar2(5) [not null, unique]
+  nombre varchar2(80) [not null]
+  departamento_id number(10) [not null]
+}
+
+// ---------------------------------------------------------------------
+// Seguridad: usuarios y roles (RF-01)
+// ---------------------------------------------------------------------
+
+Table rol {
+  id number(10) [pk, increment]
+  nombre varchar2(30) [not null, unique, note: 'ADMIN, SUPERVISOR, ENCUESTADOR']
+}
+
+Table usuario {
+  id number(10) [pk, increment]
+  documento varchar2(20) [not null, unique]
+  nombres varchar2(80) [not null]
+  apellidos varchar2(80) [not null]
+  username varchar2(40) [not null, unique]
+  email varchar2(120) [unique]
+  password_hash varchar2(255) [not null]
+  rol_id number(10) [not null]
+  activo char(1) [not null, default: 'S', note: 'S/N']
+  ultimo_login timestamp
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10)
+}
+
+// ---------------------------------------------------------------------
+// Catálogos del cuadernillo (pestaña final y capítulo C)
+// ---------------------------------------------------------------------
+
+Table resultado_entrevista {
+  id number(10) [pk, increment]
+  codigo varchar2(2) [not null, unique, note: 'EC, EI, NH, AT, R, OC, V, O']
+  descripcion varchar2(60) [not null]
+  Note: 'Usado para el resultado del cuadernillo (A.18) y de cada visita (B)'
+}
+
+Table unidad_medida {
+  id number(10) [pk, increment]
+  codigo number(2) [not null, unique, note: '1..8 (8 = Otra, ¿cuál?)']
+  nombre varchar2(40) [not null]
+  es_tradicional char(1) [not null, default: 'S', note: 'S: no requiere equivalencia (5.3)']
+}
+
+Table forma_adquisicion {
+  id number(10) [pk, increment]
+  codigo number(2) [not null, unique, note: '1..7 (7 = Otra, ¿cuál?)']
+  nombre varchar2(60) [not null]
+  es_compra char(1) [not null, default: 'N', note: 'S solo para 1. Compra; si es N, lugar y frecuencia van vacíos y el valor es estimado']
+}
+
+Table lugar_compra {
+  id number(10) [pk, increment]
+  codigo number(2) [not null, unique, note: '1,4,6,7,10,13,14,16..25']
+  nombre varchar2(120) [not null]
+}
+
+Table frecuencia_compra {
+  id number(10) [pk, increment]
+  codigo varchar2(4) [not null, unique, note: '1, 2, 2.1, 3, 4, 5, 6, 7, 9']
+  nombre varchar2(40) [not null]
+  supera_bisemana char(1) [not null, default: 'N', note: 'S para mensual, bimestral, trimestral, esporádica (activa C.3.1 y C.3.2)']
+  solo_capitulo_c char(1) [not null, default: 'N', note: 'S para 1. Nunca (no aplica en capítulo D)']
+}
+
+Table grupo_alimento {
+  id number(10) [pk, increment]
+  codigo varchar2(2) [not null, unique, note: '01..25']
+  nombre varchar2(200) [not null]
+}
+
+Table tipo_mercado {
+  id number(10) [pk, increment]
+  codigo number(2) [not null, unique, note: '95, 96, 97, 98']
+  nombre varchar2(120) [not null]
+}
+
+Table tipo_comida {
+  id number(10) [pk, increment]
+  nombre varchar2(40) [not null, unique, note: 'Desayuno, Almuerzo, Cena, Onces/medias nueves/merienda/snacks']
+}
+
+Table forma_pago {
+  id number(10) [pk, increment]
+  codigo number(1) [not null, unique, note: '1..6 (a..f); 6 = Otra, ¿cuál?']
+  nombre varchar2(40) [not null]
+}
+
+// ---------------------------------------------------------------------
+// Capítulo A. Identificación
+// ---------------------------------------------------------------------
+
+Table vivienda {
+  id number(10) [pk, increment]
+  municipio_id number(10) [not null]
+  clase number(1) [not null, note: '4. Clase (1 = cabecera; urbano)']
+  sector varchar2(10)
+  seccion varchar2(10)
+  manzana varchar2(10)
+  segmento varchar2(10)
+  edificacion_numero number(4)
+  vivienda_numero number(4)
+  total_hogares number(2) [not null, note: '12. Total de hogares en la vivienda']
+  barrio varchar2(120) [note: '15. Barrio, centro poblado o vereda']
+  direccion varchar2(200) [not null]
+  telefono varchar2(20)
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10)
+}
+
+Table hogar {
+  id number(10) [pk, increment]
+  vivienda_id number(10) [not null]
+  hogar_numero number(2) [not null, note: '13. Hogar número']
+  ciclo varchar2(10) [note: '9. Ciclo']
+  total_personas number(2) [not null, note: '14. Total de personas en el hogar']
+  informante_nombre varchar2(120) [note: 'Nombre de la persona que responde']
+  informante_orden number(2) [note: 'Número de orden de la persona que responde']
+  fecha_desde date [not null, note: '21. Anote las adquisiciones desde el día']
+  fecha_hasta date [not null, note: '22. Hasta el día (desde + 13 días)']
+  resultado_id number(10) [note: '18. Resultado del cuadernillo']
+  estado estado_caso [not null, default: 'ABIERTO']
+  encuestador_id number(10) [not null]
+  // D2. Preguntas al recoger el cuadernillo
+  gasto_fiestas char(1) [note: 'D2.1 ¿Gasto por fiestas, reuniones o invitados? S/N']
+  forma_pago_id number(10) [note: 'D2.2 Principal forma de pago']
+  forma_pago_otra varchar2(100)
+  observaciones varchar2(1000)
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10)
+
+  indexes {
+    (vivienda_id, hogar_numero) [unique]
+  }
+}
+
+// Recuadro de firmas: Recolector / Supervisor / Crítico-digitador con fecha
+Table control_cuadernillo {
+  id number(10) [pk, increment]
+  hogar_id number(10) [not null]
+  usuario_id number(10) [not null]
+  rol rol_control [not null]
+  fecha date [not null]
+
+  indexes {
+    (hogar_id, rol) [unique]
+  }
+}
+
+// Trazabilidad de cierres / reaperturas (RF-06)
+Table historial_estado_caso {
+  id number(10) [pk, increment]
+  hogar_id number(10) [not null]
+  estado_anterior estado_caso
+  estado_nuevo estado_caso [not null]
+  motivo varchar2(300)
+  usuario_id number(10) [not null]
+  fecha timestamp [not null, default: `SYSTIMESTAMP`]
+}
+
+// ---------------------------------------------------------------------
+// Capítulo B. Control de visitas (RF-08)
+// ---------------------------------------------------------------------
+
+Table visita {
+  id number(10) [pk, increment]
+  hogar_id number(10) [not null]
+  numero_visita number(2) [not null, note: '1..14']
+  fecha date [not null]
+  hora_inicio timestamp [not null, note: 'Hora + jornada (AM/PM)']
+  hora_fin timestamp
+  resultado_id number(10) [not null]
+  partes_pendientes varchar2(200) [note: 'Personas y/o partes del cuadernillo pendientes por diligenciar']
+  fecha_proxima date
+  hora_proxima timestamp
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10)
+
+  indexes {
+    (hogar_id, numero_visita) [unique]
+  }
+}
+
+// ---------------------------------------------------------------------
+// Capítulo C. Características del gasto en alimentos (RF-07)
+// ---------------------------------------------------------------------
+
+Table caracteristica_gasto {
+  id number(10) [pk, increment]
+  hogar_id number(10) [not null]
+  grupo_alimento_id number(10) [not null]
+  frecuencia_compra_id number(10) [not null, note: 'C.2']
+  valor_ultima_compra number(12,2) [note: 'C.3.1 solo si la frecuencia supera la bisemana']
+  comprara_en_periodo char(1) [note: 'C.3.2 ¿Comprará durante los 14 días? S/N']
+
+  indexes {
+    (hogar_id, grupo_alimento_id) [unique]
+  }
+}
+
+// C.4 / C.5 Valor total del mercado cuando no se obtuvo el gasto desagregado
+Table mercado_total {
+  id number(10) [pk, increment]
+  hogar_id number(10) [not null]
+  tipo_mercado_id number(10) [not null]
+  valor_total number(12,2) [not null]
+
+  indexes {
+    (hogar_id, tipo_mercado_id) [unique]
+  }
+}
+
+// ---------------------------------------------------------------------
+// Capítulo D. Gastos diarios (una página por día, 14 días)
+// ---------------------------------------------------------------------
+
+Table registro_diario {
+  id number(10) [pk, increment]
+  hogar_id number(10) [not null]
+  numero_dia number(2) [not null, note: '1..14']
+  fecha date [not null, note: '1.2 Fecha (el día de la semana 1.1 se deriva)']
+  total_renglones number(3) [note: '2. Total renglones con información']
+  observaciones varchar2(1000)
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10)
+
+  indexes {
+    (hogar_id, numero_dia) [unique]
+    (hogar_id, fecha) [unique]
+  }
+}
+
+Table gasto_diario {
+  id number(10) [pk, increment]
+  registro_diario_id number(10) [not null]
+  numero_orden number(3) [not null, note: '(3)']
+  nombre_articulo varchar2(200) [not null, note: '(4) Artículo o servicio']
+  cantidad number(10,2) [not null, note: '(5.1)']
+  unidad_medida_id number(10) [not null, note: '(5.2)']
+  unidad_medida_otra varchar2(60) [note: 'Si unidad = 8. Otra']
+  equivalencia_gr_cm3 number(10,2) [note: '(5.3) Solo unidades no tradicionales']
+  forma_adquisicion_id number(10) [not null, note: '(6)']
+  forma_adquisicion_otra varchar2(100) [note: 'Si forma = 7. Otra']
+  lugar_compra_id number(10) [note: '(7) Nulo si no fue compra']
+  valor number(12,2) [not null, note: '(8) Pagado o estimado a precio de mercado']
+  frecuencia_compra_id number(10) [note: '(9) Nulo si no fue compra']
+  tipo tipo_gasto [not null, note: '(10) 1 hogar / 2 personal']
+  beneficiario_mesada varchar2(120) [note: 'Nombre de la persona si es una mesada']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10)
+
+  indexes {
+    (registro_diario_id, numero_orden) [unique]
+  }
+}
+
+// ---------------------------------------------------------------------
+// Capítulo D1. Comidas preparadas fuera del hogar (RF-09)
+// ---------------------------------------------------------------------
+
+Table comida_fuera_hogar {
+  id number(10) [pk, increment]
+  registro_diario_id number(10) [not null]
+  numero_orden number(3) [not null, note: '(3)']
+  descripcion varchar2(200) [not null, note: '(4)']
+  cantidad number(10,2) [not null, note: '(5)']
+  forma_adquisicion_id number(10) [not null, note: '(6)']
+  forma_adquisicion_otra varchar2(100)
+  lugar_compra_id number(10) [note: '(7)']
+  valor number(12,2) [not null, note: '(8)']
+  frecuencia_compra_id number(10) [note: '(9)']
+  tipo tipo_gasto [not null, note: '(10)']
+  a_domicilio char(1) [not null, default: 'N', note: '(11) S/N']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10)
+
+  indexes {
+    (registro_diario_id, numero_orden) [unique]
+  }
+}
+
+// (4.1) Tipo de comida: RF-09 exige al menos uno (casillas de verificación)
+Table comida_tipo_comida {
+  comida_fuera_hogar_id number(10) [not null]
+  tipo_comida_id number(10) [not null]
+
+  indexes {
+    (comida_fuera_hogar_id, tipo_comida_id) [pk]
+  }
+}
+
+// =====================================================================
+// Relaciones
+// =====================================================================
+
+// Ubicación
+Ref: departamento.region_id > region.id
+Ref: municipio.departamento_id > departamento.id
+Ref: vivienda.municipio_id > municipio.id
+
+// Usuarios
+Ref: usuario.rol_id > rol.id
+Ref: usuario.created_by > usuario.id
+
+// Hogar
+Ref: hogar.vivienda_id > vivienda.id
+Ref: hogar.encuestador_id > usuario.id
+Ref: hogar.resultado_id > resultado_entrevista.id
+Ref: hogar.forma_pago_id > forma_pago.id
+Ref: control_cuadernillo.hogar_id > hogar.id [delete: cascade]
+Ref: control_cuadernillo.usuario_id > usuario.id
+Ref: historial_estado_caso.hogar_id > hogar.id [delete: cascade]
+Ref: historial_estado_caso.usuario_id > usuario.id
+
+// Visitas
+Ref: visita.hogar_id > hogar.id [delete: cascade]
+Ref: visita.resultado_id > resultado_entrevista.id
+
+// Capítulo C
+Ref: caracteristica_gasto.hogar_id > hogar.id [delete: cascade]
+Ref: caracteristica_gasto.grupo_alimento_id > grupo_alimento.id
+Ref: caracteristica_gasto.frecuencia_compra_id > frecuencia_compra.id
+Ref: mercado_total.hogar_id > hogar.id [delete: cascade]
+Ref: mercado_total.tipo_mercado_id > tipo_mercado.id
+
+// Capítulo D
+Ref: registro_diario.hogar_id > hogar.id [delete: cascade]
+Ref: gasto_diario.registro_diario_id > registro_diario.id [delete: cascade]
+Ref: gasto_diario.unidad_medida_id > unidad_medida.id
+Ref: gasto_diario.forma_adquisicion_id > forma_adquisicion.id
+Ref: gasto_diario.lugar_compra_id > lugar_compra.id
+Ref: gasto_diario.frecuencia_compra_id > frecuencia_compra.id
+
+// Capítulo D1
+Ref: comida_fuera_hogar.registro_diario_id > registro_diario.id [delete: cascade]
+Ref: comida_fuera_hogar.forma_adquisicion_id > forma_adquisicion.id
+Ref: comida_fuera_hogar.lugar_compra_id > lugar_compra.id
+Ref: comida_fuera_hogar.frecuencia_compra_id > frecuencia_compra.id
+Ref: comida_tipo_comida.comida_fuera_hogar_id > comida_fuera_hogar.id [delete: cascade]
+Ref: comida_tipo_comida.tipo_comida_id > tipo_comida.id
+
+// Auditoría (created_by)
+Ref: vivienda.created_by > usuario.id
+Ref: hogar.created_by > usuario.id
+Ref: visita.created_by > usuario.id
+Ref: registro_diario.created_by > usuario.id
+Ref: gasto_diario.created_by > usuario.id
+Ref: comida_fuera_hogar.created_by > usuario.id
