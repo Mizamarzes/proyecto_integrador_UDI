@@ -24,12 +24,17 @@ proyecto_integrador_UDI/
 ├── CLAUDE.md
 ├── README.md
 ├── docs/
-│   ├── arquitectura.md                       # Este archivo
-│   └── db/
-│       ├── modelo_relacional.dbml            # Modelo relacional (dbdiagram.io)
-│       ├── modelo_relacional.md              # Documentación y diccionario de datos
-│       ├── esquema_oracle10g.sql             # DDL + datos de prueba para Oracle 10g
-│       └── *.pdf                             # Enunciado, documento de diseño y Cuadernillo 2
+│   ├── README.md                             # Índice de la documentación
+│   ├── referencias/                          # Enunciado, documento de diseño y Cuadernillo 2 (PDF)
+│   ├── arquitectura/
+│   │   └── arquitectura.md                   # Este archivo
+│   ├── db/
+│   │   ├── modelo_relacional.dbml            # Modelo relacional (dbdiagram.io)
+│   │   ├── modelo_relacional.md              # Documentación y diccionario de datos
+│   │   ├── esquema_oracle10g.sql             # DDL + datos de prueba para Oracle 10g
+│   │   └── diagramas/                        # Modelo entidad-relación y modelo relacional (PNG)
+│   └── diseno/
+│       └── prompt_diseno_ui.md               # Prompt para diseñar la interfaz
 │
 └── src/main/
     ├── java/

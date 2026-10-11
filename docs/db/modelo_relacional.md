@@ -1,6 +1,6 @@
 # Modelo relacional – Cuadernillo 2 urbano (ENPH)
 
-Este documento explica cómo se pasó el diagrama entidad-relación (`db_proyecto_integra-entidad-relacion.drawio.png`) al modelo relacional que está en `docs/db/modelo_relacional.dbml`. El modelo está pensado para Oracle y se puede ver pegando el `.dbml` en dbdiagram.io.
+Este documento explica cómo se pasó el diagrama entidad-relación (`diagramas/modelo-entidad-relacion.png`) al modelo relacional que está en `docs/db/modelo_relacional.dbml`. El modelo está pensado para Oracle y se puede ver pegando el `.dbml` en dbdiagram.io.
 
 Resumen: **18 tablas, 8 enums y 37 llaves foráneas** (22 del modelo y 15 de auditoría).
 
