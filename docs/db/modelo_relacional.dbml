@@ -1,0 +1,421 @@
+// =====================================================================
+// ENPH - Cuadernillo 2 Urbano
+// Modelo relacional derivado del diagrama entidad-relación
+// (db_proyecto_integra-entidad-relacion.drawio.png)
+// Formato dbdiagram.io - destino: Oracle
+// Documentación: docs/db/modelo_relacional.md
+// =====================================================================
+
+Project enph_cuadernillo2 {
+  database_type: 'Oracle'
+  Note: 'Proyecto Integrador IV - UDI. Modelo relacional del Cuadernillo 2 urbano.'
+}
+
+// ---------------------------------------------------------------------
+// Enums (atributos simples del E-R con valores fijos del cuadernillo).
+// En Oracle se implementan como VARCHAR2 + CHECK constraint.
+// ---------------------------------------------------------------------
+
+Enum resultado_entrevista {
+  EC [note: 'Encuesta completa']
+  EI [note: 'Encuesta incompleta']
+  NH [note: 'Nadie en el hogar']
+  AT [note: 'Ausente temporal']
+  R  [note: 'Rechazo']
+  OC [note: 'Ocupado']
+  V  [note: 'Vacante']
+  O  [note: 'Otro motivo']
+}
+
+Enum forma_pago {
+  TARJETA_DEBITO   [note: 'a. 1']
+  TARJETA_CREDITO  [note: 'b. 2']
+  EFECTIVO         [note: 'c. 3']
+  FIADO            [note: 'd. 4']
+  BONOS            [note: 'e. 5']
+  OTRA             [note: 'f. 6']
+}
+
+Enum frecuencia_compra {
+  NUNCA                [note: '1 - solo capítulo C']
+  DIARIO               [note: '2']
+  VARIAS_VECES_SEMANA  [note: '2.1']
+  SEMANAL              [note: '3']
+  QUINCENAL            [note: '4']
+  MENSUAL              [note: '5 - supera la bisemana']
+  BIMESTRAL            [note: '6 - supera la bisemana']
+  TRIMESTRAL           [note: '7 - supera la bisemana']
+  ESPORADICA           [note: '9 - supera la bisemana']
+}
+
+Enum unidad_medida {
+  CENTIMETROS_CUBICOS  [note: '1']
+  LITRO                [note: '2']
+  GRAMOS               [note: '3']
+  ONZAS                [note: '4']
+  LIBRA                [note: '5']
+  KILO                 [note: '6']
+  ARROBA               [note: '7']
+  OTRA                 [note: '8 - no tradicional: atado, bolsa, manojo...']
+}
+
+Enum forma_adquisicion {
+  COMPRA             [note: '1']
+  PAGO_TRABAJO       [note: '2 - Recibidos como pago por trabajo']
+  REGALO             [note: '3 - Regalo o donación']
+  INTERCAMBIO        [note: '4 - Intercambio o trueque']
+  PRODUCCION_PROPIA  [note: '5 - Traídos de la finca o producidos por el hogar']
+  NEGOCIO_PROPIO     [note: '6 - Tomados de un negocio del hogar']
+  OTRA               [note: '7']
+}
+
+Enum tipo_gasto {
+  HOGAR     [note: '1']
+  PERSONAL  [note: '2']
+}
+
+Enum tipo_comida {
+  DESAYUNO
+  ALMUERZO
+  CENA
+  ONCES  [note: 'Onces, medias nueves, merienda, snacks']
+}
+
+// ---------------------------------------------------------------------
+// Seguridad: módulos, roles, usuarios
+// ---------------------------------------------------------------------
+
+Table modulo [headercolor: #7F8C8D] {
+  id number(10) [pk, increment]
+  nombre varchar2(60) [not null]
+  slug varchar2(60) [not null, unique, note: 'Identificador para el menú: usuarios, digitacion, configuracion...']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10) [note: 'Usuario que creó el registro']
+}
+
+Table rol [headercolor: #7F8C8D] {
+  id number(10) [pk, increment]
+  nombre varchar2(30) [not null, unique, note: 'ADMIN, SUPERVISOR, ENCUESTADOR']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10) [note: 'Usuario que creó el registro']
+}
+
+// Relación N:M "TIENE PERMISO" entre ROL y MODULO
+Table rol_modulo [headercolor: #7F8C8D] {
+  id number(10) [pk, increment]
+  rol_id number(10) [not null]
+  modulo_id number(10) [not null]
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10) [note: 'Usuario que creó el registro']
+
+  indexes {
+    (rol_id, modulo_id) [unique, note: 'Un rol no puede tener el mismo módulo dos veces']
+  }
+}
+
+Table usuario [headercolor: #7F8C8D] {
+  id number(10) [pk, increment]
+  email varchar2(120) [not null, unique]
+  password varchar2(255) [not null, note: 'Guardar el hash, nunca el texto plano']
+  nombre varchar2(80) [not null]
+  apellido varchar2(80) [not null]
+  telefono varchar2(20)
+  rol_id number(10) [not null]
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10) [note: 'Usuario que creó el registro']
+}
+
+// Especialización de USUARIO (relación 1:1)
+Table encuestador [headercolor: #7F8C8D] {
+  id number(10) [pk, increment]
+  usuario_id number(10) [not null, unique]
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10) [note: 'Usuario que creó el registro']
+}
+
+// ---------------------------------------------------------------------
+// Ubicación
+// ---------------------------------------------------------------------
+
+Table region [headercolor: #27AE60] {
+  id number(10) [pk, increment]
+  nombre varchar2(60) [not null, unique, note: 'A.1 Región']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+}
+
+Table departamento [headercolor: #27AE60] {
+  id number(10) [pk, increment]
+  nombre varchar2(60) [not null, unique]
+  region_id number(10) [not null]
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+}
+
+Table municipio [headercolor: #27AE60] {
+  id number(10) [pk, increment]
+  nombre varchar2(80) [not null]
+  departamento_id number(10) [not null]
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+}
+
+// ---------------------------------------------------------------------
+// Capítulo A (identificación), B (visitas) y D2 (cierre)
+// ---------------------------------------------------------------------
+
+Table hogar [headercolor: #2980B9] {
+  id number(10) [pk, increment]
+  municipio_id number(10) [not null]
+  clase number(1) [not null, note: 'A.4']
+  sector varchar2(10) [note: 'A.5']
+  seccion varchar2(10) [note: 'A.6']
+  manzana varchar2(10) [note: 'A.7']
+  segmento varchar2(10) [note: 'A.8']
+  ciclo varchar2(10) [note: 'A.9']
+  edificacion_numero number(4) [note: 'A.10']
+  vivienda_numero number(4) [note: 'A.11']
+  total_hogares number(2) [not null, note: 'A.12']
+  hogar_numero number(2) [not null, note: 'A.13 Hogar número dentro de la vivienda']
+  total_personas number(2) [not null, note: 'A.14 Total de personas en el hogar']
+  barrio varchar2(120) [note: 'A.15']
+  direccion varchar2(200) [not null, note: 'A.16']
+  telefono varchar2(20) [note: 'A.17']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10) [note: 'Usuario que creó el registro']
+}
+
+Table encuesta [headercolor: #2980B9] {
+  id number(10) [pk, increment]
+  hogar_id number(10) [not null, unique]
+  encuestador_id number(10) [not null, note: 'DILIGENCIA Y CREA']
+  informante_nombre varchar2(120) [note: 'Nombre de la persona que responde el cuadernillo']
+  informante_orden number(2) [note: 'Número de orden de la persona que responde']
+  resultado_cuadernillo resultado_entrevista [note: 'A.18']
+  fecha_desde date [not null, note: 'A.21']
+  fecha_hasta date [not null, note: 'A.22 = fecha_desde + 13']
+  gasto_fiestas char(1) [note: 'D2.1 S/N']
+  forma_pago forma_pago [note: 'D2.2']
+  forma_pago_otra varchar2(100) [note: 'D2.2 f. Otra, ¿cuál?']
+  observaciones varchar2(1000)
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10) [note: 'Usuario que creó el registro']
+}
+
+Table visita [headercolor: #2980B9] {
+  id number(10) [pk, increment]
+  hogar_id number(10) [not null]
+  numero_visita number(2) [not null, note: '1..14']
+  fecha date [not null]
+  hora_inicio timestamp [not null]
+  hora_fin timestamp
+  resultado_visita resultado_entrevista [not null]
+  partes_pendientes varchar2(200)
+  fecha_proxima date
+  hora_proxima timestamp
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10) [note: 'Usuario que creó el registro']
+
+  indexes {
+    (hogar_id, numero_visita) [unique]
+  }
+}
+
+// ---------------------------------------------------------------------
+// Capítulo C. Características del gasto en alimentos
+// ---------------------------------------------------------------------
+
+Table grupo_alimento [headercolor: #8E44AD] {
+  id number(10) [pk, increment]
+  nombre varchar2(200) [not null, unique, note: '25 grupos: 01 Pan, arepas... 25 Alimentos preparados fuera del hogar']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10) [note: 'Usuario que creó el registro']
+}
+
+Table caracteristica_gasto [headercolor: #8E44AD] {
+  id number(10) [pk, increment]
+  encuesta_id number(10) [not null, note: 'Agregado: el E-R no lo vincula a ninguna encuesta']
+  grupo_alimento_id number(10) [not null, note: 'CONTIENE']
+  encuestador_id number(10) [not null, note: 'REGISTRA']
+  frecuencia_compra frecuencia_compra [not null, note: 'C.2']
+  valor_ultima_compra number(12,2) [note: 'C.3.1 solo si supera la bisemana']
+  comprara_en_periodo char(1) [note: 'C.3.2 S/N, solo si supera la bisemana']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10) [note: 'Usuario que creó el registro']
+
+  indexes {
+    (encuesta_id, grupo_alimento_id) [unique]
+  }
+}
+
+// ---------------------------------------------------------------------
+// Capítulo D y D1. Gastos diarios (14 días)
+// ---------------------------------------------------------------------
+
+Table lugar_compra [headercolor: #E67E22] {
+  id number(10) [pk, increment]
+  nombre varchar2(120) [not null, unique]
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10) [note: 'Usuario que creó el registro']
+}
+
+Table registro_diario [headercolor: #E74C3C] {
+  id number(10) [pk, increment]
+  encuesta_id number(10) [not null, note: 'Agregado: el E-R no lo vincula a ninguna encuesta']
+  numero_dia number(2) [not null, note: '1..14']
+  fecha date [not null, note: 'D.1.2']
+  observaciones varchar2(1000) [note: 'Observaciones al pie de la página del día']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10) [note: 'Usuario que creó el registro']
+
+  indexes {
+    (encuesta_id, numero_dia) [unique]
+    (encuesta_id, fecha) [unique]
+  }
+}
+
+Table gasto_diario [headercolor: #E74C3C] {
+  id number(10) [pk, increment]
+  registro_diario_id number(10) [not null]
+  encuestador_id number(10) [not null, note: 'REGISTRA']
+  lugar_compra_id number(10) [note: '(7) Nulo si no fue compra']
+  numero_orden number(3) [not null, note: '(3)']
+  nombre_articulo varchar2(200) [not null, note: '(4)']
+  cantidad number(10,2) [not null, note: '(5.1)']
+  unidad_medida unidad_medida [not null, note: '(5.2)']
+  unidad_medida_otra varchar2(60) [note: '(5.2) 8. Otra, ¿cuál?']
+  equivalencia_gr number(10,2) [note: '(5.3) Sólidos, solo unidad OTRA']
+  equivalencia_cm3 number(10,2) [note: '(5.3) Líquidos, solo unidad OTRA']
+  forma_adquisicion forma_adquisicion [not null, note: '(6)']
+  forma_adquisicion_otra varchar2(100) [note: '(6) 7. Otra, ¿cuál?']
+  valor number(12,2) [not null, note: '(8) Pagado o estimado']
+  frecuencia_compra frecuencia_compra [note: '(9) Nulo si no fue compra; NUNCA no aplica']
+  tipo_gasto tipo_gasto [not null, note: '(10)']
+  beneficiario_mesada varchar2(120) [note: 'Nombre de la persona a quien se entregó la mesada']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10) [note: 'Usuario que creó el registro']
+
+  indexes {
+    (registro_diario_id, numero_orden) [unique]
+  }
+}
+
+Table comida_fuera_hogar [headercolor: #E74C3C] {
+  id number(10) [pk, increment]
+  registro_diario_id number(10) [not null]
+  encuestador_id number(10) [not null, note: 'REGISTRA']
+  lugar_compra_id number(10) [note: '(7) Nulo si no fue compra']
+  numero_orden number(3) [not null, note: '(3)']
+  descripcion varchar2(200) [not null, note: '(4)']
+  tipo_comida tipo_comida [not null, note: '(4.1)']
+  cantidad number(10,2) [not null, note: '(5)']
+  forma_adquisicion forma_adquisicion [not null, note: '(6)']
+  forma_adquisicion_otra varchar2(100) [note: '(6) 7. Otra, ¿cuál?']
+  valor number(12,2) [not null, note: '(8)']
+  frecuencia_compra frecuencia_compra [note: '(9) Nulo si no fue compra; NUNCA no aplica']
+  tipo_gasto tipo_gasto [not null, note: '(10) En el E-R figura como tipo_compra']
+  a_domicilio char(1) [not null, default: 'N', note: '(11) S/N']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10) [note: 'Usuario que creó el registro']
+
+  indexes {
+    (registro_diario_id, numero_orden) [unique]
+  }
+}
+
+// =====================================================================
+// Agrupaciones
+// =====================================================================
+
+TableGroup seguridad [color: #7F8C8D] {
+  modulo
+  rol
+  rol_modulo
+  usuario
+  encuestador
+}
+
+TableGroup ubicacion [color: #27AE60] {
+  region
+  departamento
+  municipio
+}
+
+TableGroup hogar_encuesta [color: #2980B9] {
+  hogar
+  encuesta
+  visita
+}
+
+TableGroup capitulo_c [color: #8E44AD] {
+  grupo_alimento
+  caracteristica_gasto
+}
+
+TableGroup capitulo_d [color: #E74C3C] {
+  lugar_compra
+  registro_diario
+  gasto_diario
+  comida_fuera_hogar
+}
+
+// =====================================================================
+// Relaciones
+// =====================================================================
+
+// Seguridad
+Ref: rol_modulo.rol_id > rol.id [delete: cascade, color: #7F8C8D]
+Ref: rol_modulo.modulo_id > modulo.id [delete: cascade, color: #7F8C8D]
+Ref: usuario.rol_id > rol.id [color: #7F8C8D]
+Ref: encuestador.usuario_id - usuario.id [color: #7F8C8D]
+
+// Ubicación
+Ref: departamento.region_id > region.id [color: #27AE60]
+Ref: municipio.departamento_id > departamento.id [color: #27AE60]
+Ref: hogar.municipio_id > municipio.id [color: #27AE60]
+
+// Hogar y encuesta
+Ref: encuesta.hogar_id - hogar.id [color: #2980B9]
+Ref: encuesta.encuestador_id > encuestador.id [color: #2980B9]
+Ref: visita.hogar_id > hogar.id [delete: cascade, color: #2980B9]
+
+// Capítulo C
+Ref: caracteristica_gasto.encuesta_id > encuesta.id [delete: cascade, color: #8E44AD]
+Ref: caracteristica_gasto.grupo_alimento_id > grupo_alimento.id [color: #8E44AD]
+Ref: caracteristica_gasto.encuestador_id > encuestador.id [color: #8E44AD]
+
+// Capítulo D y D1
+Ref: registro_diario.encuesta_id > encuesta.id [delete: cascade, color: #E74C3C]
+Ref: gasto_diario.registro_diario_id > registro_diario.id [delete: cascade, color: #E74C3C]
+Ref: gasto_diario.encuestador_id > encuestador.id [color: #E74C3C]
+Ref: gasto_diario.lugar_compra_id > lugar_compra.id [color: #E67E22]
+Ref: comida_fuera_hogar.registro_diario_id > registro_diario.id [delete: cascade, color: #E74C3C]
+Ref: comida_fuera_hogar.encuestador_id > encuestador.id [color: #E74C3C]
+Ref: comida_fuera_hogar.lugar_compra_id > lugar_compra.id [color: #E67E22]
+
+// Auditoría (created_by)
+Ref: modulo.created_by > usuario.id [color: #BDC3C7]
+Ref: rol.created_by > usuario.id [color: #BDC3C7]
+Ref: rol_modulo.created_by > usuario.id [color: #BDC3C7]
+Ref: usuario.created_by > usuario.id [color: #BDC3C7]
+Ref: encuestador.created_by > usuario.id [color: #BDC3C7]
+Ref: hogar.created_by > usuario.id [color: #BDC3C7]
+Ref: encuesta.created_by > usuario.id [color: #BDC3C7]
+Ref: visita.created_by > usuario.id [color: #BDC3C7]
+Ref: grupo_alimento.created_by > usuario.id [color: #BDC3C7]
+Ref: caracteristica_gasto.created_by > usuario.id [color: #BDC3C7]
+Ref: lugar_compra.created_by > usuario.id [color: #BDC3C7]
+Ref: registro_diario.created_by > usuario.id [color: #BDC3C7]
+Ref: gasto_diario.created_by > usuario.id [color: #BDC3C7]
+Ref: comida_fuera_hogar.created_by > usuario.id [color: #BDC3C7]
