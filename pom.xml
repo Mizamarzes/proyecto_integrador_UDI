@@ -20,6 +20,12 @@
             <artifactId>javafx-fxml</artifactId>
             <version>13</version>
         </dependency>
+        <!-- Driver JDBC de Oracle. La versión 11.2 es la última compatible con un servidor Oracle 10g -->
+        <dependency>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc6</artifactId>
+            <version>11.2.0.4</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

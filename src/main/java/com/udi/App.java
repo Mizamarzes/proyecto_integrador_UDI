@@ -1,5 +1,6 @@
 package com.udi;
 
+import com.udi.config.ConexionBD;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -20,6 +21,11 @@ public class App extends Application {
         scene = new Scene(loadFXML("primary"), 640, 480);
         stage.setScene(scene);
         stage.show();
+    }
+
+    @Override
+    public void stop() {
+        ConexionBD.cerrar();
     }
 
     static void setRoot(String fxml) throws IOException {
