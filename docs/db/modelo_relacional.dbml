@@ -166,7 +166,8 @@ Table municipio [headercolor: #27AE60] {
 // Capítulo A (identificación), B (visitas) y D2 (cierre)
 // ---------------------------------------------------------------------
 
-Table hogar [headercolor: #2980B9] {
+// Espacio físico: se identifica con la dirección y la ubicación muestral
+Table vivienda [headercolor: #2980B9] {
   id number(10) [pk, increment]
   municipio_id number(10) [not null]
   clase number(1) [not null, note: 'A.4']
@@ -174,18 +175,31 @@ Table hogar [headercolor: #2980B9] {
   seccion varchar2(10) [note: 'A.6']
   manzana varchar2(10) [note: 'A.7']
   segmento varchar2(10) [note: 'A.8']
-  ciclo varchar2(10) [note: 'A.9']
   edificacion_numero number(4) [note: 'A.10']
   vivienda_numero number(4) [note: 'A.11']
-  total_hogares number(2) [not null, note: 'A.12']
-  hogar_numero number(2) [not null, note: 'A.13 Hogar número dentro de la vivienda']
-  total_personas number(2) [not null, note: 'A.14 Total de personas en el hogar']
+  total_hogares number(2) [not null, note: 'A.12 Total de hogares en la vivienda']
   barrio varchar2(120) [note: 'A.15']
   direccion varchar2(200) [not null, note: 'A.16']
   telefono varchar2(20) [note: 'A.17']
   created_at timestamp [not null, default: `SYSTIMESTAMP`]
   updated_at timestamp
   created_by number(10) [note: 'Usuario que creó el registro']
+}
+
+// Personas que comparten la vivienda y un presupuesto común para la comida
+Table hogar [headercolor: #2980B9] {
+  id number(10) [pk, increment]
+  vivienda_id number(10) [not null]
+  hogar_numero number(2) [not null, note: 'A.13 Hogar número dentro de la vivienda']
+  total_personas number(2) [not null, note: 'A.14 Total de personas en el hogar']
+  ciclo varchar2(10) [note: 'A.9']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`]
+  updated_at timestamp
+  created_by number(10) [note: 'Usuario que creó el registro']
+
+  indexes {
+    (vivienda_id, hogar_numero) [unique, note: 'No puede haber dos hogares con el mismo número en una vivienda']
+  }
 }
 
 Table encuesta [headercolor: #2980B9] {
@@ -353,6 +367,7 @@ TableGroup ubicacion [color: #27AE60] {
 }
 
 TableGroup hogar_encuesta [color: #2980B9] {
+  vivienda
   hogar
   encuesta
   visita
@@ -383,9 +398,10 @@ Ref: encuestador.usuario_id - usuario.id [color: #7F8C8D]
 // Ubicación
 Ref: departamento.region_id > region.id [color: #27AE60]
 Ref: municipio.departamento_id > departamento.id [color: #27AE60]
-Ref: hogar.municipio_id > municipio.id [color: #27AE60]
+Ref: vivienda.municipio_id > municipio.id [color: #27AE60]
 
-// Hogar y encuesta
+// Vivienda, hogar y encuesta
+Ref: hogar.vivienda_id > vivienda.id [color: #2980B9]
 Ref: encuesta.hogar_id - hogar.id [color: #2980B9]
 Ref: encuesta.encuestador_id > encuestador.id [color: #2980B9]
 Ref: visita.hogar_id > hogar.id [delete: cascade, color: #2980B9]
@@ -410,6 +426,7 @@ Ref: rol.created_by > usuario.id [color: #BDC3C7]
 Ref: rol_modulo.created_by > usuario.id [color: #BDC3C7]
 Ref: usuario.created_by > usuario.id [color: #BDC3C7]
 Ref: encuestador.created_by > usuario.id [color: #BDC3C7]
+Ref: vivienda.created_by > usuario.id [color: #BDC3C7]
 Ref: hogar.created_by > usuario.id [color: #BDC3C7]
 Ref: encuesta.created_by > usuario.id [color: #BDC3C7]
 Ref: visita.created_by > usuario.id [color: #BDC3C7]

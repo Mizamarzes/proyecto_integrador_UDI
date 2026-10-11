@@ -2,7 +2,7 @@
 
 Este documento explica cómo se pasó el diagrama entidad-relación (`db_proyecto_integra-entidad-relacion.drawio.png`) al modelo relacional que está en `docs/db/modelo_relacional.dbml`. El modelo está pensado para Oracle y se puede ver pegando el `.dbml` en dbdiagram.io.
 
-Resumen: **17 tablas, 7 enums y 34 llaves foráneas** (20 del modelo y 14 de auditoría).
+Resumen: **18 tablas, 7 enums y 36 llaves foráneas** (21 del modelo y 15 de auditoría).
 
 ---
 
@@ -32,6 +32,7 @@ Resumen: **17 tablas, 7 enums y 34 llaves foráneas** (20 del modelo y 14 de aud
 | REGION *(agregada)* | `region` | Ubicación |
 | DEPARTAMENTO | `departamento` | Ubicación |
 | MUNICIPIO | `municipio` | Ubicación |
+| VIVIENDA *(agregada)* | `vivienda` | Capítulo A |
 | HOGAR | `hogar` | Capítulo A |
 | ENCUESTA | `encuesta` | Capítulo A y D2 |
 | VISITA | `visita` | Capítulo B |
@@ -53,7 +54,8 @@ Resumen: **17 tablas, 7 enums y 34 llaves foráneas** (20 del modelo y 14 de aud
 | USUARIO – ENCUESTADOR | 1:1 | `encuestador.usuario_id` (único) |
 | *(agregada)* REGION – DEPARTAMENTO | 1:N | `departamento.region_id` |
 | DEPARTAMENTO – TIENE – MUNICIPIO | 1:N | `municipio.departamento_id` |
-| MUNICIPIO – PERTENECE – HOGAR | 1:N | `hogar.municipio_id` |
+| MUNICIPIO – PERTENECE – VIVIENDA | 1:N | `vivienda.municipio_id` (en el E-R la relación es con HOGAR) |
+| *(agregada)* VIVIENDA – HOGAR | 1:N | `hogar.vivienda_id` |
 | HOGAR – TIENE – ENCUESTA | 1:1 | `encuesta.hogar_id` (único) |
 | ENCUESTADOR – DILIGENCIA Y CREA – ENCUESTA | 1:N | `encuesta.encuestador_id` |
 | HOGAR – TIENE – VISITA | 1:N | `visita.hogar_id` |
@@ -179,7 +181,7 @@ Restricción única: `(rol_id, modulo_id)`, para que un rol no tenga el mismo m�
 
 ### Capítulo A, B y D2
 
-**`hogar`**: identificación de la vivienda y del hogar (capítulo A).
+**`vivienda`**: el espacio físico (casa, apartamento, habitación con entrada independiente) donde viven uno o más hogares (capítulo A).
 
 | Columna | Tipo | Restricciones | Descripción |
 |---|---|---|---|
@@ -190,15 +192,24 @@ Restricción única: `(rol_id, modulo_id)`, para que un rol no tenga el mismo m�
 | seccion | VARCHAR2(10) | | A.6 Sección |
 | manzana | VARCHAR2(10) | | A.7 Manzana |
 | segmento | VARCHAR2(10) | | A.8 Segmento |
-| ciclo | VARCHAR2(10) | | A.9 Ciclo |
 | edificacion_numero | NUMBER(4) | | A.10 Edificación número |
 | vivienda_numero | NUMBER(4) | | A.11 Vivienda número |
 | total_hogares | NUMBER(2) | NN | A.12 Total de hogares en la vivienda |
-| hogar_numero | NUMBER(2) | NN | A.13 Hogar número dentro de la vivienda |
-| total_personas | NUMBER(2) | NN | A.14 Total de personas en el hogar |
 | barrio | VARCHAR2(120) | | A.15 Barrio, centro poblado o vereda |
 | direccion | VARCHAR2(200) | NN | A.16 Dirección de la vivienda |
 | telefono | VARCHAR2(20) | | A.17 Teléfono |
+
+**`hogar`**: persona o grupo de personas que comparten la vivienda y un presupuesto común para la comida. Cada hogar recibe su propio cuadernillo (capítulo A).
+
+| Columna | Tipo | Restricciones | Descripción |
+|---|---|---|---|
+| id | NUMBER(10) | PK | Identificador |
+| vivienda_id | NUMBER(10) | NN, FK → vivienda | Vivienda donde vive el hogar |
+| hogar_numero | NUMBER(2) | NN | A.13 Hogar número dentro de la vivienda |
+| total_personas | NUMBER(2) | NN | A.14 Total de personas en el hogar |
+| ciclo | VARCHAR2(10) | | A.9 Ciclo |
+
+Restricción única: `(vivienda_id, hogar_numero)`, para que no haya dos hogares con el mismo número en una vivienda.
 
 **`encuesta`**: el cuadernillo aplicado a un hogar, con el periodo de 14 días y las preguntas del cierre (D2).
 
@@ -334,7 +345,8 @@ Restricción única: `(registro_diario_id, numero_orden)`.
 5. **`tipo_compra` en COMIDA_FUERA_HOGAR** se renombró a `tipo_gasto`. La columna (10) del cuadernillo es "gasto del hogar (1) o gasto personal (2)", y así queda igual que en `gasto_diario`.
 6. **Cardinalidad de HOGAR – VISITA.** En el dibujo la relación tiene flecha simple en ambos lados, lo que se lee como 1:1. Pero un hogar recibe varias visitas durante los 14 días, así que se implementó como **1:N**. Se recomienda corregir la flecha en el E-R.
 7. **HOGAR – ENCUESTA** se implementó como **1:1**, con `encuesta.hogar_id` único. Esto se apoya en que la visita cuelga del hogar en el E-R.
-8. **Campos del cuadernillo agregados** que no estaban en el E-R:
+8. **Se separó VIVIENDA de HOGAR.** En el E-R, HOGAR guarda los datos de la vivienda (dirección, manzana, sector…). Como una vivienda puede tener varios hogares (A.12), esos datos se repetirían en cada hogar, lo que no cumple la 3FN. Se creó la tabla `vivienda` con los datos del espacio físico, y `hogar` quedó con `vivienda_id`, `hogar_numero`, `total_personas` y `ciclo`. La relación con MUNICIPIO pasó a `vivienda`. Se recomienda agregar la entidad VIVIENDA en el E-R, con la relación VIVIENDA 1:N HOGAR.
+9. **Campos del cuadernillo agregados** que no estaban en el E-R:
    - Tabla `region` (A.1), relacionada con `departamento`.
    - En `hogar`: `ciclo` (A.9), `hogar_numero` (A.13) y `total_personas` (A.14).
    - En `encuesta`: `informante_nombre`, `informante_orden` y `forma_pago_otra`.
