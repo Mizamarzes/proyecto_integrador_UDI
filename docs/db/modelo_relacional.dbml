@@ -74,6 +74,12 @@ Enum tipo_gasto {
   PERSONAL  [note: '2']
 }
 
+Enum estado_encuesta {
+  ABIERTA    [note: 'Dentro de los 14 días, admite registros']
+  CERRADA    [note: 'Caso completo, bloquea inserciones y cambios (RF-06)']
+  REABIERTA  [note: 'Un administrador autorizó cambios después del cierre']
+}
+
 Enum tipo_comida {
   DESAYUNO
   ALMUERZO
@@ -124,6 +130,8 @@ Table usuario [headercolor: #7F8C8D] {
   apellido varchar2(80) [not null]
   telefono varchar2(20)
   rol_id number(10) [not null]
+  activo char(1) [not null, default: 'S', note: 'S/N. Si es N el usuario no puede iniciar sesión (RF-01)']
+  ultimo_acceso timestamp [note: 'Fecha y hora del último inicio de sesión']
   created_at timestamp [not null, default: `SYSTIMESTAMP`]
   updated_at timestamp
   created_by number(10) [note: 'Usuario que creó el registro']
@@ -215,6 +223,9 @@ Table encuesta [headercolor: #2980B9] {
   forma_pago forma_pago [note: 'D2.2']
   forma_pago_otra varchar2(100) [note: 'D2.2 f. Otra, ¿cuál?']
   observaciones varchar2(1000)
+  estado estado_encuesta [not null, default: 'ABIERTA', note: 'RF-06']
+  fecha_cierre timestamp [note: 'Cuándo se cerró el caso']
+  cerrada_por number(10) [note: 'Usuario que cerró el caso']
   created_at timestamp [not null, default: `SYSTIMESTAMP`]
   updated_at timestamp
   created_by number(10) [note: 'Usuario que creó el registro']
@@ -404,6 +415,7 @@ Ref: vivienda.municipio_id > municipio.id [color: #27AE60]
 Ref: hogar.vivienda_id > vivienda.id [color: #2980B9]
 Ref: encuesta.hogar_id - hogar.id [color: #2980B9]
 Ref: encuesta.encuestador_id > encuestador.id [color: #2980B9]
+Ref: encuesta.cerrada_por > usuario.id [color: #2980B9]
 Ref: visita.hogar_id > hogar.id [delete: cascade, color: #2980B9]
 
 // Capítulo C

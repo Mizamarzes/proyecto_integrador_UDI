@@ -2,7 +2,7 @@
 
 Este documento explica cómo se pasó el diagrama entidad-relación (`db_proyecto_integra-entidad-relacion.drawio.png`) al modelo relacional que está en `docs/db/modelo_relacional.dbml`. El modelo está pensado para Oracle y se puede ver pegando el `.dbml` en dbdiagram.io.
 
-Resumen: **18 tablas, 7 enums y 36 llaves foráneas** (21 del modelo y 15 de auditoría).
+Resumen: **18 tablas, 8 enums y 37 llaves foráneas** (22 del modelo y 15 de auditoría).
 
 ---
 
@@ -56,6 +56,7 @@ Resumen: **18 tablas, 7 enums y 36 llaves foráneas** (21 del modelo y 15 de aud
 | DEPARTAMENTO – TIENE – MUNICIPIO | 1:N | `municipio.departamento_id` |
 | MUNICIPIO – PERTENECE – VIVIENDA | 1:N | `vivienda.municipio_id` (en el E-R la relación es con HOGAR) |
 | *(agregada)* VIVIENDA – HOGAR | 1:N | `hogar.vivienda_id` |
+| *(agregada)* USUARIO – CIERRA – ENCUESTA | 1:N | `encuesta.cerrada_por` |
 | HOGAR – TIENE – ENCUESTA | 1:1 | `encuesta.hogar_id` (único) |
 | ENCUESTADOR – DILIGENCIA Y CREA – ENCUESTA | 1:N | `encuesta.encuestador_id` |
 | HOGAR – TIENE – VISITA | 1:N | `visita.hogar_id` |
@@ -87,6 +88,7 @@ En Oracle no existe el tipo ENUM. Cada uno se crea como una columna `VARCHAR2` c
 | `forma_adquisicion` | COMPRA, PAGO_TRABAJO, REGALO, INTERCAMBIO, PRODUCCION_PROPIA, NEGOCIO_PROPIO, OTRA | `gasto_diario`, `comida_fuera_hogar` |
 | `tipo_gasto` | HOGAR, PERSONAL | `gasto_diario`, `comida_fuera_hogar` |
 | `tipo_comida` | DESAYUNO, ALMUERZO, CENA, ONCES | `comida_fuera_hogar` |
+| `estado_encuesta` | ABIERTA, CERRADA, REABIERTA | `encuesta.estado` |
 
 `grupo_alimento` y `lugar_compra` siguen siendo tablas, como en el E-R:
 - `grupo_alimento` tiene 25 valores con nombres largos, y el capítulo C necesita recorrerlos para armar el formulario.
@@ -146,6 +148,8 @@ Restricción única: `(rol_id, modulo_id)`, para que un rol no tenga el mismo m�
 | apellido | VARCHAR2(80) | NN | Apellidos |
 | telefono | VARCHAR2(20) | | Teléfono de contacto |
 | rol_id | NUMBER(10) | NN, FK → rol | Rol del usuario |
+| activo | CHAR(1) | NN, default 'S' | ¿Puede iniciar sesión? (S/N). Permite desactivar usuarios sin borrarlos (RF-01) |
+| ultimo_acceso | TIMESTAMP | | Fecha y hora del último inicio de sesión |
 
 **`encuestador`**: usuarios que hacen trabajo de campo.
 
@@ -227,6 +231,9 @@ Restricción única: `(vivienda_id, hogar_numero)`, para que no haya dos hogares
 | forma_pago | enum `forma_pago` | | D2.2 Principal forma de pago |
 | forma_pago_otra | VARCHAR2(100) | | D2.2 Cuál, si la forma de pago es OTRA |
 | observaciones | VARCHAR2(1000) | | Observaciones generales |
+| estado | enum `estado_encuesta` | NN, default 'ABIERTA' | Estado del caso (RF-06). Si está CERRADA no se admiten registros nuevos |
+| fecha_cierre | TIMESTAMP | | Fecha y hora en que se cerró el caso |
+| cerrada_por | NUMBER(10) | FK → usuario | Usuario que cerró el caso |
 
 **`visita`**: control de visitas (capítulo B).
 
@@ -349,7 +356,7 @@ Restricción única: `(registro_diario_id, numero_orden)`.
 9. **Campos del cuadernillo agregados** que no estaban en el E-R:
    - Tabla `region` (A.1), relacionada con `departamento`.
    - En `hogar`: `ciclo` (A.9), `hogar_numero` (A.13) y `total_personas` (A.14).
-   - En `encuesta`: `informante_nombre`, `informante_orden` y `forma_pago_otra`.
+   - En `encuesta`: `informante_nombre`, `informante_orden`, `forma_pago_otra`, y para el RF-06 `estado`, `fecha_cierre` y `cerrada_por`.
    - En `registro_diario`: `observaciones`.
    - En `gasto_diario`: `unidad_medida_otra`, `forma_adquisicion_otra` y `beneficiario_mesada`.
    - En `comida_fuera_hogar`: `forma_adquisicion_otra`.
@@ -362,7 +369,6 @@ Estos campos o reglas no están en el modelo. Se dejan anotados por si el equipo
 
 | Campo del cuadernillo | Dónde iría |
 |---|---|
-| Estado del caso (abierto/cerrado), para bloquear inserciones después del día 14 (RF-06) | `encuesta.estado` |
 | D.2 Total de renglones con información | `registro_diario.total_renglones`, o calcularlo con un `COUNT` |
 | C.4/C.5 Valor total del mercado (códigos 95–98) | Tabla `mercado_total (encuesta_id, tipo_mercado, valor_total)` |
 | Firmas de Recolector, Supervisor y Crítico-digitador con fecha | Tabla `control_cuadernillo` |
