@@ -4,7 +4,6 @@ package com.udi.model;
 public class Modulo extends EntidadAuditable {
 
     private String nombre;
-    /** Identificador para el menú: usuarios, encuestas... */
     private String slug;
 
     public String getNombre() {

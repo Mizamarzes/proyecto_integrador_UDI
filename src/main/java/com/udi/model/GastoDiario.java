@@ -12,33 +12,19 @@ public class GastoDiario extends EntidadAuditable {
 
     private Long registroDiarioId;
     private Long encuestadorId;
-    /** (7) Nulo si no fue compra */
     private Long lugarCompraId;
-    /** (3) */
     private Integer numeroOrden;
-    /** (4) */
     private String nombreArticulo;
-    /** (5.1) */
     private BigDecimal cantidad;
-    /** (5.2) */
     private UnidadMedida unidadMedida;
-    /** (5.2) Cuál, si la unidad es OTRA */
     private String unidadMedidaOtra;
-    /** (5.3) Solo unidad OTRA */
     private BigDecimal equivalenciaGr;
-    /** (5.3) Solo unidad OTRA */
     private BigDecimal equivalenciaCm3;
-    /** (6) */
     private FormaAdquisicion formaAdquisicion;
-    /** (6) Cuál, si la forma es OTRA */
     private String formaAdquisicionOtra;
-    /** (8) Pagado o estimado */
     private BigDecimal valor;
-    /** (9) Nulo si no fue compra */
     private FrecuenciaCompra frecuenciaCompra;
-    /** (10) */
     private TipoGasto tipoGasto;
-    /** Persona a quien se entregó la mesada */
     private String beneficiarioMesada;
 
     public Long getRegistroDiarioId() {

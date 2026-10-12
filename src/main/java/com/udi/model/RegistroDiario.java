@@ -6,9 +6,7 @@ import java.time.LocalDate;
 public class RegistroDiario extends EntidadAuditable {
 
     private Long encuestaId;
-    /** 1 a 14 */
     private Integer numeroDia;
-    /** D.1.2 = fechaDesde de la encuesta + numeroDia - 1 */
     private LocalDate fecha;
     private String observaciones;
 

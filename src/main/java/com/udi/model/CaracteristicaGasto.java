@@ -4,18 +4,13 @@ import com.udi.model.enums.FrecuenciaCompra;
 
 import java.math.BigDecimal;
 
-/** Renglón del capítulo C: frecuencia de compra de un grupo de alimentos (RF-07). */
 public class CaracteristicaGasto extends EntidadAuditable {
 
     private Long encuestaId;
-    /** C.1 */
     private Long grupoAlimentoId;
     private Long encuestadorId;
-    /** C.2 */
     private FrecuenciaCompra frecuenciaCompra;
-    /** C.3.1 Solo si la frecuencia supera la bisemana */
     private BigDecimal valorUltimaCompra;
-    /** C.3.2 Solo si la frecuencia supera la bisemana */
     private Boolean compraraEnPeriodo;
 
     public Long getEncuestaId() {

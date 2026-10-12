@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 public class Visita extends EntidadAuditable {
 
     private Long hogarId;
-    /** 1 a 14 */
     private Integer numeroVisita;
     private LocalDate fecha;
     private LocalDateTime horaInicio;

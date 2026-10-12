@@ -12,27 +12,16 @@ public class ComidaFueraHogar extends EntidadAuditable {
 
     private Long registroDiarioId;
     private Long encuestadorId;
-    /** (7) Nulo si no fue compra */
     private Long lugarCompraId;
-    /** (3) */
     private Integer numeroOrden;
-    /** (4) */
     private String descripcion;
-    /** (4.1) */
     private TipoComida tipoComida;
-    /** (5) */
     private BigDecimal cantidad;
-    /** (6) */
     private FormaAdquisicion formaAdquisicion;
-    /** (6) Cuál, si la forma es OTRA */
     private String formaAdquisicionOtra;
-    /** (8) */
     private BigDecimal valor;
-    /** (9) Nulo si no fue compra */
     private FrecuenciaCompra frecuenciaCompra;
-    /** (10) */
     private TipoGasto tipoGasto;
-    /** (11) */
     private boolean aDomicilio;
 
     public Long getRegistroDiarioId() {

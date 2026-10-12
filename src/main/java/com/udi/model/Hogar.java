@@ -4,11 +4,8 @@ package com.udi.model;
 public class Hogar extends EntidadAuditable {
 
     private Long viviendaId;
-    /** A.13 Hogar número dentro de la vivienda */
     private Integer hogarNumero;
-    /** A.14 Total de personas en el hogar */
     private Integer totalPersonas;
-    /** A.9 */
     private String ciclo;
 
     public Long getViviendaId() {

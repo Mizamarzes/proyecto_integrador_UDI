@@ -11,28 +11,18 @@ import java.time.LocalDateTime;
 public class Encuesta extends EntidadAuditable {
 
     private Long hogarId;
-    /** Encuestador que diligencia y crea la encuesta */
     private Long encuestadorId;
-    /** Persona que responde el cuadernillo */
     private String informanteNombre;
     private Integer informanteOrden;
-    /** A.18 */
     private ResultadoEntrevista resultadoCuadernillo;
-    /** A.21 */
     private LocalDate fechaDesde;
-    /** A.22 = fechaDesde + 13 días */
     private LocalDate fechaHasta;
-    /** D2.1 ¿Gasto por fiestas, reuniones o invitados? */
     private Boolean gastoFiestas;
-    /** D2.2 */
     private FormaPago formaPago;
-    /** D2.2 Cuál, si la forma de pago es OTRA */
     private String formaPagoOtra;
     private String observaciones;
-    /** RF-06 */
     private EstadoEncuesta estado;
     private LocalDateTime fechaCierre;
-    /** Usuario que cerró el caso */
     private Long cerradaPor;
 
     public Long getHogarId() {

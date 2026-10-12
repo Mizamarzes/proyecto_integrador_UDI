@@ -3,29 +3,17 @@ package com.udi.model;
 /** Espacio físico donde viven uno o más hogares (capítulo A). */
 public class Vivienda extends EntidadAuditable {
 
-    /** A.3 */
     private Long municipioId;
-    /** A.4 (1 = cabecera) */
     private Integer clase;
-    /** A.5 */
     private String sector;
-    /** A.6 */
     private String seccion;
-    /** A.7 */
     private String manzana;
-    /** A.8 */
     private String segmento;
-    /** A.10 */
     private Integer edificacionNumero;
-    /** A.11 */
     private Integer viviendaNumero;
-    /** A.12 Total de hogares en la vivienda */
     private Integer totalHogares;
-    /** A.15 */
     private String barrio;
-    /** A.16 */
     private String direccion;
-    /** A.17 */
     private String telefono;
 
     public Long getMunicipioId() {

@@ -6,15 +6,12 @@ import java.time.LocalDateTime;
 public class Usuario extends EntidadAuditable {
 
     private String email;
-    /** Hash SHA-256 de la contraseña, nunca el texto plano */
     private String password;
     private String nombre;
     private String apellido;
     private String telefono;
     private Long rolId;
-    /** Si es false, el usuario no puede iniciar sesión */
     private boolean activo = true;
-    /** Fecha y hora del último inicio de sesión */
     private LocalDateTime ultimoAcceso;
 
     public String getEmail() {

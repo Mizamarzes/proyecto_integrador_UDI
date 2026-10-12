@@ -71,7 +71,6 @@ public final class ConexionBD {
         }
     }
 
-    /** Cierra la conexión. Se llama al salir de la aplicación. */
     public static synchronized void cerrar() {
         if (conexion != null) {
             try {
@@ -83,7 +82,6 @@ public final class ConexionBD {
         }
     }
 
-    /** Devuelve la conexión abierta, o abre una nueva si no existe o se cayó. */
     private static Connection obtener() throws SQLException {
         if (conexion == null || conexion.isClosed() || !conexion.isValid(SEGUNDOS_VALIDACION)) {
             cerrar();
