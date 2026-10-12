@@ -133,7 +133,7 @@
     -fx-opacity: 0.7;
 }
 
-/* ── Estructura principal (menu.fxml) ──────────────── */
+/* ── Estructura principal (navbar.fxml) ──────────────── */
 
 .shell {
     -fx-background-color: -color-fondo;

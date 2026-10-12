@@ -116,13 +116,13 @@ public class EncuestaController {
 
     @FXML
     private void nuevaEncuesta() {
-        EncuestaFormController formulario = MenuController.abrir("modulos/encuestas/encuesta_form", "Encuestas", "Nueva encuesta");
+        EncuestaFormController formulario = NavbarController.abrir("modulos/encuestas/encuesta_form", "Encuestas", "Nueva encuesta");
         formulario.nueva();
     }
 
     private void abrir(EncuestaResumen fila) {
         long id = fila.getEncuesta().getId();
-        EncuestaFormController formulario = MenuController.abrir("modulos/encuestas/encuesta_form", "Encuestas", Formato.codigo("E", id));
+        EncuestaFormController formulario = NavbarController.abrir("modulos/encuestas/encuesta_form", "Encuestas", Formato.codigo("E", id));
         formulario.editar(id);
     }
 

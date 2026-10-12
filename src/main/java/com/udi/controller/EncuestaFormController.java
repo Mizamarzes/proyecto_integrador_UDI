@@ -177,7 +177,7 @@ public class EncuestaFormController {
 
     @FXML
     private void volver() {
-        MenuController.abrir("modulos/encuestas/encuesta", "Encuestas");
+        NavbarController.abrir("modulos/encuestas/encuesta", "Encuestas");
     }
 
     private void cargarOpciones(Opciones opciones) {

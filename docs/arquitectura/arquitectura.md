@@ -113,7 +113,7 @@ proyecto_integrador_UDI/
     │       │
     │       ├── controller/                   # ── CONTROLADOR: una clase por pantalla ──
     │       │   ├── LoginController.java      # Hecho
-    │       │   ├── MenuController.java       # Hecho: barra lateral, encabezado y navegación (abrir)
+    │       │   ├── NavbarController.java     # Hecho: barra lateral, encabezado y navegación (abrir)
     │       │   ├── InicioController.java     # Hecho: bienvenida
     │       │   ├── EncuestaFormController.java    # Hecho: crear, editar, cerrar, reabrir y eliminar
     │       │   ├── UsuarioController.java
@@ -142,7 +142,7 @@ proyecto_integrador_UDI/
             ├── shared/                       # Lo común a todos los módulos
             │   ├── estilos.css               # Hoja de estilos única
             │   └── layout/
-            │       ├── menu.fxml             # Hecho: estructura con barra lateral y encabezado
+            │       ├── navbar.fxml           # Hecho: estructura con barra lateral y encabezado
             │       └── pendiente.fxml        # Aviso de módulo en construcción
             └── modulos/
                 ├── auth/
@@ -169,14 +169,14 @@ proyecto_integrador_UDI/
 Los controladores Java están todos en el paquete `controller`, pero sus vistas se agrupan por módulo en `resources/com/udi/ui`:
 
 - `ui/modulos/<modulo>/`: las pantallas de cada módulo (por ejemplo `encuestas/encuesta.fxml` y `encuestas/encuesta_form.fxml`). Si un módulo necesita diálogos modales o fragmentos reutilizables, van en subcarpetas `partials/` y `components/` dentro del módulo.
-- `ui/shared/`: lo común (`estilos.css`, la estructura `layout/menu.fxml` y `layout/pendiente.fxml`).
+- `ui/shared/`: lo común (`estilos.css`, la estructura `layout/navbar.fxml` y `layout/pendiente.fxml`).
 
-Una vista se nombra con su ruta dentro de `ui`, sin extensión: `"modulos/encuestas/encuesta"`. Para agregar un módulo se crea su carpeta en `ui/modulos/`, su controlador en `controller/` y su botón en `menu.fxml`/`MenuController`.
+Una vista se nombra con su ruta dentro de `ui`, sin extensión: `"modulos/encuestas/encuesta"`. Para agregar un módulo se crea su carpeta en `ui/modulos/`, su controlador en `controller/` y su botón en `navbar.fxml`/`NavbarController`.
 
 ## Navegación
 
-- `App.setRoot("<vista>")` cambia toda la ventana (login ↔ menú), por ejemplo `App.setRoot("shared/layout/menu")`.
-- Dentro del menú, `MenuController.abrir("<vista>", migas...)` carga `ui/<vista>.fxml` en el área de contenido, pone el título y la ruta del encabezado y devuelve el controlador para pasarle datos (por ejemplo `formulario.editar(id)`).
+- `App.setRoot("<vista>")` cambia toda la ventana (login ↔ menú), por ejemplo `App.setRoot("shared/layout/navbar")`.
+- Dentro del menú, `NavbarController.abrir("<vista>", migas...)` carga `ui/<vista>.fxml` en el área de contenido, pone el título y la ruta del encabezado y devuelve el controlador para pasarle datos (por ejemplo `formulario.editar(id)`).
 - La barra lateral muestra cada módulo solo si el rol lo tiene en `rol_modulo` (por su slug); el administrador ve todos.
 - Los controladores llaman a los servicios con `Tareas.ejecutar(...)` para no congelar la ventana. Las tareas se ejecutan una a la vez porque la conexión es única, y los errores se muestran con `Alertas`.
 

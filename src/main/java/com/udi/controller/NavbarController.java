@@ -18,12 +18,12 @@ import java.util.List;
  * Estructura principal después del login: barra lateral con los módulos,
  * encabezado con el usuario y área de contenido donde se cargan las pantallas.
  */
-public class MenuController {
+public class NavbarController {
 
     private static final String ACTIVO = "activo";
 
     /** Menú visible; lo usan las pantallas para navegar con {@link #abrir}. */
-    private static MenuController actual;
+    private static NavbarController actual;
 
     @FXML
     private StackPane contenido;

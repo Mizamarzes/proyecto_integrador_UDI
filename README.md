@@ -42,7 +42,7 @@ proyectointegrador/
     └── resources/com/udi/
         ├── ui/
         │   ├── modulos/                  # Pantallas FXML por módulo (auth, inicio, encuestas…)
-        │   └── shared/                   # estilos.css y la estructura principal (menu.fxml)
+        │   └── shared/                   # estilos.css y la estructura principal (navbar.fxml)
         └── config/db.properties          # Conexión a Oracle
 ```
 
@@ -52,4 +52,4 @@ La estructura completa y las reglas de cada capa están en `docs/arquitectura/ar
 
 La clase `App` abre la pantalla de inicio de sesión (`ui/modulos/auth/login.fxml`) y
 cambia de pantalla con `App.setRoot("<vista>")`, que carga `ui/<vista>.fxml`
-(por ejemplo `App.setRoot("shared/layout/menu")`).
+(por ejemplo `App.setRoot("shared/layout/navbar")`).

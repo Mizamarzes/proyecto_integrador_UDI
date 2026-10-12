@@ -17,7 +17,6 @@ import javafx.scene.control.TextField;
 
 import java.util.prefs.Preferences;
 
-/** Pantalla de inicio de sesión (RF-01). */
 public class LoginController {
 
     private static final String PREF_CORREO = "login.correo";
@@ -52,7 +51,6 @@ public class LoginController {
         String correo = txtCorreo.getText();
         String contrasena = txtContrasena.getText();
 
-        // La consulta a Oracle se hace fuera del hilo de la interfaz para no congelarla
         Task<Usuario> tarea = new Task<>() {
             @Override
             protected Usuario call() {
@@ -61,7 +59,7 @@ public class LoginController {
         };
         tarea.setOnSucceeded(e -> {
             recordarCorreo(correo);
-            App.setRoot("shared/layout/menu");
+            App.setRoot("shared/layout/navbar");
         });
         tarea.setOnFailed(e -> {
             ocupado(false);

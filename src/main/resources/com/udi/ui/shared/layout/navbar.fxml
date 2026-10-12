@@ -13,7 +13,7 @@
 <?import javafx.scene.shape.SVGPath?>
 
 <BorderPane styleClass="shell" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.udi.controller.MenuController">
+            fx:controller="com.udi.controller.NavbarController">
 
    <!-- Barra lateral -->
    <left>
