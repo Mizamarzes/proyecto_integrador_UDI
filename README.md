@@ -41,7 +41,7 @@ proyectointegrador/
     │       └── util/ config/ exception/
     └── resources/com/udi/
         ├── ui/
-        │   ├── modulos/                  # Pantallas FXML por módulo (auth, inicio, encuestas…)
+        │   ├── modulos/                  # Pantallas FXML por módulo (auth, encuestas…)
         │   └── shared/                   # estilos.css y la estructura principal (navbar.fxml)
         └── config/db.properties          # Conexión a Oracle
 ```

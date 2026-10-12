@@ -36,11 +36,7 @@ public class NavbarController {
     @FXML
     private Label lblRol;
     @FXML
-    private Button btnInicio;
-    @FXML
     private Button btnEncuestas;
-    @FXML
-    private Button btnHogares;
     @FXML
     private Button btnUsuarios;
 
@@ -52,12 +48,13 @@ public class NavbarController {
         lblUsuario.setText(Sesion.getUsuario().getNombreCompleto());
         lblRol.setText(Formato.nombreRol(Sesion.getRol().getNombre()));
         permitir(btnEncuestas, "encuestas");
-        permitir(btnHogares, "hogares");
         permitir(btnUsuarios, "usuarios");
         if (btnEncuestas.isVisible()) {
             irEncuestas();
+        } else if (btnUsuarios.isVisible()) {
+            irUsuarios();
         } else {
-            irInicio();
+            sinModulos();
         }
     }
 
@@ -75,23 +72,13 @@ public class NavbarController {
     }
 
     @FXML
-    private void irInicio() {
-        navegar(btnInicio, "modulos/inicio/inicio", "Inicio");
-    }
-
-    @FXML
     private void irEncuestas() {
         navegar(btnEncuestas, "modulos/encuestas/encuesta", "Encuestas");
     }
 
     @FXML
-    private void irHogares() {
-        navegar(btnHogares, "shared/layout/pendiente", "Hogares");
-    }
-
-    @FXML
     private void irUsuarios() {
-        navegar(btnUsuarios, "shared/layout/pendiente", "Usuarios");
+        navegar(btnUsuarios, "modulos/usuarios/usuario", "Usuarios");
     }
 
     @FXML
@@ -104,11 +91,20 @@ public class NavbarController {
     }
 
     private void navegar(Button boton, String vista, String titulo) {
-        for (Button b : List.of(btnInicio, btnEncuestas, btnHogares, btnUsuarios)) {
+        for (Button b : List.of(btnEncuestas, btnUsuarios)) {
             b.getStyleClass().remove(ACTIVO);
         }
         boton.getStyleClass().add(ACTIVO);
         abrir(vista, titulo);
+    }
+
+    /** El rol no tiene ninguno de los módulos del menú. */
+    private void sinModulos() {
+        Label aviso = new Label("Su rol no tiene módulos asignados. Comuníquese con el administrador.");
+        aviso.getStyleClass().add("subtitulo-pagina");
+        contenido.getChildren().setAll(aviso);
+        lblTitulo.setText("Sin módulos");
+        lblMigas.setText("ENPH");
     }
 
     /** El administrador ve todos los módulos; los demás roles, los que tienen asignados. */

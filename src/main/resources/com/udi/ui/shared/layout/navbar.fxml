@@ -30,19 +30,9 @@
          </VBox>
 
          <VBox styleClass="sidebar-nav" spacing="2.0">
-            <Button fx:id="btnInicio" text="Inicio" onAction="#irInicio" styleClass="nav-item" maxWidth="Infinity">
-               <graphic>
-                  <SVGPath styleClass="nav-icono" content="M2,8 L8,3 L14,8 M3.5,7 V13.5 H12.5 V7" />
-               </graphic>
-            </Button>
             <Button fx:id="btnEncuestas" text="Encuestas" onAction="#irEncuestas" styleClass="nav-item" maxWidth="Infinity">
                <graphic>
                   <SVGPath styleClass="nav-icono" content="M2.5,1.5 H13.5 V14.5 H2.5 Z M5,5 H11 M5,8 H11 M5,11 H9" />
-               </graphic>
-            </Button>
-            <Button fx:id="btnHogares" text="Hogares" onAction="#irHogares" styleClass="nav-item" maxWidth="Infinity">
-               <graphic>
-                  <SVGPath styleClass="nav-icono" content="M1.5,7.5 L8,2 L14.5,7.5 M3,6.5 V14 H13 V6.5 M6.5,14 V10 H9.5 V14" />
                </graphic>
             </Button>
             <Button fx:id="btnUsuarios" text="Usuarios" onAction="#irUsuarios" styleClass="nav-item" maxWidth="Infinity">

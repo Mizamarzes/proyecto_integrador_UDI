@@ -114,9 +114,9 @@ proyecto_integrador_UDI/
     │       ├── controller/                   # ── CONTROLADOR: una clase por pantalla ──
     │       │   ├── LoginController.java      # Hecho
     │       │   ├── NavbarController.java     # Hecho: barra lateral, encabezado y navegación (abrir)
-    │       │   ├── InicioController.java     # Hecho: bienvenida
     │       │   ├── EncuestaFormController.java    # Hecho: crear, editar, cerrar, reabrir y eliminar
-    │       │   ├── UsuarioController.java
+    │       │   ├── UsuarioController.java    # Hecho: listado de usuarios con búsqueda y filtro por rol
+    │       │   ├── UsuarioFormController.java     # Hecho: crear, editar, contraseña, activar/desactivar y eliminar
     │       │   ├── HogarController.java
     │       │   ├── EncuestaController.java   # Hecho: listado con búsqueda y filtros
     │       │   ├── VisitaController.java
@@ -147,12 +147,13 @@ proyecto_integrador_UDI/
             └── modulos/
                 ├── auth/
                 │   └── login.fxml            # Hecho
-                ├── inicio/
-                │   └── inicio.fxml           # Hecho
                 ├── encuestas/
                 │   ├── encuesta.fxml         # Hecho: listado
                 │   └── encuesta_form.fxml    # Hecho: formulario
-                └── (pendientes) usuarios/  hogares/  visitas/  caracteristicas/  registro_diario/
+                ├── usuarios/
+                │   ├── usuario.fxml          # Hecho: listado
+                │   └── usuario_form.fxml     # Hecho: formulario
+                └── (pendientes) hogares/  visitas/  caracteristicas/  registro_diario/
 ```
 
 ## Acceso a datos

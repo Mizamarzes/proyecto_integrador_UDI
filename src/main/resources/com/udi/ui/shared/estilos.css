@@ -491,3 +491,14 @@
     -fx-background-color: #f4e3c1;
     -fx-text-fill: #8a6519;
 }
+
+/* Insignias de estado del usuario */
+.insignia-activo {
+    -fx-background-color: #dbe8de;
+    -fx-text-fill: #3c6a4a;
+}
+
+.insignia-inactivo {
+    -fx-background-color: #f2dcd7;
+    -fx-text-fill: #9a3a28;
+}
