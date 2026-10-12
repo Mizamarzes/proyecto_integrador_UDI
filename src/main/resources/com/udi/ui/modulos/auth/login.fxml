@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.SVGPath?>
+
+<HBox styleClass="login-root" alignment="CENTER" spacing="40.0"
+      xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.udi.controller.LoginController">
+   <padding>
+      <Insets top="40.0" right="60.0" bottom="40.0" left="40.0" />
+   </padding>
+
+   <!-- Presentación de la encuesta -->
+   <VBox alignment="CENTER_LEFT" spacing="18.0" maxWidth="360.0" HBox.hgrow="NEVER">
+      <StackPane styleClass="logo" maxWidth="-Infinity" alignment="CENTER">
+         <Circle radius="23.0" styleClass="logo-circulo" />
+         <Label text="ENPH" styleClass="logo-texto" />
+      </StackPane>
+
+      <Label text="Encuesta Nacional de Presupuestos de los Hogares"
+             styleClass="titulo-portada" wrapText="true" />
+      <Label text="Área urbana · Panel de campo · Cuadernillo 2" styleClass="subtitulo-portada" />
+
+      <HBox spacing="18.0" styleClass="iconos-cuadernillo">
+         <VBox.margin>
+            <Insets top="16.0" bottom="16.0" />
+         </VBox.margin>
+         <SVGPath styleClass="icono-hoja" content="M0.5,0.5 H28.5 V34.5 H0.5 Z M6,8 H23 M6,13 H23 M6,18 H23 M6,23 H23 M6,28 H23" />
+         <SVGPath styleClass="icono-hoja" content="M0.5,0.5 H28.5 V34.5 H0.5 Z M6,8 H23 M6,13 H23 M6,18 H23 M6,23 H23 M6,28 H23" />
+         <SVGPath styleClass="icono-hoja" content="M0.5,0.5 H28.5 V34.5 H0.5 Z M6,8 H23 M6,13 H23 M6,18 H23 M6,23 H23 M6,28 H23" />
+         <SVGPath styleClass="icono-hoja" content="M0.5,0.5 H28.5 V34.5 H0.5 Z M6,8 H23 M6,13 H23 M6,18 H23 M6,23 H23 M6,28 H23" />
+      </HBox>
+
+      <Separator />
+      <Label text="Propuesta académica · UDI. Este panel apoya el registro y seguimiento de cuadernillos en el operativo de campo urbano."
+             styleClass="nota-portada" wrapText="true" />
+   </VBox>
+
+   <Pane HBox.hgrow="ALWAYS" />
+
+   <!-- Formulario -->
+   <VBox styleClass="tarjeta-login" spacing="8.0" prefWidth="330.0" maxWidth="330.0"
+         maxHeight="-Infinity" HBox.hgrow="NEVER">
+      <Label text="Iniciar sesión" styleClass="titulo-tarjeta">
+         <VBox.margin>
+            <Insets bottom="14.0" />
+         </VBox.margin>
+      </Label>
+
+      <Label text="Correo electrónico" styleClass="etiqueta-campo" labelFor="$txtCorreo" />
+      <TextField fx:id="txtCorreo" promptText="usuario@enph.udi.edu.co" styleClass="campo-linea" />
+
+      <Label text="Contraseña" styleClass="etiqueta-campo" labelFor="$txtContrasena">
+         <VBox.margin>
+            <Insets top="12.0" />
+         </VBox.margin>
+      </Label>
+      <PasswordField fx:id="txtContrasena" promptText="••••••" styleClass="campo-linea" />
+
+      <Label fx:id="lblError" styleClass="mensaje-error" wrapText="true" />
+
+      <HBox alignment="CENTER_LEFT">
+         <VBox.margin>
+            <Insets top="10.0" bottom="12.0" />
+         </VBox.margin>
+         <CheckBox fx:id="chkRecordarme" text="Recordarme" styleClass="texto-pequeno" />
+         <Region HBox.hgrow="ALWAYS" />
+         <Hyperlink text="¿Olvidó su contraseña?" onAction="#olvidoContrasena" styleClass="enlace" />
+      </HBox>
+
+      <Button fx:id="btnIngresar" text="Ingresar" defaultButton="true" onAction="#ingresar"
+              styleClass="boton-primario" maxWidth="Infinity" />
+   </VBox>
+</HBox>

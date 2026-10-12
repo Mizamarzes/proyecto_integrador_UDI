@@ -10,7 +10,7 @@ VISTA          CONTROLADOR         MODELO
 
 | Capa | Paquete | Responsabilidad |
 |---|---|---|
-| Vista | `resources/com/udi/view`, `css` | Pantallas (FXML) y estilos. Sin lógica |
+| Vista | `resources/com/udi/ui` (por módulo) | Pantallas (FXML) y estilos. Sin lógica |
 | Controlador | `controller` | Una clase por pantalla. Lee los campos, llama al servicio y muestra el resultado |
 | Modelo: servicios | `service` | Reglas de negocio del cuadernillo y de los RF |
 | Modelo: acceso a datos | `dao` | SQL con JDBC, una clase por tabla |
@@ -38,7 +38,7 @@ proyecto_integrador_UDI/
 │
 └── src/main/
     ├── java/
-    │   ├── module-info.java                  # requires java.sql; opens com.udi.controller to javafx.fxml
+    │   ├── module-info.java                  # requires java.sql, java.prefs; opens com.udi.controller to javafx.fxml
     │   └── com/udi/
     │       ├── App.java                      # Punto de entrada y navegación entre pantallas (setRoot)
     │       │
@@ -66,6 +66,8 @@ proyecto_integrador_UDI/
     │       │   ├── RegistroDiario.java
     │       │   ├── GastoDiario.java
     │       │   ├── ComidaFueraHogar.java
+    │       │   ├── EncuestaResumen.java      # Fila del listado de encuestas (no es tabla)
+    │       │   ├── Opcion.java               # Id + texto para listas desplegables (no es tabla)
     │       │   └── enums/                    # Enums del modelo (en Oracle son VARCHAR2 + CHECK)
     │       │       ├── ResultadoEntrevista.java
     │       │       ├── FormaPago.java
@@ -109,12 +111,14 @@ proyecto_integrador_UDI/
     │       │   ├── GastoDiarioService.java   # RF-03, RF-04, RF-09 Días, gastos y comidas fuera del hogar
     │       │   └── ReglasEncuesta.java       # Regla compartida: no se modifica una encuesta CERRADA
     │       │
-    │       ├── controller/                   # ── CONTROLADOR: una clase por pantalla (pendiente) ──
-    │       │   ├── LoginController.java
-    │       │   ├── MenuController.java
+    │       ├── controller/                   # ── CONTROLADOR: una clase por pantalla ──
+    │       │   ├── LoginController.java      # Hecho
+    │       │   ├── MenuController.java       # Hecho: barra lateral, encabezado y navegación (abrir)
+    │       │   ├── InicioController.java     # Hecho: bienvenida
+    │       │   ├── EncuestaFormController.java    # Hecho: crear, editar, cerrar, reabrir y eliminar
     │       │   ├── UsuarioController.java
     │       │   ├── HogarController.java
-    │       │   ├── EncuestaController.java
+    │       │   ├── EncuestaController.java   # Hecho: listado con búsqueda y filtros
     │       │   ├── VisitaController.java
     │       │   ├── CaracteristicaController.java
     │       │   └── RegistroDiarioController.java  # Página D + D1 del cuadernillo
@@ -127,24 +131,28 @@ proyecto_integrador_UDI/
     │           ├── Sesion.java               # Usuario logueado (rol, permisos, created_by)
     │           ├── Seguridad.java            # Hash SHA-256 de las contraseñas
     │           ├── Validar.java              # Validaciones comunes de los servicios
-    │           └── Alertas.java              # Diálogos de información, error y confirmación (pendiente)
+    │           ├── Alertas.java              # Diálogos de información, error y confirmación
+    │           ├── Formato.java              # Fechas dd/MM/yyyy y códigos E-000001 / H-000001
+    │           └── Tareas.java               # Llamadas a servicios en segundo plano (una a la vez)
     │
     └── resources/com/udi/
         ├── config/
         │   └── db.properties                 # URL, usuario y contraseña de Oracle
-        ├── view/                             # ── VISTA: pantallas FXML (pendiente) ──
-        │   ├── login.fxml
-        │   ├── menu.fxml
-        │   ├── usuario.fxml
-        │   ├── hogar.fxml
-        │   ├── encuesta.fxml
-        │   ├── visita.fxml
-        │   ├── caracteristica.fxml
-        │   └── registro_diario.fxml
-        ├── css/
-        │   └── estilos.css
-        └── img/
-            └── logo.png
+        └── ui/                               # ── VISTA: pantallas FXML organizadas por módulo ──
+            ├── shared/                       # Lo común a todos los módulos
+            │   ├── estilos.css               # Hoja de estilos única
+            │   └── layout/
+            │       ├── menu.fxml             # Hecho: estructura con barra lateral y encabezado
+            │       └── pendiente.fxml        # Aviso de módulo en construcción
+            └── modulos/
+                ├── auth/
+                │   └── login.fxml            # Hecho
+                ├── inicio/
+                │   └── inicio.fxml           # Hecho
+                ├── encuestas/
+                │   ├── encuesta.fxml         # Hecho: listado
+                │   └── encuesta_form.fxml    # Hecho: formulario
+                └── (pendientes) usuarios/  hogares/  visitas/  caracteristicas/  registro_diario/
 ```
 
 ## Acceso a datos
@@ -155,6 +163,22 @@ proyecto_integrador_UDI/
 - **Ids:** cada `insertar` toma el id de `seq_<tabla>.NEXTVAL`. Si la entidad ya trae id, lo respeta; los catálogos lo usan para guardar el código del cuadernillo.
 - **Conversión de tipos:** `LocalDate` ↔ `DATE`, `LocalDateTime` ↔ `TIMESTAMP`, `boolean` ↔ `CHAR(1)` `'S'`/`'N'` y enum ↔ `VARCHAR2` con el nombre del enum.
 - **Configuración:** `db.properties` (por defecto `jdbc:oracle:thin:@localhost:1522:XE`, usuario `enph`). Cada valor se puede sobrescribir al ejecutar con `-Ddb.url=...`, `-Ddb.usuario=...` o `-Ddb.contrasena=...`.
+
+## Vistas por módulo
+
+Los controladores Java están todos en el paquete `controller`, pero sus vistas se agrupan por módulo en `resources/com/udi/ui`:
+
+- `ui/modulos/<modulo>/`: las pantallas de cada módulo (por ejemplo `encuestas/encuesta.fxml` y `encuestas/encuesta_form.fxml`). Si un módulo necesita diálogos modales o fragmentos reutilizables, van en subcarpetas `partials/` y `components/` dentro del módulo.
+- `ui/shared/`: lo común (`estilos.css`, la estructura `layout/menu.fxml` y `layout/pendiente.fxml`).
+
+Una vista se nombra con su ruta dentro de `ui`, sin extensión: `"modulos/encuestas/encuesta"`. Para agregar un módulo se crea su carpeta en `ui/modulos/`, su controlador en `controller/` y su botón en `menu.fxml`/`MenuController`.
+
+## Navegación
+
+- `App.setRoot("<vista>")` cambia toda la ventana (login ↔ menú), por ejemplo `App.setRoot("shared/layout/menu")`.
+- Dentro del menú, `MenuController.abrir("<vista>", migas...)` carga `ui/<vista>.fxml` en el área de contenido, pone el título y la ruta del encabezado y devuelve el controlador para pasarle datos (por ejemplo `formulario.editar(id)`).
+- La barra lateral muestra cada módulo solo si el rol lo tiene en `rol_modulo` (por su slug); el administrador ve todos.
+- Los controladores llaman a los servicios con `Tareas.ejecutar(...)` para no congelar la ventana. Las tareas se ejecutan una a la vez porque la conexión es única, y los errores se muestran con `Alertas`.
 
 ## Reglas de dependencia
 

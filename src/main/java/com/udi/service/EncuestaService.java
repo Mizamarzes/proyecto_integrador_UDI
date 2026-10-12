@@ -5,19 +5,35 @@ import com.udi.dao.EncuestaDAO;
 import com.udi.dao.EncuestadorDAO;
 import com.udi.dao.HogarDAO;
 import com.udi.dao.RegistroDiarioDAO;
+import com.udi.dao.UsuarioDAO;
+import com.udi.dao.ViviendaDAO;
 import com.udi.exception.ReglaNegocioException;
 import com.udi.model.Encuesta;
+import com.udi.model.EncuestaResumen;
+import com.udi.model.Encuestador;
+import com.udi.model.Hogar;
+import com.udi.model.Opcion;
+import com.udi.model.Rol;
 import com.udi.model.Usuario;
+import com.udi.model.Vivienda;
 import com.udi.model.enums.EstadoEncuesta;
 import com.udi.model.enums.FormaPago;
+import com.udi.util.Formato;
 import com.udi.util.Sesion;
 import com.udi.util.Validar;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Encuesta de un hogar: periodo de 14 días, preguntas del cierre (D2) y
@@ -32,6 +48,8 @@ public class EncuestaService {
     private final HogarDAO hogarDao = new HogarDAO();
     private final EncuestadorDAO encuestadorDao = new EncuestadorDAO();
     private final RegistroDiarioDAO registroDiarioDao = new RegistroDiarioDAO();
+    private final UsuarioDAO usuarioDao = new UsuarioDAO();
+    private final ViviendaDAO viviendaDao = new ViviendaDAO();
 
     public List<Encuesta> listar() {
         return ConexionBD.consultar(encuestaDao::listar);
@@ -51,6 +69,89 @@ public class EncuestaService {
 
     public List<Encuesta> listarPorEstado(EstadoEncuesta estado) {
         return ConexionBD.consultar(c -> encuestaDao.listarPorEstado(c, estado));
+    }
+
+    /**
+     * Encuestas para el listado, con el nombre del encuestador. Un encuestador
+     * solo ve las suyas; los demás roles ven todas.
+     */
+    public List<EncuestaResumen> listarResumen() {
+        Usuario usuario = Sesion.exigirSesion();
+        return ConexionBD.consultar(c -> {
+            List<Encuesta> encuestas;
+            if (Sesion.tieneRol(Rol.ENCUESTADOR)) {
+                Optional<Encuestador> propio = encuestadorDao.buscarPorUsuario(c, usuario.getId());
+                encuestas = propio.isPresent()
+                        ? encuestaDao.listarPorEncuestador(c, propio.get().getId())
+                        : Collections.emptyList();
+            } else {
+                encuestas = encuestaDao.listar(c);
+            }
+            Map<Long, String> nombres = nombresEncuestadores(c);
+            List<EncuestaResumen> resumen = new ArrayList<>();
+            for (Encuesta e : encuestas) {
+                resumen.add(new EncuestaResumen(e, nombres.getOrDefault(e.getEncuestadorId(), "")));
+            }
+            resumen.sort(Comparator.comparing(r -> r.getEncuesta().getId()));
+            return resumen;
+        });
+    }
+
+    /**
+     * Hogares que se pueden asignar a una encuesta: los que todavía no tienen
+     * una, más {@code hogarActual} (el de la encuesta que se edita, puede ser null).
+     */
+    public List<Opcion> opcionesHogares(Long hogarActual) {
+        return ConexionBD.consultar(c -> {
+            Set<Long> conEncuesta = new HashSet<>();
+            for (Encuesta e : encuestaDao.listar(c)) {
+                conEncuesta.add(e.getHogarId());
+            }
+            Map<Long, Vivienda> viviendas = new HashMap<>();
+            for (Vivienda v : viviendaDao.listar(c)) {
+                viviendas.put(v.getId(), v);
+            }
+            List<Opcion> opciones = new ArrayList<>();
+            for (Hogar h : hogarDao.listar(c)) {
+                if (conEncuesta.contains(h.getId()) && !h.getId().equals(hogarActual)) {
+                    continue;
+                }
+                Vivienda v = viviendas.get(h.getViviendaId());
+                String direccion = v == null || v.getDireccion() == null ? "" : " · " + v.getDireccion();
+                opciones.add(new Opcion(h.getId(),
+                        Formato.codigo("H", h.getId()) + " · Hogar " + h.getHogarNumero() + direccion));
+            }
+            return opciones;
+        });
+    }
+
+    /** Encuestadores con el nombre de su usuario. */
+    public List<Opcion> opcionesEncuestadores() {
+        return ConexionBD.consultar(c -> {
+            Map<Long, Usuario> usuarios = new HashMap<>();
+            for (Usuario u : usuarioDao.listar(c)) {
+                usuarios.put(u.getId(), u);
+            }
+            List<Opcion> opciones = new ArrayList<>();
+            for (Encuestador e : encuestadorDao.listar(c)) {
+                Usuario u = usuarios.get(e.getUsuarioId());
+                if (u != null) {
+                    opciones.add(new Opcion(e.getId(), u.getNombreCompleto() + (u.isActivo() ? "" : " (inactivo)")));
+                }
+            }
+            opciones.sort(Comparator.comparing(Opcion::getTexto));
+            return opciones;
+        });
+    }
+
+    /** Id del encuestador del usuario en sesión, si su rol es ENCUESTADOR. */
+    public Optional<Long> encuestadorDeSesion() {
+        Usuario usuario = Sesion.exigirSesion();
+        if (!Sesion.tieneRol(Rol.ENCUESTADOR)) {
+            return Optional.empty();
+        }
+        return ConexionBD.consultar(c -> encuestadorDao.buscarPorUsuario(c, usuario.getId()))
+                .map(Encuestador::getId);
     }
 
     /** Crea la encuesta ABIERTA y calcula fecha_hasta. Un hogar solo tiene una encuesta. */
@@ -124,6 +225,18 @@ public class EncuestaService {
             ReglasEncuesta.exigirEditable(c, encuestaId);
             return encuestaDao.eliminar(c, encuestaId);
         });
+    }
+
+    private Map<Long, String> nombresEncuestadores(Connection c) throws SQLException {
+        Map<Long, String> nombresUsuarios = new HashMap<>();
+        for (Usuario u : usuarioDao.listar(c)) {
+            nombresUsuarios.put(u.getId(), u.getNombreCompleto());
+        }
+        Map<Long, String> nombres = new HashMap<>();
+        for (Encuestador e : encuestadorDao.listar(c)) {
+            nombres.put(e.getId(), nombresUsuarios.getOrDefault(e.getUsuarioId(), ""));
+        }
+        return nombres;
     }
 
     private void validarDatos(Connection c, Encuesta encuesta) throws SQLException {

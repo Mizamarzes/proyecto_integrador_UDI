@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" styleClass="scroll-transparente" xmlns="http://javafx.com/javafx/11"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.udi.controller.EncuestaFormController">
+   <VBox spacing="18.0">
+      <padding>
+         <Insets right="14.0" />
+      </padding>
+
+      <!-- Título y acciones del caso -->
+      <HBox alignment="CENTER_LEFT" spacing="12.0">
+         <VBox spacing="4.0">
+            <HBox alignment="CENTER_LEFT" spacing="12.0">
+               <Label fx:id="lblTitulo" styleClass="titulo-pagina" />
+               <Label fx:id="lblEstado" styleClass="insignia" />
+            </HBox>
+            <Label text="Capítulo A: identificación y periodo de 14 días · D2: cierre del cuadernillo." styleClass="subtitulo-pagina" />
+            <Label fx:id="lblCierre" styleClass="texto-suave" />
+         </VBox>
+         <Region HBox.hgrow="ALWAYS" />
+         <Button fx:id="btnEliminar" text="Eliminar" onAction="#eliminar" styleClass="boton-peligro" />
+         <Button fx:id="btnReabrir" text="Reabrir caso" onAction="#reabrir" styleClass="boton-secundario" />
+         <Button fx:id="btnCerrarCaso" text="Cerrar caso" onAction="#cerrarCaso" styleClass="boton-secundario" />
+      </HBox>
+
+      <Label fx:id="lblAviso" styleClass="aviso" wrapText="true" maxWidth="Infinity" />
+
+      <VBox styleClass="tarjeta" spacing="16.0">
+         <GridPane fx:id="formulario" hgap="28.0" vgap="14.0">
+            <columnConstraints>
+               <ColumnConstraints percentWidth="50.0" />
+               <ColumnConstraints percentWidth="50.0" />
+            </columnConstraints>
+
+            <!-- Capítulo A -->
+            <Label text="Identificación" styleClass="titulo-seccion" GridPane.columnSpan="2" />
+
+            <VBox spacing="4.0" GridPane.rowIndex="1">
+               <Label text="Hogar *" styleClass="etiqueta-campo" />
+               <ComboBox fx:id="cmbHogar" promptText="Seleccione el hogar" styleClass="combo-linea" maxWidth="Infinity" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.rowIndex="1" GridPane.columnIndex="1">
+               <Label text="Encuestador *" styleClass="etiqueta-campo" />
+               <ComboBox fx:id="cmbEncuestador" promptText="Seleccione el encuestador" styleClass="combo-linea" maxWidth="Infinity" />
+            </VBox>
+
+            <VBox spacing="4.0" GridPane.rowIndex="2">
+               <Label text="Desde el día *" styleClass="etiqueta-campo" />
+               <DatePicker fx:id="dtpFechaDesde" promptText="dd/mm/aaaa" styleClass="campo-fecha" maxWidth="Infinity" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.rowIndex="2" GridPane.columnIndex="1">
+               <Label text="Hasta el día (14 días)" styleClass="etiqueta-campo" />
+               <Label fx:id="lblFechaHasta" styleClass="valor-calculado" />
+            </VBox>
+
+            <VBox spacing="4.0" GridPane.rowIndex="3">
+               <Label text="Nombre de quien responde" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtInformante" styleClass="campo-linea" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.rowIndex="3" GridPane.columnIndex="1">
+               <Label text="Número de orden de quien responde" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtOrden" styleClass="campo-linea" />
+            </VBox>
+
+            <VBox spacing="4.0" GridPane.rowIndex="4">
+               <Label text="Resultado del cuadernillo (A.18)" styleClass="etiqueta-campo" />
+               <ComboBox fx:id="cmbResultado" promptText="Seleccione" styleClass="combo-linea" maxWidth="Infinity" />
+            </VBox>
+
+            <!-- D2 -->
+            <Label text="Cierre del cuadernillo (D2)" styleClass="titulo-seccion" GridPane.rowIndex="5" GridPane.columnSpan="2">
+               <GridPane.margin>
+                  <Insets top="10.0" />
+               </GridPane.margin>
+            </Label>
+
+            <VBox spacing="4.0" GridPane.rowIndex="6">
+               <Label text="D2.1 ¿Hubo gastos por fiestas o celebraciones?" styleClass="etiqueta-campo" />
+               <ComboBox fx:id="cmbGastoFiestas" styleClass="combo-linea" maxWidth="Infinity" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.rowIndex="6" GridPane.columnIndex="1">
+               <Label text="D2.2 Principal forma de pago" styleClass="etiqueta-campo" />
+               <ComboBox fx:id="cmbFormaPago" promptText="Seleccione" styleClass="combo-linea" maxWidth="Infinity" />
+            </VBox>
+
+            <VBox spacing="4.0" GridPane.rowIndex="7" GridPane.columnIndex="1">
+               <Label text="¿Cuál otra forma de pago?" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtFormaPagoOtra" styleClass="campo-linea" />
+            </VBox>
+         </GridPane>
+
+         <VBox spacing="4.0">
+            <Label text="Observaciones" styleClass="etiqueta-campo" />
+            <TextArea fx:id="txtObservaciones" prefRowCount="3" wrapText="true" styleClass="area-texto" />
+         </VBox>
+      </VBox>
+
+      <HBox spacing="10.0" alignment="CENTER_RIGHT">
+         <Button text="Volver" onAction="#volver" styleClass="boton-secundario" />
+         <Button fx:id="btnGuardar" text="Guardar" onAction="#guardar" styleClass="boton-primario" />
+      </HBox>
+   </VBox>
+</ScrollPane>

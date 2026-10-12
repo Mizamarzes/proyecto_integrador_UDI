@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Se muestra en los módulos que todavía no están construidos -->
+<VBox spacing="6.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1">
+   <Label text="Módulo en construcción" styleClass="titulo-pagina" />
+   <Label text="Esta pantalla estará disponible en una próxima versión." styleClass="subtitulo-pagina" />
+</VBox>

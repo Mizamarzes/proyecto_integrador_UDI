@@ -35,16 +35,21 @@ proyectointegrador/
     ├── java/
     │   ├── module-info.java
     │   └── com/udi/
-    │       ├── App.java                  # Clase principal (punto de entrada)
-    │       ├── PrimaryController.java    # Controlador de la vista primaria
-    │       └── SecondaryController.java  # Controlador de la vista secundaria
+    │       ├── App.java                  # Punto de entrada y navegación (setRoot)
+    │       ├── controller/               # Un controlador por pantalla
+    │       ├── service/ dao/ model/      # Reglas de negocio, acceso a datos y entidades
+    │       └── util/ config/ exception/
     └── resources/com/udi/
-        ├── primary.fxml                  # Vista primaria
-        └── secondary.fxml                # Vista secundaria
+        ├── ui/
+        │   ├── modulos/                  # Pantallas FXML por módulo (auth, inicio, encuestas…)
+        │   └── shared/                   # estilos.css y la estructura principal (menu.fxml)
+        └── config/db.properties          # Conexión a Oracle
 ```
+
+La estructura completa y las reglas de cada capa están en `docs/arquitectura/arquitectura.md`.
 
 ## Descripción
 
-El proyecto parte de una plantilla JavaFX con dos vistas definidas en archivos
-FXML. La clase `App` carga la vista inicial (`primary.fxml`) en una ventana de
-640x480 y permite alternar entre vistas mediante el método `setRoot`.
+La clase `App` abre la pantalla de inicio de sesión (`ui/modulos/auth/login.fxml`) y
+cambia de pantalla con `App.setRoot("<vista>")`, que carga `ui/<vista>.fxml`
+(por ejemplo `App.setRoot("shared/layout/menu")`).
