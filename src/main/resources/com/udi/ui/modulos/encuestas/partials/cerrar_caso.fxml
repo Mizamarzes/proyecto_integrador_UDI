@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Confirmación del cierre del caso (RF-06) -->
+<VBox styleClass="modal" prefWidth="540.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.udi.controller.CerrarCasoController">
+
+   <VBox styleClass="modal-encabezado" spacing="4.0">
+      <Label fx:id="lblTitulo" styleClass="titulo-modal" />
+      <Label fx:id="lblSubtitulo" styleClass="subtitulo-pagina" />
+   </VBox>
+
+   <VBox styleClass="modal-cuerpo" spacing="16.0">
+      <GridPane hgap="20.0" vgap="12.0">
+         <columnConstraints>
+            <ColumnConstraints percentWidth="50.0" />
+            <ColumnConstraints percentWidth="50.0" />
+         </columnConstraints>
+         <VBox spacing="2.0">
+            <Label text="Periodo" styleClass="dato-etiqueta" />
+            <Label fx:id="lblPeriodo" styleClass="dato-valor" />
+         </VBox>
+         <VBox spacing="2.0" GridPane.columnIndex="1">
+            <Label text="Resultado (A.18)" styleClass="dato-etiqueta" />
+            <Label fx:id="lblResultado" styleClass="dato-valor" />
+         </VBox>
+         <VBox spacing="2.0" GridPane.rowIndex="1">
+            <Label text="Días con información" styleClass="dato-etiqueta" />
+            <Label fx:id="lblDias" styleClass="dato-valor" />
+         </VBox>
+         <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="1">
+            <Label text="Visitas registradas" styleClass="dato-etiqueta" />
+            <Label fx:id="lblVisitas" styleClass="dato-valor" />
+         </VBox>
+      </GridPane>
+
+      <Label styleClass="banner-alerta" wrapText="true" maxWidth="Infinity"
+             text="Después de cerrar no podrá modificar la encuesta. Solo un administrador puede reabrirla." />
+      <CheckBox fx:id="chkConfirma" text="Revisé el cuadernillo con el informante y los datos están completos." wrapText="true" />
+      <Label fx:id="lblError" text="Marque la confirmación para cerrar el caso." styleClass="texto-alerta" />
+   </VBox>
+
+   <HBox styleClass="modal-pie" spacing="10.0" alignment="CENTER_RIGHT">
+      <Button text="Cancelar" onAction="#cancelar" styleClass="boton-secundario" />
+      <Button fx:id="btnCerrar" text="Cerrar caso" onAction="#cerrar" styleClass="boton-accion" />
+   </HBox>
+</VBox>

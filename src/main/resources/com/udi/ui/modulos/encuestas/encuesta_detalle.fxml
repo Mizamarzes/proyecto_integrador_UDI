@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Detalle de una encuesta: encabezado, pestañas y contenido de la pestaña elegida -->
+<ScrollPane fx:id="scroll" fitToWidth="true" styleClass="scroll-transparente" xmlns="http://javafx.com/javafx/11"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.udi.controller.EncuestaDetalleController">
+   <VBox spacing="18.0">
+      <padding>
+         <Insets right="14.0" bottom="8.0" />
+      </padding>
+
+      <fx:define>
+         <ToggleGroup fx:id="grupoPestanas" />
+      </fx:define>
+
+      <!-- Encabezado de la encuesta -->
+      <HBox alignment="BOTTOM_LEFT" spacing="12.0">
+         <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+            <HBox alignment="CENTER_LEFT" spacing="12.0">
+               <Label fx:id="lblTitulo" text="Encuesta" styleClass="titulo-pagina" />
+               <Label fx:id="lblEstado" styleClass="insignia" />
+            </HBox>
+            <Label fx:id="lblSubtitulo" styleClass="subtitulo-pagina" wrapText="true" />
+         </VBox>
+         <Button text="← Volver a encuestas" onAction="#volver" styleClass="boton-secundario" minWidth="-Infinity" />
+         <Button fx:id="btnVisita" text="+ Registrar nueva visita" onAction="#registrarVisita" styleClass="boton-accion" minWidth="-Infinity" />
+      </HBox>
+
+      <!-- Pestañas -->
+      <HBox styleClass="pestanas" spacing="2.0">
+         <ToggleButton fx:id="tabVisitas" text="Control de visitas" toggleGroup="$grupoPestanas" styleClass="pestana" />
+         <ToggleButton fx:id="tabHogar" text="Identificación y hogar (Cap. A)" toggleGroup="$grupoPestanas" styleClass="pestana" />
+         <ToggleButton fx:id="tabCapituloC" text="Características del gasto (Cap. C)" toggleGroup="$grupoPestanas" styleClass="pestana" />
+         <ToggleButton fx:id="tabGastos" text="Línea de 14 días (gastos)" toggleGroup="$grupoPestanas" styleClass="pestana" />
+         <ToggleButton fx:id="tabCierre" text="Cierre (Cap. D)" toggleGroup="$grupoPestanas" styleClass="pestana" />
+         <Region HBox.hgrow="ALWAYS" />
+      </HBox>
+
+      <Label fx:id="lblAviso" styleClass="banner-ok" wrapText="true" maxWidth="Infinity" />
+
+      <StackPane fx:id="contenido" alignment="TOP_LEFT" />
+   </VBox>
+</ScrollPane>

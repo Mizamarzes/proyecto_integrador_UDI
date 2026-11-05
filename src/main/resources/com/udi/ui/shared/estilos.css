@@ -420,9 +420,7 @@
 }
 
 .tabla .column-header-background {
-    -fx-background-color: -color-tarjeta;
-    -fx-border-color: transparent transparent #9a9284 transparent;
-    -fx-border-width: 0 0 1 0;
+    -fx-background-color: -color-tinta;
 }
 
 .tabla .column-header, .tabla .filler {
@@ -434,7 +432,7 @@
 .tabla .column-header .label {
     -fx-font-weight: bold;
     -fx-font-size: 11px;
-    -fx-text-fill: -color-tinta;
+    -fx-text-fill: white;
     -fx-alignment: center-left;
     -fx-padding: 0 0 0 10;
 }
@@ -501,4 +499,373 @@
 .insignia-inactivo {
     -fx-background-color: #f2dcd7;
     -fx-text-fill: #9a3a28;
+}
+
+
+/* ── Componentes comunes de las pantallas ──────────── */
+
+.boton-accion:disabled, .boton-secundario:disabled {
+    -fx-opacity: 0.55;
+}
+
+.chip {
+    -fx-font-family: "Monospaced";
+    -fx-font-size: 11px;
+    -fx-text-fill: -color-tinta;
+    -fx-background-color: #f1ebe0;
+    -fx-padding: 3 8 3 8;
+    -fx-background-radius: 2;
+}
+
+.etiqueta-seccion {
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -color-suave;
+}
+
+.dato-etiqueta {
+    -fx-font-size: 11px;
+    -fx-text-fill: -color-suave;
+}
+
+.dato-valor {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -color-tinta;
+}
+
+.dato-codigo {
+    -fx-font-family: "Monospaced";
+    -fx-font-size: 13px;
+    -fx-text-fill: -color-tinta;
+}
+
+.metrica-valor {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -color-tinta;
+}
+
+.metrica-acento {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #a8402c;
+}
+
+.tarjeta-acento {
+    -fx-border-color: #a8402c #ddd5c6 #ddd5c6 #ddd5c6;
+    -fx-border-width: 3 1 1 1;
+}
+
+.tarjeta-interna {
+    -fx-background-color: white;
+    -fx-border-color: #e6dfd2;
+    -fx-padding: 12 14 12 14;
+}
+
+.texto-alerta {
+    -fx-font-size: 11px;
+    -fx-text-fill: #a8402c;
+}
+
+/* Avisos */
+.banner-ok, .banner-alerta, .banner-error, .banner-cerrado {
+    -fx-padding: 10 14 10 14;
+    -fx-font-size: 12px;
+}
+
+.banner-ok {
+    -fx-background-color: #dbe8de;
+    -fx-text-fill: #2f5e3d;
+    -fx-border-color: #b9d3c0;
+}
+
+.banner-alerta {
+    -fx-background-color: #f6ead0;
+    -fx-text-fill: #7a5b16;
+    -fx-border-color: #e3cf9f;
+}
+
+.banner-error {
+    -fx-background-color: #f7e4df;
+    -fx-text-fill: #9a3a28;
+    -fx-border-color: #e3bdb3;
+}
+
+.banner-cerrado {
+    -fx-background-color: -color-tinta;
+    -fx-text-fill: white;
+}
+
+.banner-ok .hyperlink, .banner-alerta .hyperlink {
+    -fx-text-fill: -color-tinta;
+    -fx-font-weight: bold;
+    -fx-padding: 0;
+}
+
+/* Barras de avance */
+.barra {
+    -fx-pref-height: 8;
+    -fx-max-height: 8;
+}
+
+.barra > .track {
+    -fx-background-color: #e6dfd2;
+    -fx-background-insets: 0;
+    -fx-background-radius: 4;
+}
+
+.barra > .bar {
+    -fx-background-color: #3d7a55;
+    -fx-background-insets: 0;
+    -fx-background-radius: 4;
+    -fx-padding: 4;
+}
+
+.barra.barra-alerta > .bar {
+    -fx-background-color: #c17a1a;
+}
+
+.barra.barra-abierta > .bar {
+    -fx-background-color: #2d4a6b;
+}
+
+/* Pestañas del detalle de encuesta */
+.pestanas {
+    -fx-border-color: transparent transparent #d6cdbd transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.pestana {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-text-fill: #5f5a50;
+    -fx-font-size: 12px;
+    -fx-padding: 10 14 10 14;
+    -fx-cursor: hand;
+}
+
+.pestana:hover {
+    -fx-text-fill: -color-tinta;
+}
+
+.pestana:selected {
+    -fx-border-color: transparent transparent #a8402c transparent;
+    -fx-text-fill: -color-tinta;
+    -fx-font-weight: bold;
+}
+
+/* Resultado de la entrevista (visitas y A.18) */
+.insignia-ec {
+    -fx-background-color: #dbe8de;
+    -fx-text-fill: #2f5e3d;
+}
+
+.insignia-ei {
+    -fx-background-color: #dfe6ef;
+    -fx-text-fill: #2d4a6b;
+}
+
+.insignia-nh, .insignia-at, .insignia-oc {
+    -fx-background-color: #f4e3c1;
+    -fx-text-fill: #7a5b16;
+}
+
+.insignia-r {
+    -fx-background-color: #f2dcd7;
+    -fx-text-fill: #9a3a28;
+}
+
+.insignia-v, .insignia-o, .insignia-neutra {
+    -fx-background-color: #e6e3dd;
+    -fx-text-fill: #4b4f57;
+}
+
+/* Opciones en forma de tarjeta (radios del cierre y de la nueva encuesta) */
+.radio-tarjeta {
+    -fx-background-color: white;
+    -fx-border-color: #cfc6b5;
+    -fx-padding: 10 12 10 12;
+    -fx-cursor: hand;
+}
+
+.radio-tarjeta:selected {
+    -fx-background-color: #f5efe6;
+    -fx-border-color: -color-tinta;
+}
+
+.radio-tarjeta:disabled {
+    -fx-opacity: 0.8;
+}
+
+/* Capítulo C: filas de la grilla */
+.grilla-encabezado {
+    -fx-background-color: -color-tinta;
+    -fx-padding: 10 12 10 12;
+}
+
+.grilla-encabezado .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+}
+
+.grilla-fila {
+    -fx-background-color: white;
+    -fx-padding: 6 12 6 12;
+    -fx-border-color: transparent transparent #e6dfd2 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.grilla-fila.fila-pendiente {
+    -fx-background-color: #faf7f1;
+}
+
+.grilla-fila.fila-error {
+    -fx-background-color: #fdf3ef;
+    -fx-border-color: transparent transparent #e6dfd2 #a8402c;
+    -fx-border-width: 0 0 1 3;
+}
+
+/* Línea de 14 días */
+.dia {
+    -fx-background-color: white;
+    -fx-background-radius: 0;
+    -fx-border-color: #cfc6b5;
+    -fx-padding: 8 6 8 6;
+    -fx-cursor: hand;
+    -fx-alignment: center;
+}
+
+.dia .label {
+    -fx-text-fill: -color-tinta;
+}
+
+.dia-numero {
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+.dia-fecha, .dia-estado {
+    -fx-font-size: 10px;
+}
+
+.dia.dia-registrado {
+    -fx-background-color: #dbe8de;
+    -fx-border-color: #9fc2a9;
+}
+
+.dia.dia-hoy {
+    -fx-border-color: #a8402c;
+    -fx-border-width: 2;
+}
+
+.dia:disabled {
+    -fx-opacity: 0.55;
+}
+
+.dia:selected {
+    -fx-background-color: -color-tinta;
+    -fx-border-color: -color-tinta;
+}
+
+.dia:selected .label {
+    -fx-text-fill: white;
+}
+
+.leyenda {
+    -fx-font-size: 11px;
+    -fx-text-fill: -color-suave;
+}
+
+/* Verificación del cierre */
+.check-ok, .check-pendiente {
+    -fx-min-width: 22;
+    -fx-min-height: 22;
+    -fx-alignment: center;
+    -fx-font-weight: bold;
+    -fx-background-radius: 11;
+}
+
+.check-ok {
+    -fx-background-color: #dbe8de;
+    -fx-text-fill: #2f5e3d;
+}
+
+.check-pendiente {
+    -fx-background-color: #f4e3c1;
+    -fx-text-fill: #7a5b16;
+}
+
+.check-fila {
+    -fx-padding: 10 0 10 0;
+    -fx-border-color: transparent transparent #e6dfd2 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* Ventanas modales */
+.modal {
+    -fx-background-color: -color-tarjeta;
+}
+
+.modal-encabezado {
+    -fx-padding: 20 24 14 24;
+    -fx-border-color: transparent transparent #e6dfd2 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.modal-cuerpo {
+    -fx-padding: 18 24 18 24;
+}
+
+.modal-pie {
+    -fx-padding: 14 24 20 24;
+    -fx-border-color: #e6dfd2 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.titulo-modal {
+    -fx-font-family: "Serif";
+    -fx-font-weight: bold;
+    -fx-font-size: 19px;
+    -fx-text-fill: -color-tinta;
+}
+
+.caja-suave {
+    -fx-background-color: #f5efe6;
+    -fx-border-color: #e6dfd2;
+    -fx-padding: 12 14 12 14;
+}
+
+.campo-caja {
+    -fx-background-color: white;
+    -fx-background-radius: 0;
+    -fx-border-color: #d6cebf;
+    -fx-padding: 5 8 5 8;
+}
+
+.campo-caja:focused {
+    -fx-border-color: -color-tinta;
+}
+
+.campo-caja:disabled {
+    -fx-opacity: 0.7;
+}
+
+.codigos .label {
+    -fx-font-size: 11px;
+    -fx-text-fill: -color-texto;
+}
+
+.titled-pane > .title {
+    -fx-background-color: -color-tarjeta;
+    -fx-border-color: #ddd5c6;
+    -fx-background-radius: 0;
+}
+
+.titled-pane > .content {
+    -fx-background-color: -color-tarjeta;
+    -fx-border-color: #ddd5c6;
 }

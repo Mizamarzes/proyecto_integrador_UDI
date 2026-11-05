@@ -38,6 +38,8 @@ public class NavbarController {
     @FXML
     private Button btnEncuestas;
     @FXML
+    private Button btnViviendas;
+    @FXML
     private Button btnUsuarios;
 
     private final AuthService authService = new AuthService();
@@ -47,10 +49,14 @@ public class NavbarController {
         actual = this;
         lblUsuario.setText(Sesion.getUsuario().getNombreCompleto());
         lblRol.setText(Formato.nombreRol(Sesion.getRol().getNombre()));
-        permitir(btnEncuestas, "encuestas");
+        // Las pantallas de captura (visitas, capítulo C, gastos y comidas) viven dentro de la encuesta
+        permitir(btnEncuestas, "encuestas", "visitas", "caracteristicas-gasto", "gastos-diarios", "comidas-fuera-hogar");
+        permitir(btnViviendas, "viviendas", "hogares");
         permitir(btnUsuarios, "usuarios");
         if (btnEncuestas.isVisible()) {
             irEncuestas();
+        } else if (btnViviendas.isVisible()) {
+            irViviendas();
         } else if (btnUsuarios.isVisible()) {
             irUsuarios();
         } else {
@@ -66,14 +72,24 @@ public class NavbarController {
     public static <T> T abrir(String vista, String... migas) {
         FXMLLoader loader = App.cargar(vista);
         actual.contenido.getChildren().setAll((Parent) loader.getRoot());
+        migas(migas);
+        return loader.getController();
+    }
+
+    /** Cambia el título y la ruta del encabezado sin cambiar la pantalla (pestañas de la encuesta). */
+    public static void migas(String... migas) {
         actual.lblTitulo.setText(migas[migas.length - 1]);
         actual.lblMigas.setText("ENPH / " + String.join(" / ", migas));
-        return loader.getController();
     }
 
     @FXML
     private void irEncuestas() {
         navegar(btnEncuestas, "modulos/encuestas/encuesta", "Encuestas");
+    }
+
+    @FXML
+    private void irViviendas() {
+        navegar(btnViviendas, "modulos/viviendas/vivienda", "Viviendas y hogares");
     }
 
     @FXML
@@ -91,11 +107,22 @@ public class NavbarController {
     }
 
     private void navegar(Button boton, String vista, String titulo) {
-        for (Button b : List.of(btnEncuestas, btnUsuarios)) {
+        marcar(boton);
+        abrir(vista, titulo);
+    }
+
+    /** Marca en el menú el módulo de la pantalla que se abre desde otra (por ejemplo, la vivienda desde una encuesta). */
+    public static void marcarModulo(String slug) {
+        Button boton = "viviendas".equals(slug) ? actual.btnViviendas
+                : "usuarios".equals(slug) ? actual.btnUsuarios : actual.btnEncuestas;
+        actual.marcar(boton);
+    }
+
+    private void marcar(Button boton) {
+        for (Button b : List.of(btnEncuestas, btnViviendas, btnUsuarios)) {
             b.getStyleClass().remove(ACTIVO);
         }
         boton.getStyleClass().add(ACTIVO);
-        abrir(vista, titulo);
     }
 
     /** El rol no tiene ninguno de los módulos del menú. */
@@ -107,9 +134,12 @@ public class NavbarController {
         lblMigas.setText("ENPH");
     }
 
-    /** El administrador ve todos los módulos; los demás roles, los que tienen asignados. */
-    private static void permitir(Button boton, String slugModulo) {
-        boolean visible = Sesion.esAdmin() || Sesion.puedeAcceder(slugModulo);
+    /** El administrador ve todos los módulos; los demás roles, los que tengan alguno de los módulos asignados. */
+    private static void permitir(Button boton, String... slugsModulo) {
+        boolean visible = Sesion.esAdmin();
+        for (String slug : slugsModulo) {
+            visible = visible || Sesion.puedeAcceder(slug);
+        }
         boton.setVisible(visible);
         boton.setManaged(visible);
     }

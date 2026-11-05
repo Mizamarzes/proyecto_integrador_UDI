@@ -113,15 +113,25 @@ proyecto_integrador_UDI/
     │       │
     │       ├── controller/                   # ── CONTROLADOR: una clase por pantalla ──
     │       │   ├── LoginController.java      # Hecho
-    │       │   ├── NavbarController.java     # Hecho: barra lateral, encabezado y navegación (abrir)
-    │       │   ├── EncuestaFormController.java    # Hecho: crear, editar, cerrar, reabrir y eliminar
+    │       │   ├── NavbarController.java     # Hecho: barra lateral, encabezado y navegación (abrir, migas, marcarModulo)
     │       │   ├── UsuarioController.java    # Hecho: listado de usuarios con búsqueda y filtro por rol
     │       │   ├── UsuarioFormController.java     # Hecho: crear, editar, contraseña, activar/desactivar y eliminar
-    │       │   ├── HogarController.java
-    │       │   ├── EncuestaController.java   # Hecho: listado con búsqueda y filtros
-    │       │   ├── VisitaController.java
-    │       │   ├── CaracteristicaController.java
-    │       │   └── RegistroDiarioController.java  # Página D + D1 del cuadernillo
+    │       │   ├── EncuestaController.java   # Hecho: «Mis Encuestas» (encuestador) o listado global con filtros
+    │       │   ├── NuevaEncuestaController.java   # Hecho: modal, elegir un hogar sin encuesta
+    │       │   ├── EncuestaDetalleController.java # Hecho: encabezado y pestañas de la encuesta
+    │       │   ├── SeccionEncuesta.java      # Interfaz de los controladores de cada pestaña
+    │       │   ├── EncuestaVisitasController.java # Pestaña Control de visitas (RF-08)
+    │       │   ├── VisitaFormController.java      # Modal registrar/editar visita
+    │       │   ├── EncuestaHogarController.java   # Pestaña Cap. A: informante, periodo, hogar y vivienda
+    │       │   ├── EncuestaCapituloCController.java # Pestaña Cap. C: los 25 grupos (RF-07)
+    │       │   ├── EncuestaGastosController.java  # Pestaña Línea de 14 días: tablas D y D1 por día
+    │       │   ├── RenglonFormController.java     # Modal agregar gasto (D) o comida (D1)
+    │       │   ├── EncuestaCierreController.java  # Pestaña Cierre: D2, A.18 y verificación del caso
+    │       │   ├── CerrarCasoController.java      # Modal de confirmación para cerrar el caso (RF-06)
+    │       │   ├── ViviendaController.java   # Hecho: listado de viviendas
+    │       │   ├── ViviendaDetalleController.java # Hecho: vivienda y sus hogares
+    │       │   ├── ViviendaFormController.java    # Modal nueva/editar vivienda (Cap. A)
+    │       │   └── HogarFormController.java       # Modal agregar/editar hogar (A.13, A.14)
     │       │
     │       ├── exception/
     │       │   ├── ReglaNegocioException.java     # Error de validación que se muestra al usuario
@@ -132,7 +142,8 @@ proyecto_integrador_UDI/
     │           ├── Seguridad.java            # Hash SHA-256 de las contraseñas
     │           ├── Validar.java              # Validaciones comunes de los servicios
     │           ├── Alertas.java              # Diálogos de información, error y confirmación
-    │           ├── Formato.java              # Fechas dd/MM/yyyy y códigos E-000001 / H-000001
+    │           ├── Formato.java              # Fechas, horas, pesos, códigos E-000001 y filtros de los campos
+    │           ├── Modal.java                # Ventanas modales (partials) con la hoja de estilos
     │           └── Tareas.java               # Llamadas a servicios en segundo plano (una a la vez)
     │
     └── resources/com/udi/
@@ -148,12 +159,27 @@ proyecto_integrador_UDI/
                 ├── auth/
                 │   └── login.fxml            # Hecho
                 ├── encuestas/
-                │   ├── encuesta.fxml         # Hecho: listado
-                │   └── encuesta_form.fxml    # Hecho: formulario
-                ├── usuarios/
-                │   ├── usuario.fxml          # Hecho: listado
-                │   └── usuario_form.fxml     # Hecho: formulario
-                └── (pendientes) hogares/  visitas/  caracteristicas/  registro_diario/
+                │   ├── encuesta.fxml         # Hecho: listado (Mis Encuestas / global)
+                │   ├── encuesta_detalle.fxml # Hecho: encabezado y pestañas
+                │   └── partials/
+                │       ├── nueva_encuesta.fxml       # Modal: elegir el hogar
+                │       ├── encuesta_visitas.fxml     # Pestaña Control de visitas
+                │       ├── encuesta_hogar.fxml       # Pestaña Cap. A
+                │       ├── encuesta_capitulo_c.fxml  # Pestaña Cap. C
+                │       ├── encuesta_gastos.fxml      # Pestaña Línea de 14 días (D y D1)
+                │       ├── encuesta_cierre.fxml      # Pestaña Cierre (D2 y verificación)
+                │       ├── visita_form.fxml          # Modal visita
+                │       ├── renglon_form.fxml         # Modal gasto D / comida D1
+                │       └── cerrar_caso.fxml          # Modal confirmar cierre
+                ├── viviendas/
+                │   ├── vivienda.fxml         # Hecho: listado
+                │   ├── vivienda_detalle.fxml # Hecho: vivienda y hogares
+                │   └── partials/
+                │       ├── vivienda_form.fxml        # Modal vivienda
+                │       └── hogar_form.fxml           # Modal hogar
+                └── usuarios/
+                    ├── usuario.fxml          # Hecho: listado
+                    └── usuario_form.fxml     # Hecho: formulario
 ```
 
 ## Acceso a datos
@@ -169,7 +195,7 @@ proyecto_integrador_UDI/
 
 Los controladores Java están todos en el paquete `controller`, pero sus vistas se agrupan por módulo en `resources/com/udi/ui`:
 
-- `ui/modulos/<modulo>/`: las pantallas de cada módulo (por ejemplo `encuestas/encuesta.fxml` y `encuestas/encuesta_form.fxml`). Si un módulo necesita diálogos modales o fragmentos reutilizables, van en subcarpetas `partials/` y `components/` dentro del módulo.
+- `ui/modulos/<modulo>/`: las pantallas de cada módulo (por ejemplo `encuestas/encuesta.fxml` y `encuestas/encuesta_detalle.fxml`). Si un módulo necesita diálogos modales o fragmentos reutilizables, van en subcarpetas `partials/` y `components/` dentro del módulo.
 - `ui/shared/`: lo común (`estilos.css`, la estructura `layout/navbar.fxml` y `layout/pendiente.fxml`).
 
 Una vista se nombra con su ruta dentro de `ui`, sin extensión: `"modulos/encuestas/encuesta"`. Para agregar un módulo se crea su carpeta en `ui/modulos/`, su controlador en `controller/` y su botón en `navbar.fxml`/`NavbarController`.
@@ -178,7 +204,9 @@ Una vista se nombra con su ruta dentro de `ui`, sin extensión: `"modulos/encues
 
 - `App.setRoot("<vista>")` cambia toda la ventana (login ↔ menú), por ejemplo `App.setRoot("shared/layout/navbar")`.
 - Dentro del menú, `NavbarController.abrir("<vista>", migas...)` carga `ui/<vista>.fxml` en el área de contenido, pone el título y la ruta del encabezado y devuelve el controlador para pasarle datos (por ejemplo `formulario.editar(id)`).
-- La barra lateral muestra cada módulo solo si el rol lo tiene en `rol_modulo` (por su slug); el administrador ve todos.
+- La barra lateral muestra cada módulo si el rol tiene alguno de sus slugs en `rol_modulo`; el administrador ve todos. «Encuestas» aparece con cualquier módulo de captura (encuestas, visitas, caracteristicas-gasto, gastos-diarios, comidas-fuera-hogar) y «Viviendas y hogares» con viviendas u hogares.
+- Los modales se abren con `Modal.cargar("<vista>", titulo)`: se prepara su controlador (`modal.controlador()...`) y se muestra con `modal.mostrar()`.
+- El detalle de una encuesta se abre con `EncuestaDetalleController.abrir(id, Pestana.X)`. Cada pestaña es una vista de `encuestas/partials/` cuyo controlador implementa `SeccionEncuesta`.
 - Los controladores llaman a los servicios con `Tareas.ejecutar(...)` para no congelar la ventana. Las tareas se ejecutan una a la vez porque la conexión es única, y los errores se muestran con `Alertas`.
 
 ## Reglas de dependencia

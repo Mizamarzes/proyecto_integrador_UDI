@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.TextFlow?>
+
+<!-- Modal «Nueva encuesta»: crear una encuesta es seleccionar un hogar sin encuesta -->
+<VBox styleClass="modal" prefWidth="580.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.udi.controller.NuevaEncuestaController">
+
+   <VBox styleClass="modal-encabezado" spacing="4.0">
+      <Label text="Nueva encuesta" styleClass="titulo-modal" />
+      <Label fx:id="lblSubtitulo" text="Selecciona el hogar. La encuesta queda asignada a ti." styleClass="subtitulo-pagina" wrapText="true" />
+   </VBox>
+
+   <VBox styleClass="modal-cuerpo" spacing="14.0">
+      <VBox spacing="4.0">
+         <Label text="Buscar hogar" styleClass="etiqueta-campo" />
+         <TextField fx:id="txtBuscar" promptText="Dirección, barrio, vivienda (V-000104) o código de hogar…" styleClass="campo-linea" />
+      </VBox>
+
+      <ScrollPane fx:id="scrollHogares" fitToWidth="true" prefHeight="260.0" styleClass="scroll-transparente">
+         <VBox fx:id="listaHogares" spacing="8.0" />
+      </ScrollPane>
+      <Label fx:id="lblSinHogares" styleClass="banner-alerta" wrapText="true" maxWidth="Infinity" minHeight="-Infinity" />
+
+      <VBox fx:id="boxEncuestador" spacing="4.0">
+         <Label text="Encuestador *" styleClass="etiqueta-campo" />
+         <ComboBox fx:id="cmbEncuestador" promptText="Seleccione el encuestador" styleClass="combo-linea" maxWidth="Infinity" />
+      </VBox>
+
+      <TextFlow>
+         <Label text="¿No encuentras el hogar? Regístralo en " styleClass="texto-suave" />
+         <Hyperlink text="Viviendas y hogares" onAction="#irViviendas" styleClass="enlace" />
+      </TextFlow>
+   </VBox>
+
+   <HBox styleClass="modal-pie" spacing="10.0" alignment="CENTER_RIGHT">
+      <Button text="Cancelar" onAction="#cancelar" styleClass="boton-secundario" />
+      <Button fx:id="btnCrear" text="Crear encuesta" onAction="#crear" styleClass="boton-accion" />
+   </HBox>
+</VBox>

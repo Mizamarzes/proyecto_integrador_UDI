@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Pestaña «Línea de 14 días»: capítulo D (gastos diarios) y D1 (comidas fuera del hogar) por día -->
+<VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.udi.controller.EncuestaGastosController">
+
+   <!-- Línea de tiempo -->
+   <VBox styleClass="tarjeta" spacing="12.0">
+      <Label text="Línea de 14 días" styleClass="titulo-seccion" />
+      <HBox fx:id="linea" spacing="6.0" />
+      <HBox spacing="18.0">
+         <Label text="■ Registrado (n.º de renglones)" styleClass="leyenda" style="-fx-text-fill: #3d7a55;" />
+         <Label text="□ Hoy (borde rojo)" styleClass="leyenda" />
+         <Label text="Futuro: no disponible" styleClass="leyenda" />
+         <Label text="■ Día seleccionado" styleClass="leyenda" style="-fx-text-fill: #1b2838;" />
+      </HBox>
+   </VBox>
+
+   <!-- Códigos del cuadernillo -->
+   <TitledPane text="Códigos del cuadernillo (unidades, formas de adquisición, lugares y frecuencias)" expanded="false" animated="false">
+      <HBox fx:id="boxCodigos" spacing="24.0" styleClass="codigos" />
+   </TitledPane>
+
+   <!-- Encabezado del día -->
+   <HBox styleClass="tarjeta" alignment="CENTER_LEFT">
+      <VBox spacing="2.0">
+         <Label text="REGISTRO DIARIO · D.1.2" styleClass="etiqueta-seccion" />
+         <Label fx:id="lblDia" styleClass="titulo-seccion" />
+      </VBox>
+      <Region HBox.hgrow="ALWAYS" />
+      <VBox spacing="2.0" alignment="CENTER_RIGHT">
+         <Label text="Total de renglones con información" styleClass="dato-etiqueta" />
+         <Label fx:id="lblRenglones" text="0" styleClass="metrica-valor" />
+      </VBox>
+   </HBox>
+
+   <!-- Día sin registro -->
+   <VBox fx:id="boxSinRegistro" styleClass="tarjeta" spacing="10.0" alignment="CENTER">
+      <Label text="Este día no tiene registro" styleClass="titulo-seccion" />
+      <Label fx:id="lblSinRegistro" wrapText="true" styleClass="texto-suave" maxWidth="560.0"
+             text="Cree el registro del día para anotar los gastos (tabla D) y las comidas preparadas fuera del hogar (tabla D1) que el hogar escribió en el cuadernillo." />
+      <Button fx:id="btnCrearDia" text="+ Crear registro del día" onAction="#crearDia" styleClass="boton-accion" />
+   </VBox>
+
+   <!-- Día con registro -->
+   <VBox fx:id="boxConRegistro" spacing="18.0">
+      <VBox styleClass="tarjeta" spacing="12.0">
+         <HBox alignment="CENTER_LEFT">
+            <VBox spacing="2.0">
+               <Label text="D. Gastos diarios" styleClass="titulo-seccion" />
+               <Label text="Artículos y servicios adquiridos por el hogar o sus miembros durante el día." styleClass="texto-suave" />
+            </VBox>
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="btnAgregarGasto" text="+ Agregar gasto" onAction="#agregarGasto" styleClass="boton-accion" />
+         </HBox>
+         <TableView fx:id="tablaD" styleClass="tabla" prefHeight="260.0">
+            <columns>
+               <TableColumn fx:id="dOrden" text="(3) N.º" prefWidth="50.0" />
+               <TableColumn fx:id="dArticulo" text="(4) Artículo o servicio" prefWidth="180.0" />
+               <TableColumn fx:id="dCantidad" text="(5.1) Cant." prefWidth="60.0" />
+               <TableColumn fx:id="dUnidad" text="(5.2) Unidad" prefWidth="90.0" />
+               <TableColumn fx:id="dEquivalencia" text="(5.3) Equiv." prefWidth="70.0" />
+               <TableColumn fx:id="dForma" text="(6) Forma de adquisición" prefWidth="130.0" />
+               <TableColumn fx:id="dLugar" text="(7) Lugar de compra" prefWidth="130.0" />
+               <TableColumn fx:id="dValor" text="(8) Valor" prefWidth="90.0" />
+               <TableColumn fx:id="dFrecuencia" text="(9) Frecuencia" prefWidth="90.0" />
+               <TableColumn fx:id="dTipo" text="(10) Tipo" prefWidth="70.0" />
+               <TableColumn fx:id="dAcciones" text="Acciones" prefWidth="70.0" sortable="false" />
+            </columns>
+         </TableView>
+      </VBox>
+
+      <VBox styleClass="tarjeta" spacing="12.0">
+         <HBox alignment="CENTER_LEFT">
+            <VBox spacing="2.0">
+               <Label text="D1. Comidas preparadas fuera del hogar" styleClass="titulo-seccion" />
+               <Label text="Desayunos, almuerzos, cenas y onces consumidos o pedidos fuera de casa." styleClass="texto-suave" />
+            </VBox>
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="btnAgregarComida" text="+ Agregar comida" onAction="#agregarComida" styleClass="boton-accion" />
+         </HBox>
+         <TableView fx:id="tablaD1" styleClass="tabla" prefHeight="200.0">
+            <columns>
+               <TableColumn fx:id="mOrden" text="(3) N.º" prefWidth="50.0" />
+               <TableColumn fx:id="mDescripcion" text="(4) Descripción" prefWidth="190.0" />
+               <TableColumn fx:id="mTipoComida" text="(4.1) Tipo de comida" prefWidth="110.0" />
+               <TableColumn fx:id="mCantidad" text="(5) Cant." prefWidth="55.0" />
+               <TableColumn fx:id="mForma" text="(6) Forma de adquisición" prefWidth="130.0" />
+               <TableColumn fx:id="mLugar" text="(7) Lugar" prefWidth="120.0" />
+               <TableColumn fx:id="mValor" text="(8) Valor" prefWidth="90.0" />
+               <TableColumn fx:id="mFrecuencia" text="(9) Frecuencia" prefWidth="90.0" />
+               <TableColumn fx:id="mTipo" text="(10) Tipo" prefWidth="70.0" />
+               <TableColumn fx:id="mDomicilio" text="(11) Domicilio" prefWidth="70.0" />
+               <TableColumn fx:id="mAcciones" text="Acciones" prefWidth="70.0" sortable="false" />
+            </columns>
+         </TableView>
+      </VBox>
+
+      <VBox styleClass="tarjeta" spacing="8.0">
+         <Label text="Observaciones del día" styleClass="etiqueta-campo" />
+         <TextArea fx:id="txtObservaciones" prefRowCount="2" wrapText="true" styleClass="area-texto"
+                   promptText="Anotaciones al pie de la página del día en el cuadernillo" />
+         <HBox alignment="CENTER_RIGHT">
+            <Button fx:id="btnObservaciones" text="Guardar observaciones" onAction="#guardarObservaciones" styleClass="boton-secundario" />
+         </HBox>
+      </VBox>
+   </VBox>
+</VBox>

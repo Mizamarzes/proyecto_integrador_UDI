@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Modal de un renglón del día: gasto (tabla D) o comida preparada fuera del hogar (tabla D1) -->
+<VBox styleClass="modal" prefWidth="740.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.udi.controller.RenglonFormController">
+
+   <fx:define>
+      <ToggleGroup fx:id="grupoComida" />
+      <ToggleGroup fx:id="grupoTipo" />
+   </fx:define>
+
+   <VBox styleClass="modal-encabezado" spacing="4.0">
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <Label fx:id="lblTitulo" styleClass="titulo-modal" />
+         <Label fx:id="lblNumero" styleClass="chip" />
+      </HBox>
+      <Label fx:id="lblSubtitulo" styleClass="subtitulo-pagina" wrapText="true" />
+   </VBox>
+
+   <VBox styleClass="modal-cuerpo" spacing="14.0">
+      <!-- Tabla D: gasto diario -->
+      <GridPane fx:id="gridGasto" hgap="20.0" vgap="12.0">
+         <columnConstraints>
+            <ColumnConstraints percentWidth="33.3" />
+            <ColumnConstraints percentWidth="33.3" />
+            <ColumnConstraints percentWidth="33.4" />
+         </columnConstraints>
+         <VBox spacing="4.0" GridPane.columnSpan="3">
+            <Label text="(4) Nombre del artículo o servicio *" styleClass="etiqueta-campo" />
+            <TextField fx:id="txtArticulo" promptText="Ej. Leche entera en bolsa" styleClass="campo-linea" />
+         </VBox>
+         <VBox spacing="4.0" GridPane.rowIndex="1">
+            <Label text="(5.1) Cantidad *" styleClass="etiqueta-campo" />
+            <TextField fx:id="txtCantidad" styleClass="campo-linea" />
+         </VBox>
+         <VBox spacing="4.0" GridPane.rowIndex="1" GridPane.columnIndex="1">
+            <Label text="(5.2) Unidad de medida *" styleClass="etiqueta-campo" />
+            <ComboBox fx:id="cmbUnidad" promptText="Seleccione" styleClass="combo-linea" maxWidth="Infinity" />
+         </VBox>
+         <VBox spacing="4.0" GridPane.rowIndex="1" GridPane.columnIndex="2">
+            <Label text="(5.2) ¿Cuál unidad?" styleClass="etiqueta-campo" />
+            <TextField fx:id="txtUnidadOtra" promptText="Solo si la unidad es 8 Otra" styleClass="campo-linea" />
+         </VBox>
+         <VBox spacing="4.0" GridPane.rowIndex="2">
+            <Label text="(5.3) Equivalencia en gramos" styleClass="etiqueta-campo" />
+            <TextField fx:id="txtEqGr" promptText="Sólidos (unidad 8 Otra)" styleClass="campo-linea" />
+         </VBox>
+         <VBox spacing="4.0" GridPane.rowIndex="2" GridPane.columnIndex="1">
+            <Label text="(5.3) Equivalencia en cm³" styleClass="etiqueta-campo" />
+            <TextField fx:id="txtEqCm3" promptText="Líquidos (unidad 8 Otra)" styleClass="campo-linea" />
+         </VBox>
+         <VBox spacing="4.0" GridPane.rowIndex="2" GridPane.columnIndex="2">
+            <Label text="(10) Beneficiario de la mesada" styleClass="etiqueta-campo" />
+            <TextField fx:id="txtMesada" promptText="Solo para mesadas" styleClass="campo-linea" />
+         </VBox>
+      </GridPane>
+
+      <!-- Tabla D1: comida preparada fuera del hogar -->
+      <VBox fx:id="boxComida" spacing="12.0">
+         <GridPane hgap="20.0" vgap="12.0">
+            <columnConstraints>
+               <ColumnConstraints percentWidth="50.0" />
+               <ColumnConstraints percentWidth="20.0" />
+               <ColumnConstraints percentWidth="30.0" />
+            </columnConstraints>
+            <VBox spacing="4.0">
+               <Label text="(4) Descripción de la comida *" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtDescripcion" promptText="Ej. Almuerzo corriente (pollo, ensalada, arroz, sopa)" styleClass="campo-linea" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.columnIndex="1">
+               <Label text="(5) Cantidad *" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtCantidadComida" styleClass="campo-linea" />
+            </VBox>
+            <VBox spacing="4.0" alignment="BOTTOM_LEFT" GridPane.columnIndex="2">
+               <CheckBox fx:id="chkDomicilio" text="(11) Pedida a domicilio" />
+            </VBox>
+         </GridPane>
+         <VBox spacing="6.0">
+            <Label text="(4.1) Tipo de comida *" styleClass="etiqueta-campo" />
+            <HBox spacing="8.0">
+               <RadioButton fx:id="rbDesayuno" text="Desayuno" toggleGroup="$grupoComida" styleClass="radio-tarjeta" />
+               <RadioButton fx:id="rbAlmuerzo" text="Almuerzo" toggleGroup="$grupoComida" styleClass="radio-tarjeta" />
+               <RadioButton fx:id="rbCena" text="Cena" toggleGroup="$grupoComida" styleClass="radio-tarjeta" />
+               <RadioButton fx:id="rbOnces" text="Onces, medias nueves, merienda" toggleGroup="$grupoComida" styleClass="radio-tarjeta" />
+            </HBox>
+         </VBox>
+      </VBox>
+
+      <Separator />
+
+      <!-- Columnas comunes a D y D1 -->
+      <GridPane hgap="20.0" vgap="12.0">
+         <columnConstraints>
+            <ColumnConstraints percentWidth="33.3" />
+            <ColumnConstraints percentWidth="33.3" />
+            <ColumnConstraints percentWidth="33.4" />
+         </columnConstraints>
+         <VBox spacing="4.0">
+            <Label text="(6) Forma de adquisición *" styleClass="etiqueta-campo" />
+            <ComboBox fx:id="cmbForma" promptText="Seleccione" styleClass="combo-linea" maxWidth="Infinity" />
+         </VBox>
+         <VBox spacing="4.0" GridPane.columnIndex="1">
+            <Label text="(6) ¿Cuál forma?" styleClass="etiqueta-campo" />
+            <TextField fx:id="txtFormaOtra" promptText="Solo si la forma es 7 Otra" styleClass="campo-linea" />
+         </VBox>
+         <VBox spacing="4.0" GridPane.columnIndex="2">
+            <Label fx:id="lblValor" text="(8) Valor pagado *" styleClass="etiqueta-campo" />
+            <TextField fx:id="txtValor" promptText="En pesos" styleClass="campo-linea" />
+         </VBox>
+         <VBox spacing="4.0" GridPane.rowIndex="1">
+            <Label text="(7) Lugar de compra" styleClass="etiqueta-campo" />
+            <ComboBox fx:id="cmbLugar" promptText="Seleccione" styleClass="combo-linea" maxWidth="Infinity" />
+         </VBox>
+         <VBox spacing="4.0" GridPane.rowIndex="1" GridPane.columnIndex="1">
+            <Label text="(9) Frecuencia de compra *" styleClass="etiqueta-campo" />
+            <ComboBox fx:id="cmbFrecuencia" promptText="Seleccione" styleClass="combo-linea" maxWidth="Infinity" />
+         </VBox>
+         <VBox spacing="6.0" GridPane.rowIndex="1" GridPane.columnIndex="2">
+            <Label text="(10) Tipo de gasto *" styleClass="etiqueta-campo" />
+            <HBox spacing="8.0">
+               <RadioButton fx:id="rbHogar" text="Hogar" toggleGroup="$grupoTipo" styleClass="radio-tarjeta" selected="true" />
+               <RadioButton fx:id="rbPersonal" text="Personal" toggleGroup="$grupoTipo" styleClass="radio-tarjeta" />
+            </HBox>
+            <Label fx:id="lblNotaPersonal" styleClass="texto-suave" wrapText="true" />
+         </VBox>
+      </GridPane>
+
+      <Label fx:id="lblError" styleClass="banner-error" wrapText="true" maxWidth="Infinity" />
+   </VBox>
+
+   <HBox styleClass="modal-pie" spacing="10.0" alignment="CENTER_RIGHT">
+      <Button text="Cancelar" onAction="#cancelar" styleClass="boton-secundario" />
+      <Button fx:id="btnGuardar" onAction="#guardar" styleClass="boton-primario" />
+   </HBox>
+</VBox>

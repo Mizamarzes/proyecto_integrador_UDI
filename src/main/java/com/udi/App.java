@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -25,7 +26,7 @@ public class App extends Application {
     @Override
     public void start(Stage stage) {
         scene = new Scene(loadFXML("modulos/auth/login"), 1100, 680);
-        scene.getStylesheets().add(App.class.getResource("ui/shared/estilos.css").toExternalForm());
+        scene.getStylesheets().add(estilos());
         stage.setTitle("ENPH · Cuadernillo 2 urbano");
         stage.setMinWidth(900);
         stage.setMinHeight(600);
@@ -36,6 +37,16 @@ public class App extends Application {
     @Override
     public void stop() {
         ConexionBD.cerrar();
+    }
+
+    /** Hoja de estilos común; la usan también las ventanas modales. */
+    public static String estilos() {
+        return App.class.getResource("ui/shared/estilos.css").toExternalForm();
+    }
+
+    /** Ventana principal, dueña de las ventanas modales. */
+    public static Window ventana() {
+        return scene.getWindow();
     }
 
     /** Muestra la pantalla {@code ui/<vista>.fxml} en toda la ventana. */

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.TextFlow?>
+
+<!-- Pestaña «Identificación y hogar (Cap. A)» -->
+<VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.udi.controller.EncuestaHogarController">
+
+   <!-- Datos de la encuesta: informante y periodo -->
+   <VBox styleClass="tarjeta,tarjeta-acento" spacing="14.0">
+      <HBox alignment="CENTER_LEFT">
+         <VBox spacing="2.0">
+            <Label text="Datos de la encuesta" styleClass="titulo-seccion" />
+            <Label text="Informante y periodo de 14 días. La fecha hasta se calcula sola (fecha desde + 13 días)." styleClass="texto-suave" />
+         </VBox>
+         <Region HBox.hgrow="ALWAYS" />
+         <Button fx:id="btnEditar" text="Editar" onAction="#editar" styleClass="boton-secundario" />
+      </HBox>
+
+      <GridPane fx:id="gridDatos" hgap="24.0" vgap="14.0">
+         <columnConstraints>
+            <ColumnConstraints percentWidth="33.3" />
+            <ColumnConstraints percentWidth="33.3" />
+            <ColumnConstraints percentWidth="33.4" />
+         </columnConstraints>
+         <VBox spacing="2.0">
+            <Label text="Informante calificado" styleClass="dato-etiqueta" />
+            <Label fx:id="lblInformante" styleClass="dato-valor" />
+         </VBox>
+         <VBox spacing="2.0" GridPane.columnIndex="1">
+            <Label text="N.º de orden del informante" styleClass="dato-etiqueta" />
+            <Label fx:id="lblOrden" styleClass="dato-codigo" />
+         </VBox>
+         <VBox spacing="2.0" GridPane.columnIndex="2">
+            <Label text="Encuestador" styleClass="dato-etiqueta" />
+            <Label fx:id="lblEncuestador" styleClass="dato-valor" />
+         </VBox>
+         <VBox spacing="2.0" GridPane.rowIndex="1">
+            <Label text="Fecha desde (A.21)" styleClass="dato-etiqueta" />
+            <Label fx:id="lblDesde" styleClass="dato-valor" />
+         </VBox>
+         <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="1">
+            <Label text="Fecha hasta (A.22)" styleClass="dato-etiqueta" />
+            <Label fx:id="lblHasta" styleClass="dato-valor" />
+         </VBox>
+         <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="2">
+            <Label text="Resultado del cuadernillo (A.18)" styleClass="dato-etiqueta" />
+            <Label fx:id="lblResultado" styleClass="dato-valor" />
+         </VBox>
+      </GridPane>
+
+      <VBox fx:id="boxEditar" spacing="14.0">
+         <GridPane hgap="24.0" vgap="14.0">
+            <columnConstraints>
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+            </columnConstraints>
+            <VBox spacing="4.0">
+               <Label text="Informante calificado *" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtInformante" styleClass="campo-linea" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.columnIndex="1">
+               <Label text="N.º de orden del informante" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtOrden" promptText="Ej. 01" styleClass="campo-linea" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.columnIndex="2">
+               <Label text="Fecha desde (A.21) *" styleClass="etiqueta-campo" />
+               <DatePicker fx:id="dtpDesde" promptText="dd/mm/aaaa" styleClass="campo-fecha" maxWidth="Infinity" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.columnIndex="3">
+               <Label text="Fecha hasta (A.22) · calculada" styleClass="etiqueta-campo" />
+               <Label fx:id="lblHastaCalculada" styleClass="valor-calculado" />
+            </VBox>
+         </GridPane>
+         <Label fx:id="lblError" styleClass="texto-alerta" />
+         <HBox spacing="10.0" alignment="CENTER_RIGHT">
+            <Button text="Cancelar" onAction="#cancelar" styleClass="boton-secundario" />
+            <Button text="Guardar datos" onAction="#guardar" styleClass="boton-primario" />
+         </HBox>
+      </VBox>
+   </VBox>
+
+   <!-- Hogar y vivienda -->
+   <HBox spacing="18.0">
+      <VBox styleClass="tarjeta" spacing="14.0" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+         <HBox alignment="CENTER_LEFT">
+            <Label text="Hogar" styleClass="titulo-seccion" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="lblCodigoHogar" styleClass="chip" />
+         </HBox>
+         <GridPane hgap="24.0" vgap="12.0">
+            <columnConstraints>
+               <ColumnConstraints percentWidth="33.3" />
+               <ColumnConstraints percentWidth="33.3" />
+               <ColumnConstraints percentWidth="33.4" />
+            </columnConstraints>
+            <VBox spacing="2.0">
+               <Label text="Hogar número (A.13)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblHogarNumero" styleClass="dato-valor" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.columnIndex="1">
+               <Label text="Total de personas (A.14)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblPersonas" styleClass="dato-valor" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.columnIndex="2">
+               <Label text="Ciclo (A.9)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblCiclo" styleClass="dato-codigo" />
+            </VBox>
+         </GridPane>
+      </VBox>
+
+      <VBox styleClass="tarjeta" spacing="14.0" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+         <HBox alignment="CENTER_LEFT">
+            <Label text="Vivienda" styleClass="titulo-seccion" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="lblCodigoVivienda" styleClass="chip" />
+         </HBox>
+         <VBox spacing="2.0">
+            <Label fx:id="lblDireccion" styleClass="dato-valor" />
+            <Label fx:id="lblBarrio" styleClass="texto-suave" wrapText="true" />
+         </VBox>
+         <GridPane hgap="24.0" vgap="12.0">
+            <columnConstraints>
+               <ColumnConstraints percentWidth="50.0" />
+               <ColumnConstraints percentWidth="50.0" />
+            </columnConstraints>
+            <VBox spacing="2.0">
+               <Label text="Total de hogares (A.12)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblTotalHogares" styleClass="dato-valor" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.columnIndex="1">
+               <Label text="Edificación / Vivienda" styleClass="dato-etiqueta" />
+               <Label fx:id="lblEdificacion" styleClass="dato-codigo" />
+            </VBox>
+         </GridPane>
+      </VBox>
+   </HBox>
+
+   <!-- Ubicación -->
+   <VBox styleClass="tarjeta" spacing="14.0">
+      <Label text="Ubicación de la vivienda (Cap. A)" styleClass="titulo-seccion" />
+      <GridPane hgap="24.0" vgap="14.0">
+         <columnConstraints>
+            <ColumnConstraints percentWidth="25.0" />
+            <ColumnConstraints percentWidth="25.0" />
+            <ColumnConstraints percentWidth="25.0" />
+            <ColumnConstraints percentWidth="25.0" />
+         </columnConstraints>
+         <VBox spacing="2.0">
+            <Label text="1. Región" styleClass="dato-etiqueta" />
+            <Label fx:id="lblRegion" styleClass="dato-valor" />
+         </VBox>
+         <VBox spacing="2.0" GridPane.columnIndex="1">
+            <Label text="2. Departamento" styleClass="dato-etiqueta" />
+            <Label fx:id="lblDepartamento" styleClass="dato-valor" />
+         </VBox>
+         <VBox spacing="2.0" GridPane.columnIndex="2">
+            <Label text="3. Municipio" styleClass="dato-etiqueta" />
+            <Label fx:id="lblMunicipio" styleClass="dato-valor" />
+         </VBox>
+         <VBox spacing="2.0" GridPane.columnIndex="3">
+            <Label text="4. Clase" styleClass="dato-etiqueta" />
+            <Label fx:id="lblClase" styleClass="dato-valor" />
+         </VBox>
+         <VBox spacing="2.0" GridPane.rowIndex="1">
+            <Label text="5. Sector" styleClass="dato-etiqueta" />
+            <Label fx:id="lblSector" styleClass="dato-codigo" />
+         </VBox>
+         <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="1">
+            <Label text="6. Sección" styleClass="dato-etiqueta" />
+            <Label fx:id="lblSeccion" styleClass="dato-codigo" />
+         </VBox>
+         <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="2">
+            <Label text="7. Manzana" styleClass="dato-etiqueta" />
+            <Label fx:id="lblManzana" styleClass="dato-codigo" />
+         </VBox>
+         <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="3">
+            <Label text="8. Segmento" styleClass="dato-etiqueta" />
+            <Label fx:id="lblSegmento" styleClass="dato-codigo" />
+         </VBox>
+      </GridPane>
+      <TextFlow>
+         <Label text="Los datos de la vivienda y del hogar se editan en " styleClass="texto-suave" />
+         <Hyperlink text="Viviendas y hogares" onAction="#irVivienda" styleClass="enlace" />
+         <Label text=", porque son compartidos con otras encuestas de la misma vivienda." styleClass="texto-suave" />
+      </TextFlow>
+   </VBox>
+</VBox>

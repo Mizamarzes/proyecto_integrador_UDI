@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Pestaña «Características del gasto en alimentos (Cap. C)» -->
+<VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.udi.controller.EncuestaCapituloCController">
+
+   <HBox styleClass="tarjeta" spacing="28.0" alignment="CENTER_LEFT">
+      <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+         <Label text="C. Características del gasto en alimentos" styleClass="titulo-seccion" />
+         <Label wrapText="true" styleClass="texto-suave"
+                text="¿Con qué frecuencia compran generalmente los siguientes alimentos en el hogar? Se toma el primer día de la bisemana a quien hace las compras. Si la frecuencia supera la bisemana (mensual, bimestral, trimestral o esporádica) se preguntan la 3.1 y la 3.2." />
+      </VBox>
+      <VBox spacing="8.0" prefWidth="240.0" minWidth="200.0">
+         <Label fx:id="lblAvance" styleClass="dato-valor" />
+         <ProgressBar fx:id="barAvance" styleClass="barra" maxWidth="Infinity" progress="0.0" />
+      </VBox>
+   </HBox>
+
+   <Label fx:id="lblIncompleto" styleClass="banner-alerta" wrapText="true" maxWidth="Infinity" />
+   <HBox fx:id="boxCompleto" styleClass="banner-ok" alignment="CENTER_LEFT" spacing="4.0">
+      <Label text="Capítulo C completo. Ya se pueden registrar los gastos diarios." styleClass="banner-ok" style="-fx-padding: 0; -fx-border-width: 0;" />
+      <Hyperlink text="Ir a la línea de 14 días" onAction="#irGastos" />
+   </HBox>
+
+   <VBox styleClass="tarjeta" spacing="0.0" style="-fx-padding: 0;">
+      <HBox alignment="BOTTOM_LEFT" spacing="16.0" style="-fx-padding: 14 18 14 18;">
+         <VBox spacing="4.0">
+            <Label text="Mostrar" styleClass="etiqueta-campo" />
+            <ComboBox fx:id="cmbFiltro" styleClass="combo-linea" prefWidth="220.0" />
+         </VBox>
+         <Region HBox.hgrow="ALWAYS" />
+         <Label fx:id="lblConteo" styleClass="texto-suave" />
+      </HBox>
+
+      <HBox styleClass="grilla-encabezado" spacing="12.0" alignment="CENTER_LEFT">
+         <Label text="Código" prefWidth="50.0" minWidth="50.0" />
+         <Label text="1. Alimentos o grupos de alimentos" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+         <Label text="2. Frecuencia de compra *" prefWidth="220.0" minWidth="220.0" />
+         <Label text="3.1 Valor de la última compra" prefWidth="160.0" minWidth="160.0" />
+         <Label text="3.2 ¿Comprará en los 14 días?" prefWidth="180.0" minWidth="180.0" />
+      </HBox>
+      <VBox fx:id="filas" />
+      <Label fx:id="lblVacio" text="No hay grupos en este filtro." styleClass="texto-suave" style="-fx-padding: 30 18 30 18;" />
+
+      <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-padding: 14 18 14 18;">
+         <Label text="«Nunca» solo existe en este capítulo. En los gastos diarios no se puede usar." styleClass="texto-suave" HBox.hgrow="ALWAYS" maxWidth="Infinity" wrapText="true" />
+         <Button fx:id="btnDescartar" text="Descartar cambios" onAction="#descartar" styleClass="boton-secundario" minWidth="-Infinity" />
+         <Button fx:id="btnGuardar" text="Guardar capítulo C" onAction="#guardar" styleClass="boton-primario" minWidth="-Infinity" />
+      </HBox>
+   </VBox>
+</VBox>

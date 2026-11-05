@@ -10,14 +10,15 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
+<!-- Listado de encuestas: «Mis Encuestas» para el encuestador y vista global para los demás roles -->
 <VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.udi.controller.EncuestaController">
 
    <!-- Título -->
    <HBox alignment="CENTER_LEFT">
       <VBox spacing="4.0">
-         <Label text="Encuestas" styleClass="titulo-pagina" />
-         <Label text="Consulta, seguimiento y captura de información." styleClass="subtitulo-pagina" />
+         <Label fx:id="lblTitulo" text="Encuestas" styleClass="titulo-pagina" />
+         <Label fx:id="lblSubtitulo" text="Consulta, seguimiento y supervisión de encuestas." styleClass="subtitulo-pagina" />
       </VBox>
       <Region HBox.hgrow="ALWAYS" />
       <Button text="+ Nueva encuesta" onAction="#nuevaEncuesta" styleClass="boton-accion" />
@@ -27,13 +28,13 @@
    <HBox styleClass="tarjeta" alignment="BOTTOM_LEFT" spacing="20.0">
       <VBox spacing="4.0">
          <Label text="Buscar" styleClass="etiqueta-campo" />
-         <TextField fx:id="txtBuscar" promptText="Código, hogar, encuestador…" styleClass="campo-linea" prefWidth="200.0" minWidth="120.0" />
+         <TextField fx:id="txtBuscar" promptText="Código, hogar, dirección…" styleClass="campo-linea" prefWidth="220.0" minWidth="120.0" />
       </VBox>
       <VBox spacing="4.0">
          <Label text="Estado" styleClass="etiqueta-campo" />
          <ComboBox fx:id="cmbEstado" styleClass="combo-linea" prefWidth="150.0" />
       </VBox>
-      <VBox spacing="4.0">
+      <VBox fx:id="boxPeriodo" spacing="4.0">
          <Label text="Periodo" styleClass="etiqueta-campo" />
          <ComboBox fx:id="cmbPeriodo" styleClass="combo-linea" prefWidth="200.0" />
       </VBox>
@@ -46,10 +47,12 @@
    <TableView fx:id="tabla" styleClass="tabla" VBox.vgrow="ALWAYS">
       <columns>
          <TableColumn fx:id="colId" text="ID encuesta" styleClass="columna-codigo" />
-         <TableColumn fx:id="colHogar" text="Hogar" styleClass="columna-codigo" />
+         <TableColumn fx:id="colHogar" text="Hogar / Dirección" />
+         <TableColumn fx:id="colInformante" text="Informante calificado" />
          <TableColumn fx:id="colEncuestador" text="Encuestador" />
          <TableColumn fx:id="colEstado" text="Estado" />
          <TableColumn fx:id="colFecha" text="Fecha de inicio" />
+         <TableColumn fx:id="colAvance" text="Avance (14 días)" sortable="false" />
          <TableColumn fx:id="colAcciones" text="Acciones" sortable="false" />
       </columns>
    </TableView>

@@ -2,10 +2,13 @@ package com.udi.controller;
 
 import com.udi.model.Encuesta;
 import com.udi.model.EncuestaResumen;
+import com.udi.model.Rol;
 import com.udi.model.enums.EstadoEncuesta;
 import com.udi.service.EncuestaService;
-import com.udi.util.Tareas;
 import com.udi.util.Formato;
+import com.udi.util.Modal;
+import com.udi.util.Sesion;
+import com.udi.util.Tareas;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -13,19 +16,27 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 
-/** Listado de encuestas con búsqueda y filtros por estado y periodo. */
+/**
+ * Listado de encuestas. El encuestador ve «Mis Encuestas» (las suyas, con el
+ * avance de los 14 días); los demás roles ven todas con su encuestador.
+ */
 public class EncuestaController {
 
     private static final String TODOS = "Todos";
@@ -64,9 +75,15 @@ public class EncuestaController {
     }
 
     @FXML
+    private Label lblTitulo;
+    @FXML
+    private Label lblSubtitulo;
+    @FXML
     private TextField txtBuscar;
     @FXML
     private ComboBox<String> cmbEstado;
+    @FXML
+    private VBox boxPeriodo;
     @FXML
     private ComboBox<Periodo> cmbPeriodo;
     @FXML
@@ -74,13 +91,17 @@ public class EncuestaController {
     @FXML
     private TableColumn<EncuestaResumen, String> colId;
     @FXML
-    private TableColumn<EncuestaResumen, String> colHogar;
+    private TableColumn<EncuestaResumen, EncuestaResumen> colHogar;
+    @FXML
+    private TableColumn<EncuestaResumen, String> colInformante;
     @FXML
     private TableColumn<EncuestaResumen, String> colEncuestador;
     @FXML
     private TableColumn<EncuestaResumen, EstadoEncuesta> colEstado;
     @FXML
     private TableColumn<EncuestaResumen, String> colFecha;
+    @FXML
+    private TableColumn<EncuestaResumen, EncuestaResumen> colAvance;
     @FXML
     private TableColumn<EncuestaResumen, EncuestaResumen> colAcciones;
     @FXML
@@ -90,8 +111,16 @@ public class EncuestaController {
     private final ObservableList<EncuestaResumen> encuestas = FXCollections.observableArrayList();
     private final FilteredList<EncuestaResumen> filtradas = new FilteredList<>(encuestas);
 
+    /** El encuestador ve sus encuestas con el avance; los demás roles, la vista global. */
+    private final boolean esEncuestador = Sesion.tieneRol(Rol.ENCUESTADOR);
+
     @FXML
     private void initialize() {
+        if (esEncuestador) {
+            lblTitulo.setText("Mis Encuestas");
+            lblSubtitulo.setText("Seguimiento y captura de los cuadernillos que tienes asignados.");
+            Formato.mostrar(boxPeriodo, false);
+        }
         cmbEstado.getItems().add(TODOS);
         for (EstadoEncuesta estado : EstadoEncuesta.values()) {
             cmbEstado.getItems().add(estado.getDescripcion());
@@ -104,7 +133,7 @@ public class EncuestaController {
         cmbPeriodo.valueProperty().addListener((obs, antes, ahora) -> filtrar());
         limpiar();
 
-        Tareas.ejecutar(() -> encuestaService.listarResumen(), lista -> encuestas.setAll(lista));
+        Tareas.ejecutar(encuestaService::listarResumen, encuestas::setAll);
     }
 
     @FXML
@@ -114,41 +143,115 @@ public class EncuestaController {
         cmbPeriodo.setValue(Periodo.TODOS);
     }
 
+    /** Nueva encuesta = seleccionar un hogar que todavía no tenga encuesta. */
     @FXML
     private void nuevaEncuesta() {
-        EncuestaFormController formulario = NavbarController.abrir("modulos/encuestas/encuesta_form", "Encuestas", "Nueva encuesta");
-        formulario.nueva();
+        Modal<NuevaEncuestaController> modal = Modal.cargar("modulos/encuestas/partials/nueva_encuesta", "Nueva encuesta");
+        modal.controlador().preparar(creada ->
+                EncuestaDetalleController.abrir(creada.getId(), EncuestaDetalleController.Pestana.HOGAR));
+        modal.mostrar();
     }
 
     private void abrir(EncuestaResumen fila) {
-        long id = fila.getEncuesta().getId();
-        EncuestaFormController formulario = NavbarController.abrir("modulos/encuestas/encuesta_form", "Encuestas", Formato.codigo("E", id));
-        formulario.editar(id);
+        EncuestaDetalleController.abrir(fila.getEncuesta().getId(), EncuestaDetalleController.Pestana.VISITAS);
+    }
+
+    /** Día del periodo de 14 días en el que va la encuesta (0 si todavía no empieza). */
+    static int diaActual(Encuesta e) {
+        if (e.estaCerrada()) {
+            return EncuestaService.DIAS_PERIODO;
+        }
+        if (e.getFechaDesde() == null) {
+            return 0;
+        }
+        long dia = ChronoUnit.DAYS.between(e.getFechaDesde(), LocalDate.now()) + 1;
+        return (int) Math.max(0, Math.min(EncuestaService.DIAS_PERIODO, dia));
+    }
+
+    private String textoAccion(Encuesta e) {
+        if (e.estaCerrada()) {
+            return "Ver";
+        }
+        if (!esEncuestador) {
+            return "Ver / editar";
+        }
+        int dia = diaActual(e);
+        return dia == 0 ? "Iniciar" : "Capturar día " + dia + " / Ver";
     }
 
     private void configurarTabla() {
         tabla.setItems(filtradas);
-        tabla.setPlaceholder(new Label("No hay encuestas que coincidan con la búsqueda."));
+        tabla.setPlaceholder(new Label("Ninguna encuesta coincide con los filtros."));
         tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
+        // Columnas según el rol (maquetas «Mis Encuestas» y «Administrador · Encuestas»)
+        colInformante.setVisible(esEncuestador);
+        colAvance.setVisible(esEncuestador);
+        colEncuestador.setVisible(!esEncuestador);
+        colFecha.setVisible(!esEncuestador);
+        colHogar.setText(esEncuestador ? "Hogar / Dirección" : "Hogar");
+
         colId.setCellValueFactory(d -> new ReadOnlyStringWrapper(Formato.codigo("E", d.getValue().getEncuesta().getId())));
-        colHogar.setCellValueFactory(d -> new ReadOnlyStringWrapper(Formato.codigo("H", d.getValue().getEncuesta().getHogarId())));
+        colHogar.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue()));
+        colInformante.setCellValueFactory(d -> {
+            String nombre = d.getValue().getEncuesta().getInformanteNombre();
+            return new ReadOnlyStringWrapper(nombre == null ? "Por registrar" : nombre);
+        });
         colEncuestador.setCellValueFactory(d -> new ReadOnlyStringWrapper(d.getValue().getEncuestador()));
         colEstado.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue().getEncuesta().getEstado()));
         colFecha.setCellValueFactory(d -> new ReadOnlyStringWrapper(Formato.fecha(d.getValue().getEncuesta().getFechaDesde())));
+        colAvance.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue()));
         colAcciones.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue()));
+
+        colHogar.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(EncuestaResumen fila, boolean vacia) {
+                super.updateItem(fila, vacia);
+                if (vacia || fila == null) {
+                    setText(null);
+                    return;
+                }
+                String codigo = Formato.codigo("H", fila.getEncuesta().getHogarId());
+                setText(esEncuestador && !fila.getDireccion().isEmpty() ? codigo + " · " + fila.getDireccion() : codigo);
+            }
+        });
 
         colEstado.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(EstadoEncuesta estado, boolean vacia) {
                 super.updateItem(estado, vacia);
-                if (vacia || estado == null) {
+                setGraphic(vacia || estado == null ? null : insigniaEstado(estado));
+            }
+        });
+
+        colAvance.setCellFactory(col -> new TableCell<>() {
+            private final ProgressBar barra = new ProgressBar();
+            private final Label texto = new Label();
+            private final HBox caja = new HBox(8, barra, texto);
+
+            {
+                barra.getStyleClass().add("barra");
+                barra.setPrefWidth(90);
+                texto.getStyleClass().add("texto-suave");
+                caja.setAlignment(Pos.CENTER_LEFT);
+            }
+
+            @Override
+            protected void updateItem(EncuestaResumen fila, boolean vacia) {
+                super.updateItem(fila, vacia);
+                if (vacia || fila == null) {
                     setGraphic(null);
                     return;
                 }
-                Label etiqueta = new Label(estado.getDescripcion());
-                etiqueta.getStyleClass().addAll("insignia", "insignia-" + estado.name().toLowerCase());
-                setGraphic(etiqueta);
+                Encuesta e = fila.getEncuesta();
+                int dia = diaActual(e);
+                barra.setProgress(dia / (double) EncuestaService.DIAS_PERIODO);
+                barra.getStyleClass().remove("barra-abierta");
+                if (!e.estaCerrada()) {
+                    barra.getStyleClass().add("barra-abierta");
+                }
+                texto.setText(e.estaCerrada() ? "Completo" : "Día " + dia + "/14");
+                setGraphic(caja);
             }
         });
 
@@ -167,7 +270,7 @@ public class EncuestaController {
                     setGraphic(null);
                     return;
                 }
-                enlace.setText(fila.getEncuesta().estaCerrada() ? "Ver" : "Ver / editar");
+                enlace.setText(textoAccion(fila.getEncuesta()));
                 setGraphic(enlace);
             }
         });
@@ -185,6 +288,13 @@ public class EncuestaController {
         filtradas.addListener((ListChangeListener<EncuestaResumen>) c -> actualizarTotal());
     }
 
+    /** Insignia de color con el estado de la encuesta (Abierta, Cerrada, Reabierta). */
+    static Label insigniaEstado(EstadoEncuesta estado) {
+        Label etiqueta = new Label(estado.getDescripcion());
+        etiqueta.getStyleClass().addAll("insignia", "insignia-" + estado.name().toLowerCase());
+        return etiqueta;
+    }
+
     private void filtrar() {
         String texto = txtBuscar.getText() == null ? "" : txtBuscar.getText().trim().toLowerCase();
         String estado = cmbEstado.getValue();
@@ -195,6 +305,7 @@ public class EncuestaController {
                     || Formato.codigo("E", e.getId()).toLowerCase().contains(texto)
                     || Formato.codigo("H", e.getHogarId()).toLowerCase().contains(texto)
                     || fila.getEncuestador().toLowerCase().contains(texto)
+                    || fila.getDireccion().toLowerCase().contains(texto)
                     || (e.getInformanteNombre() != null && e.getInformanteNombre().toLowerCase().contains(texto));
             boolean coincideEstado = estado == null || TODOS.equals(estado)
                     || e.getEstado().getDescripcion().equals(estado);
@@ -204,6 +315,6 @@ public class EncuestaController {
     }
 
     private void actualizarTotal() {
-        lblTotal.setText(filtradas.size() + " de " + encuestas.size() + " encuestas");
+        lblTotal.setText(filtradas.size() + " de " + encuestas.size() + (esEncuestador ? " encuestas asignadas" : " encuestas"));
     }
 }

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.TextFlow?>
+
+<!-- Detalle de una vivienda: identificación (Cap. A) y sus hogares -->
+<ScrollPane fitToWidth="true" styleClass="scroll-transparente" xmlns="http://javafx.com/javafx/11"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.udi.controller.ViviendaDetalleController">
+   <VBox spacing="18.0">
+      <padding>
+         <Insets right="14.0" bottom="8.0" />
+      </padding>
+
+      <HBox alignment="BOTTOM_LEFT" spacing="12.0">
+         <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+            <HBox alignment="CENTER_LEFT" spacing="12.0">
+               <Label fx:id="lblTitulo" styleClass="titulo-pagina" />
+               <Label fx:id="lblCodigo" styleClass="chip" />
+            </HBox>
+            <Label fx:id="lblSubtitulo" styleClass="subtitulo-pagina" />
+         </VBox>
+         <Button text="← Volver a viviendas" onAction="#volver" styleClass="boton-secundario" minWidth="-Infinity" />
+      </HBox>
+
+      <VBox styleClass="tarjeta" spacing="14.0">
+         <HBox alignment="CENTER_LEFT">
+            <Label text="Identificación de la vivienda (Cap. A)" styleClass="titulo-seccion" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Hyperlink text="Editar vivienda" onAction="#editarVivienda" styleClass="enlace" />
+         </HBox>
+         <GridPane hgap="24.0" vgap="14.0">
+            <columnConstraints>
+               <ColumnConstraints percentWidth="33.3" />
+               <ColumnConstraints percentWidth="33.3" />
+               <ColumnConstraints percentWidth="33.4" />
+            </columnConstraints>
+            <VBox spacing="2.0">
+               <Label text="Municipio" styleClass="dato-etiqueta" />
+               <Label fx:id="lblMunicipio" styleClass="dato-valor" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.columnIndex="1">
+               <Label text="Sector / Sección" styleClass="dato-etiqueta" />
+               <Label fx:id="lblSectorSeccion" styleClass="dato-codigo" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.columnIndex="2">
+               <Label text="Manzana / Segmento" styleClass="dato-etiqueta" />
+               <Label fx:id="lblManzanaSegmento" styleClass="dato-codigo" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.rowIndex="1">
+               <Label text="Edificación / Vivienda" styleClass="dato-etiqueta" />
+               <Label fx:id="lblEdificacion" styleClass="dato-codigo" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="1">
+               <Label text="Teléfono" styleClass="dato-etiqueta" />
+               <Label fx:id="lblTelefono" styleClass="dato-valor" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="2">
+               <Label text="Hogares registrados (A.12)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblRegistrados" styleClass="dato-valor" />
+            </VBox>
+         </GridPane>
+      </VBox>
+
+      <Label fx:id="lblAviso" styleClass="banner-ok" wrapText="true" maxWidth="Infinity" />
+
+      <VBox styleClass="tarjeta" spacing="12.0">
+         <HBox alignment="CENTER_LEFT" spacing="12.0">
+            <VBox spacing="2.0" HBox.hgrow="ALWAYS">
+               <Label text="Hogares de la vivienda" styleClass="titulo-seccion" />
+               <TextFlow>
+                  <Label text="Cada hogar puede tener una sola encuesta. Los hogares sin encuesta aparecen en " styleClass="texto-suave" />
+                  <Hyperlink text="Encuestas › Nueva encuesta" onAction="#irEncuestas" styleClass="enlace" />
+                  <Label text="." styleClass="texto-suave" />
+               </TextFlow>
+            </VBox>
+            <VBox alignment="CENTER_RIGHT" spacing="4.0">
+               <Button fx:id="btnAgregar" text="+ Agregar hogar" onAction="#agregarHogar" styleClass="boton-accion" />
+               <Label fx:id="lblTope" styleClass="texto-suave" />
+            </VBox>
+         </HBox>
+         <TableView fx:id="tabla" styleClass="tabla" prefHeight="300.0">
+            <columns>
+               <TableColumn fx:id="colNumero" text="Hogar N.º (A.13)" prefWidth="120.0" />
+               <TableColumn fx:id="colPersonas" text="Total de personas (A.14)" prefWidth="160.0" />
+               <TableColumn fx:id="colCiclo" text="Ciclo (A.9)" prefWidth="90.0" />
+               <TableColumn fx:id="colEncuesta" text="Encuesta" prefWidth="180.0" sortable="false" />
+               <TableColumn fx:id="colAcciones" text="Acciones" prefWidth="200.0" sortable="false" />
+            </columns>
+         </TableView>
+      </VBox>
+   </VBox>
+</ScrollPane>

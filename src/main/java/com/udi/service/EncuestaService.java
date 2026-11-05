@@ -88,9 +88,11 @@ public class EncuestaService {
                 encuestas = encuestaDao.listar(c);
             }
             Map<Long, String> nombres = nombresEncuestadores(c);
+            Map<Long, String> direcciones = direccionesHogares(c);
             List<EncuestaResumen> resumen = new ArrayList<>();
             for (Encuesta e : encuestas) {
-                resumen.add(new EncuestaResumen(e, nombres.getOrDefault(e.getEncuestadorId(), "")));
+                resumen.add(new EncuestaResumen(e, nombres.getOrDefault(e.getEncuestadorId(), ""),
+                        direcciones.getOrDefault(e.getHogarId(), "")));
             }
             resumen.sort(Comparator.comparing(r -> r.getEncuesta().getId()));
             return resumen;
@@ -225,6 +227,19 @@ public class EncuestaService {
             ReglasEncuesta.exigirEditable(c, encuestaId);
             return encuestaDao.eliminar(c, encuestaId);
         });
+    }
+
+    /** Dirección de la vivienda de cada hogar, por id del hogar. */
+    private Map<Long, String> direccionesHogares(Connection c) throws SQLException {
+        Map<Long, String> porVivienda = new HashMap<>();
+        for (Vivienda v : viviendaDao.listar(c)) {
+            porVivienda.put(v.getId(), v.getDireccion());
+        }
+        Map<Long, String> direcciones = new HashMap<>();
+        for (Hogar h : hogarDao.listar(c)) {
+            direcciones.put(h.getId(), porVivienda.getOrDefault(h.getViviendaId(), ""));
+        }
+        return direcciones;
     }
 
     private Map<Long, String> nombresEncuestadores(Connection c) throws SQLException {

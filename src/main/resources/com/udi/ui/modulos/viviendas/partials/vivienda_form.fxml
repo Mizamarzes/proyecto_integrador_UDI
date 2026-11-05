@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Modal «Nueva vivienda» / «Editar vivienda» (capítulo A) -->
+<VBox styleClass="modal" prefWidth="760.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.udi.controller.ViviendaFormController">
+
+   <VBox styleClass="modal-encabezado" spacing="4.0">
+      <Label fx:id="lblTitulo" text="Nueva vivienda" styleClass="titulo-modal" />
+      <Label text="Capítulo A · Identificación de la vivienda según la cartografía DANE. Los campos con * son obligatorios."
+             styleClass="subtitulo-pagina" wrapText="true" />
+   </VBox>
+
+   <VBox styleClass="modal-cuerpo" spacing="18.0">
+      <VBox spacing="10.0">
+         <Label text="UBICACIÓN POLÍTICO-ADMINISTRATIVA" styleClass="etiqueta-seccion" />
+         <GridPane hgap="18.0" vgap="12.0">
+            <columnConstraints>
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+            </columnConstraints>
+            <VBox spacing="4.0">
+               <Label text="1. Región *" styleClass="etiqueta-campo" />
+               <ComboBox fx:id="cmbRegion" promptText="Seleccione" styleClass="combo-linea" maxWidth="Infinity" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.columnIndex="1">
+               <Label text="2. Departamento *" styleClass="etiqueta-campo" />
+               <ComboBox fx:id="cmbDepartamento" promptText="Seleccione" styleClass="combo-linea" maxWidth="Infinity" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.columnIndex="2">
+               <Label text="3. Municipio *" styleClass="etiqueta-campo" />
+               <ComboBox fx:id="cmbMunicipio" promptText="Seleccione" styleClass="combo-linea" maxWidth="Infinity" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.columnIndex="3">
+               <Label text="4. Clase *" styleClass="etiqueta-campo" />
+               <ComboBox fx:id="cmbClase" promptText="Seleccione" styleClass="combo-linea" maxWidth="Infinity" />
+            </VBox>
+         </GridPane>
+      </VBox>
+
+      <VBox spacing="10.0">
+         <Label text="CÓDIGOS CARTOGRÁFICOS Y CENSALES" styleClass="etiqueta-seccion" />
+         <GridPane hgap="18.0" vgap="12.0">
+            <columnConstraints>
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+            </columnConstraints>
+            <VBox spacing="4.0">
+               <Label text="5. Sector" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtSector" promptText="4 dígitos" styleClass="campo-linea" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.columnIndex="1">
+               <Label text="6. Sección" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtSeccion" promptText="2 dígitos" styleClass="campo-linea" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.columnIndex="2">
+               <Label text="7. Manzana" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtManzana" promptText="2 dígitos" styleClass="campo-linea" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.columnIndex="3">
+               <Label text="8. Segmento" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtSegmento" promptText="4 dígitos" styleClass="campo-linea" />
+            </VBox>
+         </GridPane>
+      </VBox>
+
+      <VBox spacing="10.0">
+         <Label text="EDIFICACIÓN Y DIRECCIÓN" styleClass="etiqueta-seccion" />
+         <GridPane hgap="18.0" vgap="12.0">
+            <columnConstraints>
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+            </columnConstraints>
+            <VBox spacing="4.0">
+               <Label text="10. Edificación número *" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtEdificacion" promptText="Ej. 003" styleClass="campo-linea" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.columnIndex="1">
+               <Label text="11. Vivienda número *" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtViviendaNumero" promptText="Ej. 001" styleClass="campo-linea" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.columnIndex="2">
+               <Label text="12. Total de hogares *" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtTotalHogares" promptText="1 a 99" styleClass="campo-linea" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.columnIndex="3">
+               <Label text="17. Teléfono de contacto" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtTelefono" promptText="Fijo o móvil" styleClass="campo-linea" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.rowIndex="1" GridPane.columnSpan="2">
+               <Label text="15. Barrio, centro poblado o vereda *" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtBarrio" promptText="Ej. Chapinero Central" styleClass="campo-linea" />
+            </VBox>
+            <VBox spacing="4.0" GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.columnSpan="2">
+               <Label text="16. Dirección de la vivienda *" styleClass="etiqueta-campo" />
+               <TextField fx:id="txtDireccion" promptText="Ej. Calle 47 # 13-20" styleClass="campo-linea" />
+            </VBox>
+         </GridPane>
+      </VBox>
+
+      <Label fx:id="lblError" styleClass="banner-error" wrapText="true" maxWidth="Infinity" />
+   </VBox>
+
+   <HBox styleClass="modal-pie" spacing="10.0" alignment="CENTER_RIGHT">
+      <Button text="Cancelar" onAction="#cancelar" styleClass="boton-secundario" />
+      <Button fx:id="btnGuardar" text="Guardar vivienda" onAction="#guardar" styleClass="boton-primario" />
+   </HBox>
+</VBox>

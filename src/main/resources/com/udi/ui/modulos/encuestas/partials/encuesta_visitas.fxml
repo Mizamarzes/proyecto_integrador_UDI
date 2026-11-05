@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Pestaña «Control de visitas» (capítulo B) -->
+<VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.udi.controller.EncuestaVisitasController">
+
+   <VBox styleClass="tarjeta" spacing="14.0">
+      <HBox alignment="CENTER_LEFT">
+         <Label text="Resumen operativo del hogar" styleClass="titulo-seccion" />
+         <Region HBox.hgrow="ALWAYS" />
+         <Label text="CUADERNILLO 2 · URBANO" styleClass="chip" />
+      </HBox>
+      <HBox spacing="14.0">
+         <VBox styleClass="tarjeta-interna" spacing="4.0" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label text="VISITAS REALIZADAS" styleClass="etiqueta-seccion" />
+            <Label fx:id="lblTotal" text="0" styleClass="metrica-valor" />
+            <Label text="registradas en campo" styleClass="texto-suave" />
+         </VBox>
+         <VBox styleClass="tarjeta-interna" spacing="4.0" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label text="PRÓXIMA VISITA" styleClass="etiqueta-seccion" />
+            <Label fx:id="lblProxima" styleClass="metrica-acento" />
+            <Label text="concertada con el informante" styleClass="texto-suave" />
+         </VBox>
+         <VBox styleClass="tarjeta-interna" spacing="8.0" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label text="AVANCE 14 DÍAS" styleClass="etiqueta-seccion" />
+            <ProgressBar fx:id="barAvance" styleClass="barra,barra-abierta" maxWidth="Infinity" progress="0.0" />
+            <Label fx:id="lblAvance" styleClass="texto-suave" />
+         </VBox>
+         <VBox styleClass="tarjeta-interna" spacing="4.0" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label text="ÚLTIMA VISITA" styleClass="etiqueta-seccion" />
+            <Label fx:id="lblUltima" styleClass="dato-valor" wrapText="true" />
+            <Label fx:id="lblUltimaFecha" styleClass="texto-suave" />
+         </VBox>
+      </HBox>
+   </VBox>
+
+   <VBox styleClass="tarjeta" spacing="12.0">
+      <HBox alignment="CENTER_LEFT">
+         <VBox spacing="2.0">
+            <Label text="Registro de control de visitas" styleClass="titulo-seccion" />
+            <Label text="Máximo 14 visitas por hogar. Usa «Registrar nueva visita» para agregar una." styleClass="texto-suave" />
+         </VBox>
+         <Region HBox.hgrow="ALWAYS" />
+         <Label fx:id="lblDiligenciado" styleClass="texto-suave" />
+      </HBox>
+      <TableView fx:id="tabla" styleClass="tabla" prefHeight="340.0">
+         <columns>
+            <TableColumn fx:id="colNumero" text="N.º visita" prefWidth="80.0" maxWidth="90.0" />
+            <TableColumn fx:id="colFecha" text="Fecha y hora" prefWidth="150.0" />
+            <TableColumn fx:id="colResultado" text="Resultado de la visita" prefWidth="190.0" />
+            <TableColumn fx:id="colPendientes" text="Partes pendientes / observaciones" prefWidth="240.0" />
+            <TableColumn fx:id="colProxima" text="Próxima cita" prefWidth="150.0" />
+            <TableColumn fx:id="colAcciones" text="Acciones" prefWidth="90.0" sortable="false" />
+         </columns>
+      </TableView>
+   </VBox>
+</VBox>
