@@ -65,9 +65,18 @@ public class LoginController {
             ocupado(false);
             Throwable error = tarea.getException();
             if (error instanceof ReglaNegocioException) {
-                mostrarError(error.getMessage());
-                txtContrasena.clear();
-                txtContrasena.requestFocus();
+                String mensaje = error.getMessage();
+                mostrarError(mensaje);
+                Alertas.error(tituloError(mensaje), mensaje);
+                if (AuthService.MSG_INACTIVO.equals(mensaje)) {
+                    txtContrasena.clear();
+                    txtCorreo.requestFocus();
+                } else if (AuthService.MSG_CREDENCIALES.equals(mensaje)) {
+                    txtContrasena.clear();
+                    txtContrasena.requestFocus();
+                } else {
+                    (txtCorreo.getText().trim().isEmpty() ? txtCorreo : txtContrasena).requestFocus();
+                }
             } else if (error instanceof DatosException) {
                 Alertas.error("Error de conexión",
                         "No fue posible conectarse con la base de datos.\n" + error.getMessage());
@@ -86,6 +95,16 @@ public class LoginController {
     private void olvidoContrasena() {
         Alertas.info("Recuperar contraseña",
                 "Comuníquese con el administrador del sistema para restablecer su contraseña.");
+    }
+
+    private static String tituloError(String mensaje) {
+        if (AuthService.MSG_INACTIVO.equals(mensaje)) {
+            return "Usuario inactivo";
+        }
+        if (AuthService.MSG_CREDENCIALES.equals(mensaje)) {
+            return "Credenciales incorrectas";
+        }
+        return "Datos incompletos";
     }
 
     private void recordarCorreo(String correo) {

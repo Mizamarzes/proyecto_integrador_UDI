@@ -114,7 +114,7 @@ proyecto_integrador_UDI/
     │       ├── controller/                   # ── CONTROLADOR: una clase por pantalla ──
     │       │   ├── LoginController.java      # Hecho
     │       │   ├── NavbarController.java     # Hecho: barra lateral, encabezado y navegación (abrir, migas, marcarModulo)
-    │       │   ├── UsuarioController.java    # Hecho: listado de usuarios con búsqueda y filtro por rol
+    │       │   ├── UsuarioController.java    # Hecho: listado de usuarios con búsqueda y filtros por rol y estado
     │       │   ├── UsuarioFormController.java     # Hecho: crear, editar, contraseña, activar/desactivar y eliminar
     │       │   ├── EncuestaController.java   # Hecho: «Mis Encuestas» (encuestador) o listado global con filtros
     │       │   ├── NuevaEncuestaController.java   # Hecho: modal, elegir un hogar sin encuesta
@@ -148,7 +148,7 @@ proyecto_integrador_UDI/
     │
     └── resources/com/udi/
         ├── config/
-        │   └── db.properties                 # URL, usuario y contraseña de Oracle
+        │   └── db.properties.example         # Plantilla: copiar como db.properties (ignorado por git)
         └── ui/                               # ── VISTA: pantallas FXML organizadas por módulo ──
             ├── shared/                       # Lo común a todos los módulos
             │   ├── estilos.css               # Hoja de estilos única
@@ -189,7 +189,7 @@ proyecto_integrador_UDI/
 - **Los DAO reciben la conexión** en cada método. Así un servicio puede agrupar varias operaciones en una misma transacción, por ejemplo crear un usuario y su encuestador.
 - **Ids:** cada `insertar` toma el id de `seq_<tabla>.NEXTVAL`. Si la entidad ya trae id, lo respeta; los catálogos lo usan para guardar el código del cuadernillo.
 - **Conversión de tipos:** `LocalDate` ↔ `DATE`, `LocalDateTime` ↔ `TIMESTAMP`, `boolean` ↔ `CHAR(1)` `'S'`/`'N'` y enum ↔ `VARCHAR2` con el nombre del enum.
-- **Configuración:** `db.properties` (por defecto `jdbc:oracle:thin:@localhost:1522:XE`, usuario `enph`). Cada valor se puede sobrescribir al ejecutar con `-Ddb.url=...`, `-Ddb.usuario=...` o `-Ddb.contrasena=...`.
+- **Configuración:** `db.properties`, que no se versiona y se crea copiando `db.properties.example` (por defecto `jdbc:oracle:thin:@localhost:1522:XE`, usuario `enph`). Cada valor se puede sobrescribir al ejecutar con `-Ddb.url=...`, `-Ddb.usuario=...` o `-Ddb.contrasena=...`.
 
 ## Vistas por módulo
 

@@ -43,6 +43,14 @@ public class UsuarioService {
         return ConexionBD.consultar(usuarioDao::listar);
     }
 
+    /** Filtra por estado: true activos, false inactivos, null todos. */
+    public List<Usuario> listarUsuarios(Boolean activo) {
+        if (activo == null) {
+            return listarUsuarios();
+        }
+        return ConexionBD.consultar(c -> usuarioDao.listarPorActivo(c, activo));
+    }
+
     public Optional<Usuario> buscarUsuario(long id) {
         return ConexionBD.consultar(c -> usuarioDao.buscarPorId(c, id));
     }

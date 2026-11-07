@@ -17,6 +17,9 @@ import java.util.List;
 /** Inicio y cierre de sesión (RF-01). */
 public class AuthService {
 
+    public static final String MSG_CREDENCIALES = "Correo o contraseña incorrectos.";
+    public static final String MSG_INACTIVO = "El usuario está inactivo. Comuníquese con el administrador.";
+
     private final UsuarioDAO usuarioDao = new UsuarioDAO();
     private final RolDAO rolDao = new RolDAO();
     private final ModuloDAO moduloDao = new ModuloDAO();
@@ -31,10 +34,10 @@ public class AuthService {
         DatosSesion datos = ConexionBD.enTransaccion(c -> {
             Usuario usuario = usuarioDao.buscarPorEmail(c, email.trim()).orElse(null);
             if (usuario == null || !usuario.getPassword().equals(Seguridad.hash(contrasena))) {
-                throw new ReglaNegocioException("Correo o contraseña incorrectos.");
+                throw new ReglaNegocioException(MSG_CREDENCIALES);
             }
             if (!usuario.isActivo()) {
-                throw new ReglaNegocioException("El usuario está inactivo. Comuníquese con el administrador.");
+                throw new ReglaNegocioException(MSG_INACTIVO);
             }
             Rol rol = Validar.encontrado(rolDao.buscarPorId(c, usuario.getRolId()),
                     "El usuario no tiene un rol válido.");

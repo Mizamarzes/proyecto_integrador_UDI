@@ -102,7 +102,7 @@ Table modulo [headercolor: #7F8C8D] {
 
 Table rol [headercolor: #7F8C8D] {
   id number(10) [pk, increment]
-  nombre varchar2(30) [not null, unique, note: 'ADMIN, SUPERVISOR, ENCUESTADOR']
+  nombre varchar2(30) [not null, unique, note: 'ADMIN, ENCUESTADOR, CRITICO_DIGITADOR']
   created_at timestamp [not null, default: `SYSTIMESTAMP`]
   updated_at timestamp
   created_by number(10) [note: 'Usuario que creó el registro']

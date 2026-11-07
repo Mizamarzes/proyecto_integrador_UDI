@@ -98,7 +98,8 @@ public final class ConexionBD {
         Properties propiedades = new Properties();
         try (InputStream entrada = ConexionBD.class.getResourceAsStream(ARCHIVO)) {
             if (entrada == null) {
-                throw new IllegalStateException("No se encontró el archivo " + ARCHIVO);
+                throw new IllegalStateException("No se encontró el archivo " + ARCHIVO
+                        + ". Copie db.properties.example como db.properties en src/main/resources/com/udi/config/.");
             }
             propiedades.load(entrada);
         } catch (IOException e) {

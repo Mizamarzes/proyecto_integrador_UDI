@@ -24,15 +24,19 @@ import javafx.scene.control.TextField;
 import java.util.HashMap;
 import java.util.Map;
 
-/** Listado de usuarios con búsqueda y filtro por rol (RF-01). */
+/** Listado de usuarios con búsqueda y filtros por rol y estado (RF-01). */
 public class UsuarioController {
 
     private static final String TODOS = "Todos";
+    private static final String ACTIVOS = "Activos";
+    private static final String INACTIVOS = "Inactivos";
 
     @FXML
     private TextField txtBuscar;
     @FXML
     private ComboBox<String> cmbRol;
+    @FXML
+    private ComboBox<String> cmbEstado;
     @FXML
     private TableView<Usuario> tabla;
     @FXML
@@ -61,6 +65,10 @@ public class UsuarioController {
         cmbRol.valueProperty().addListener((obs, antes, ahora) -> filtrar());
         cmbRol.getItems().add(TODOS);
         cmbRol.setValue(TODOS);
+        cmbEstado.getItems().setAll(TODOS, ACTIVOS, INACTIVOS);
+        cmbEstado.setValue(TODOS);
+        // El estado se filtra en la base de datos: al cambiarlo se recarga la lista
+        cmbEstado.valueProperty().addListener((obs, antes, ahora) -> cargarUsuarios());
 
         // Las tareas se ejecutan en orden: los roles quedan cargados antes que los usuarios
         Tareas.ejecutar(() -> usuarioService.listarRoles(), lista -> {
@@ -69,13 +77,31 @@ public class UsuarioController {
                 cmbRol.getItems().add(Formato.nombreRol(rol.getNombre()));
             }
         });
-        Tareas.ejecutar(() -> usuarioService.listarUsuarios(), lista -> usuarios.setAll(lista));
+        cargarUsuarios();
+    }
+
+    private void cargarUsuarios() {
+        Boolean activo = estadoSeleccionado();
+        Tareas.ejecutar(() -> usuarioService.listarUsuarios(activo), lista -> usuarios.setAll(lista));
+    }
+
+    /** null = todos. */
+    private Boolean estadoSeleccionado() {
+        String estado = cmbEstado.getValue();
+        if (ACTIVOS.equals(estado)) {
+            return true;
+        }
+        if (INACTIVOS.equals(estado)) {
+            return false;
+        }
+        return null;
     }
 
     @FXML
     private void limpiar() {
         txtBuscar.clear();
         cmbRol.setValue(TODOS);
+        cmbEstado.setValue(TODOS);
     }
 
     @FXML

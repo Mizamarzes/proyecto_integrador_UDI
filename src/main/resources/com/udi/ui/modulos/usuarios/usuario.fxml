@@ -33,6 +33,10 @@
          <Label text="Rol" styleClass="etiqueta-campo" />
          <ComboBox fx:id="cmbRol" styleClass="combo-linea" prefWidth="180.0" />
       </VBox>
+      <VBox spacing="4.0">
+         <Label text="Estado" styleClass="etiqueta-campo" />
+         <ComboBox fx:id="cmbEstado" styleClass="combo-linea" prefWidth="140.0" />
+      </VBox>
       <Button text="Limpiar" onAction="#limpiar" styleClass="boton-secundario" minWidth="-Infinity" />
       <Region HBox.hgrow="ALWAYS" />
       <Label fx:id="lblTotal" styleClass="texto-suave" minWidth="-Infinity" />

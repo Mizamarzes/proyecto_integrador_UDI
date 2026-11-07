@@ -64,6 +64,11 @@ public class UsuarioDAO extends BaseDAO<Usuario> {
         return consultar(c, "SELECT * FROM usuario WHERE rol_id = ? ORDER BY apellido, nombre", rolId);
     }
 
+    /** Usuarios activos (true) o inactivos (false). */
+    public List<Usuario> listarPorActivo(Connection c, boolean activo) throws SQLException {
+        return consultar(c, "SELECT * FROM usuario WHERE activo = ? ORDER BY id", activo);
+    }
+
     /** Guarda el hash de la nueva contraseña. */
     public boolean actualizarPassword(Connection c, long id, String passwordHash) throws SQLException {
         return ejecutar(c, "UPDATE usuario SET password = ?, updated_at = SYSTIMESTAMP WHERE id = ?",

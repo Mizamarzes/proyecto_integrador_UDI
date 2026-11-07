@@ -487,21 +487,14 @@ INSERT INTO lugar_compra (id, nombre) VALUES (25, 'Plazoleta de comidas');
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
--- Roles (10)
+-- Roles (3)
 -- ---------------------------------------------------------------------
 INSERT INTO rol (id, nombre) VALUES (seq_rol.NEXTVAL, 'ADMIN');
-INSERT INTO rol (id, nombre) VALUES (seq_rol.NEXTVAL, 'SUPERVISOR');
-INSERT INTO rol (id, nombre) VALUES (seq_rol.NEXTVAL, 'ENCUESTADOR');
 INSERT INTO rol (id, nombre) VALUES (seq_rol.NEXTVAL, 'CRITICO_DIGITADOR');
-INSERT INTO rol (id, nombre) VALUES (seq_rol.NEXTVAL, 'COORDINADOR_CAMPO');
-INSERT INTO rol (id, nombre) VALUES (seq_rol.NEXTVAL, 'DIGITADOR');
-INSERT INTO rol (id, nombre) VALUES (seq_rol.NEXTVAL, 'ANALISTA');
-INSERT INTO rol (id, nombre) VALUES (seq_rol.NEXTVAL, 'AUDITOR');
-INSERT INTO rol (id, nombre) VALUES (seq_rol.NEXTVAL, 'CONSULTA');
-INSERT INTO rol (id, nombre) VALUES (seq_rol.NEXTVAL, 'SOPORTE');
+INSERT INTO rol (id, nombre) VALUES (seq_rol.NEXTVAL, 'ENCUESTADOR');
 
 -- ---------------------------------------------------------------------
--- Usuarios (12): 1 administrador, 1 supervisor y 10 encuestadores.
+-- Usuarios (12): 1 administrador, 1 crítico-digitador y 10 encuestadores.
 -- ---------------------------------------------------------------------
 INSERT INTO usuario (id, email, password, nombre, apellido, telefono, rol_id, activo, ultimo_acceso, created_by)
   VALUES (seq_usuario.NEXTVAL, 'admin@enph.udi.edu.co', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Ana María', 'Rojas', '3001112233', 1, 'S', TIMESTAMP '2026-10-09 08:15:00', NULL);
@@ -556,7 +549,7 @@ INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'G
 INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Comidas fuera del hogar', 'comidas-fuera-hogar', 1);
 INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Reportes', 'reportes', 1);
 
--- ADMIN: usuarios y roles | SUPERVISOR: encuestas y reportes | ENCUESTADOR: captura
+-- ADMIN: usuarios y roles | CRITICO_DIGITADOR: encuestas y reportes | ENCUESTADOR: captura
 INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 1, 1, 1);
 INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 1, 2, 1);
 INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 2, 5, 1);
@@ -644,7 +637,7 @@ INSERT INTO hogar (id, vivienda_id, hogar_numero, total_personas, ciclo, created
 
 -- ---------------------------------------------------------------------
 -- Encuestas (10): una por hogar. Las 3, 4 y 5 están cerradas por el
--- supervisor (usuario 2); la 6 fue reabierta; las demás están abiertas.
+-- crítico-digitador (usuario 2); la 6 fue reabierta; las demás están abiertas.
 -- ---------------------------------------------------------------------
 INSERT INTO encuesta (id, hogar_id, encuestador_id, informante_nombre, informante_orden, resultado_cuadernillo, fecha_desde, fecha_hasta, gasto_fiestas, forma_pago, forma_pago_otra, observaciones, estado, fecha_cierre, cerrada_por, created_by)
   VALUES (seq_encuesta.NEXTVAL, 1, 1, 'Paola Andrea Gómez', 1, 'EI', DATE '2026-09-28', DATE '2026-10-11', NULL, NULL, NULL, NULL, 'ABIERTA', NULL, NULL, 3);

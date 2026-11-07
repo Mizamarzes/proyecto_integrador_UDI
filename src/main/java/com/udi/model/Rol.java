@@ -1,11 +1,11 @@
 package com.udi.model;
 
-/** Rol de usuario: ADMIN, SUPERVISOR, ENCUESTADOR... */
+/** Rol de usuario: ADMIN, ENCUESTADOR o CRITICO_DIGITADOR. */
 public class Rol extends EntidadAuditable {
 
     public static final String ADMIN = "ADMIN";
-    public static final String SUPERVISOR = "SUPERVISOR";
     public static final String ENCUESTADOR = "ENCUESTADOR";
+    public static final String CRITICO_DIGITADOR = "CRITICO_DIGITADOR";
 
     private String nombre;
 

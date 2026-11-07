@@ -125,7 +125,7 @@ Para no repetirlas en cada tabla, se describen aquí una sola vez. Todas las tab
 | Columna | Tipo | Restricciones | Descripción |
 |---|---|---|---|
 | id | NUMBER(10) | PK | Identificador |
-| nombre | VARCHAR2(30) | NN, UQ | ADMIN, SUPERVISOR, ENCUESTADOR |
+| nombre | VARCHAR2(30) | NN, UQ | ADMIN, ENCUESTADOR, CRITICO_DIGITADOR |
 
 **`rol_modulo`**: permisos (relación TIENE PERMISO).
 

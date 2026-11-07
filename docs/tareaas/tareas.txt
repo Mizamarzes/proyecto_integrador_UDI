@@ -1,0 +1,9 @@
+
+
+06/11/2026
+
+- Cuadrar modulo gestion de usuarios
+- Cuadrar modulo Gestion de viviendas
+- Cuadrar vistas por rol y demas
+
+- Crear seccion para exportar datos o syncronizar con Dane

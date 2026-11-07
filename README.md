@@ -91,8 +91,14 @@ El script debe correr sobre un esquema vacío, porque los datos de prueba usan i
 ### Conexión de la aplicación
 
 La conexión se configura en `src/main/resources/com/udi/config/db.properties`
-(`db.url`, `db.usuario`, `db.contrasena`) y se puede cambiar al ejecutar con
-`-Ddb.url`, `-Ddb.usuario` y `-Ddb.contrasena`.
+(`db.url`, `db.usuario`, `db.contrasena`). Ese archivo no se versiona (está en
+`.gitignore`); créelo a partir de la plantilla:
+
+```bash
+cp src/main/resources/com/udi/config/db.properties.example src/main/resources/com/udi/config/db.properties
+```
+
+Cada valor se puede cambiar al ejecutar con `-Ddb.url`, `-Ddb.usuario` y `-Ddb.contrasena`.
 
 ### Usuarios de prueba
 
@@ -144,7 +150,7 @@ proyecto_integrador_UDI/
     │       ├── util/                     # Sesion, Tareas, Alertas, Formato, Seguridad, Validar
     │       └── exception/
     └── resources/com/udi/
-        ├── config/db.properties          # Conexión a Oracle
+        ├── config/db.properties.example  # Plantilla de conexión (copiar como db.properties)
         └── ui/
             ├── shared/
             │   ├── estilos.css
