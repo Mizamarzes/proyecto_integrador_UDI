@@ -21,7 +21,7 @@
          <Label text="Registra las viviendas de tu sector (Capítulo A) y sus hogares. Las encuestas se crean después desde Encuestas, seleccionando un hogar."
                 styleClass="subtitulo-pagina" wrapText="true" />
       </VBox>
-      <Button text="+ Nueva vivienda" onAction="#nuevaVivienda" styleClass="boton-accion" minWidth="-Infinity" />
+      <Button fx:id="btnNueva" text="+ Nueva vivienda" onAction="#nuevaVivienda" styleClass="boton-accion" minWidth="-Infinity" />
    </HBox>
 
    <HBox fx:id="boxAviso" styleClass="banner-ok" alignment="CENTER_LEFT" spacing="6.0">

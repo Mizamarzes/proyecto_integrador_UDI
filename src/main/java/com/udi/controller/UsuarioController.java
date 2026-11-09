@@ -2,6 +2,7 @@ package com.udi.controller;
 
 import com.udi.model.Rol;
 import com.udi.model.Usuario;
+import com.udi.service.RolService;
 import com.udi.service.UsuarioService;
 import com.udi.util.Formato;
 import com.udi.util.Tareas;
@@ -53,6 +54,7 @@ public class UsuarioController {
     private Label lblTotal;
 
     private final UsuarioService usuarioService = new UsuarioService();
+    private final RolService rolService = new RolService();
     private final ObservableList<Usuario> usuarios = FXCollections.observableArrayList();
     private final FilteredList<Usuario> filtrados = new FilteredList<>(usuarios);
     /** Nombre visible de cada rol por su id. */
@@ -71,7 +73,7 @@ public class UsuarioController {
         cmbEstado.valueProperty().addListener((obs, antes, ahora) -> cargarUsuarios());
 
         // Las tareas se ejecutan en orden: los roles quedan cargados antes que los usuarios
-        Tareas.ejecutar(() -> usuarioService.listarRoles(), lista -> {
+        Tareas.ejecutar(() -> rolService.listarRoles(), lista -> {
             for (Rol rol : lista) {
                 roles.put(rol.getId(), Formato.nombreRol(rol.getNombre()));
                 cmbRol.getItems().add(Formato.nombreRol(rol.getNombre()));

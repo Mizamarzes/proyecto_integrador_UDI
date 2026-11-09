@@ -4,6 +4,7 @@ import com.udi.config.ConexionBD;
 import com.udi.dao.CaracteristicaGastoDAO;
 import com.udi.dao.GrupoAlimentoDAO;
 import com.udi.exception.ReglaNegocioException;
+import com.udi.middleware.RutasModulo;
 import com.udi.model.CaracteristicaGasto;
 import com.udi.model.Encuesta;
 import com.udi.model.GrupoAlimento;
@@ -33,6 +34,7 @@ public class CaracteristicaService {
 
     /** Si no trae encuestador, se toma el de la encuesta. */
     public CaracteristicaGasto crear(CaracteristicaGasto caracteristica) {
+        Sesion.exigirModulo(RutasModulo.CARACTERISTICAS);
         Validar.requerido(caracteristica.getEncuestaId(), "Encuesta");
         return ConexionBD.enTransaccion(c -> {
             Encuesta encuesta = ReglasEncuesta.exigirEditable(c, caracteristica.getEncuestaId());
@@ -47,6 +49,7 @@ public class CaracteristicaService {
     }
 
     public CaracteristicaGasto actualizar(CaracteristicaGasto caracteristica) {
+        Sesion.exigirModulo(RutasModulo.CARACTERISTICAS);
         Validar.requerido(caracteristica.getId(), "Id del registro");
         return ConexionBD.enTransaccion(c -> {
             CaracteristicaGasto actual = Validar.encontrado(caracteristicaDao.buscarPorId(c, caracteristica.getId()),
@@ -63,6 +66,7 @@ public class CaracteristicaService {
     }
 
     public boolean eliminar(long id) {
+        Sesion.exigirModulo(RutasModulo.CARACTERISTICAS);
         return ConexionBD.enTransaccion(c -> {
             CaracteristicaGasto actual = Validar.encontrado(caracteristicaDao.buscarPorId(c, id),
                     "No existe el registro " + id + " del capítulo C.");

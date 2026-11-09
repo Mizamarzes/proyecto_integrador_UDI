@@ -1,6 +1,10 @@
 package com.udi;
 
 import com.udi.config.ConexionBD;
+import com.udi.exception.AccesoDenegadoException;
+import com.udi.exception.ReglaNegocioException;
+import com.udi.middleware.Rutas;
+import com.udi.util.Alertas;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -25,6 +29,22 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
+        // Manejador global de errores del hilo de la interfaz: un acceso denegado o una
+        // regla de negocio que ocurre en un evento se muestra como alerta y corta la acción
+        Thread.currentThread().setUncaughtExceptionHandler((hilo, error) -> {
+            Throwable causa = error;
+            while (causa.getCause() != null && !(causa instanceof ReglaNegocioException)) {
+                causa = causa.getCause();
+            }
+            if (causa instanceof AccesoDenegadoException) {
+                Alertas.error("Acceso denegado", causa.getMessage());
+            } else if (causa instanceof ReglaNegocioException) {
+                Alertas.error("No se pudo completar la operación", causa.getMessage());
+            } else {
+                error.printStackTrace();
+                Alertas.error("Error inesperado", String.valueOf(error));
+            }
+        });
         scene = new Scene(loadFXML("modulos/auth/login"), 1100, 680);
         scene.getStylesheets().add(estilos());
         stage.setTitle("ENPH · Cuadernillo 2 urbano");
@@ -63,6 +83,8 @@ public class App extends Application {
      * la raíz y el controlador. Lo usa el menú para mostrar los módulos.
      */
     public static FXMLLoader cargar(String vista) {
+        // Middlewares de la ruta (middleware/Rutas): todas las vistas (pantallas, formularios y modales) pasan por aquí
+        Rutas.exigir(vista);
         FXMLLoader loader = new FXMLLoader(App.class.getResource("ui/" + vista + ".fxml"));
         try {
             loader.load();

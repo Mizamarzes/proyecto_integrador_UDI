@@ -3,6 +3,7 @@ package com.udi.controller;
 import com.udi.exception.ReglaNegocioException;
 import com.udi.model.Rol;
 import com.udi.model.Usuario;
+import com.udi.service.RolService;
 import com.udi.service.UsuarioService;
 import com.udi.util.Alertas;
 import com.udi.util.Formato;
@@ -19,6 +20,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.util.StringConverter;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Formulario de un usuario (RF-01): datos personales, rol y contraseña.
@@ -56,6 +58,7 @@ public class UsuarioFormController {
     private Button btnEliminar;
 
     private final UsuarioService usuarioService = new UsuarioService();
+    private final RolService rolService = new RolService();
 
     /** Usuario que se edita; null si es nuevo. */
     private Usuario usuario;
@@ -85,12 +88,12 @@ public class UsuarioFormController {
         lblContrasena.setText("Contraseña *");
         lblAyudaContrasena.setText("Mínimo 6 caracteres. Si el rol es Encuestador, se registra también como encuestador.");
         actualizarBotones();
-        Tareas.ejecutar(() -> usuarioService.listarRoles(), roles -> cmbRol.getItems().setAll(roles));
+        Tareas.ejecutar(() -> rolService.listarRoles(), roles -> cmbRol.getItems().setAll(asignables(roles)));
     }
 
     /** Carga el usuario {@code id} para editarlo. */
     public void editar(long id) {
-        Tareas.ejecutar(() -> usuarioService.listarRoles(), roles -> cmbRol.getItems().setAll(roles));
+        Tareas.ejecutar(() -> rolService.listarRoles(), roles -> cmbRol.getItems().setAll(asignables(roles)));
         Tareas.ejecutar(() -> usuarioService.buscarUsuario(id)
                 .orElseThrow(() -> new ReglaNegocioException("No existe el usuario " + id + ".")), this::mostrarUsuario);
     }
@@ -210,5 +213,13 @@ public class UsuarioFormController {
     private static void mostrar(Node nodo, boolean visible) {
         nodo.setVisible(visible);
         nodo.setManaged(visible);
+    }
+
+    /** Solo un administrador puede asignar el rol ADMIN (el servicio también lo valida). */
+    private static List<Rol> asignables(List<Rol> roles) {
+        if (Sesion.esAdmin()) {
+            return roles;
+        }
+        return roles.stream().filter(r -> !Rol.ADMIN.equals(r.getNombre())).collect(Collectors.toList());
     }
 }

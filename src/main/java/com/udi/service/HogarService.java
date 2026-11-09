@@ -6,6 +6,7 @@ import com.udi.dao.HogarDAO;
 import com.udi.dao.MunicipioDAO;
 import com.udi.dao.ViviendaDAO;
 import com.udi.exception.ReglaNegocioException;
+import com.udi.middleware.RutasModulo;
 import com.udi.model.Hogar;
 import com.udi.model.Vivienda;
 import com.udi.util.Sesion;
@@ -41,6 +42,7 @@ public class HogarService {
     }
 
     public Vivienda crearVivienda(Vivienda vivienda) {
+        Sesion.exigirModulo(RutasModulo.VIVIENDAS);
         return ConexionBD.enTransaccion(c -> {
             validarVivienda(c, vivienda);
             vivienda.setId(null);
@@ -51,6 +53,7 @@ public class HogarService {
 
     /** total_hogares no puede quedar por debajo de los hogares ya registrados. */
     public Vivienda actualizarVivienda(Vivienda vivienda) {
+        Sesion.exigirModulo(RutasModulo.VIVIENDAS);
         Validar.requerido(vivienda.getId(), "Id de la vivienda");
         return ConexionBD.enTransaccion(c -> {
             validarVivienda(c, vivienda);
@@ -64,6 +67,7 @@ public class HogarService {
 
     /** Solo se puede eliminar una vivienda sin hogares. */
     public boolean eliminarVivienda(long viviendaId) {
+        Sesion.exigirModulo(RutasModulo.VIVIENDAS);
         return ConexionBD.enTransaccion(c -> {
             Validar.condicion(hogarDao.contarPorVivienda(c, viviendaId) == 0,
                     "No se puede eliminar la vivienda porque tiene hogares registrados.");
@@ -97,6 +101,7 @@ public class HogarService {
     }
 
     public Hogar crearHogar(Hogar hogar) {
+        Sesion.exigirModulo(RutasModulo.HOGARES);
         return ConexionBD.enTransaccion(c -> {
             hogar.setId(null);
             validarHogar(c, hogar);
@@ -106,6 +111,7 @@ public class HogarService {
     }
 
     public Hogar actualizarHogar(Hogar hogar) {
+        Sesion.exigirModulo(RutasModulo.HOGARES);
         Validar.requerido(hogar.getId(), "Id del hogar");
         return ConexionBD.enTransaccion(c -> {
             ReglasEncuesta.exigirHogarEditable(c, hogar.getId());
@@ -117,6 +123,7 @@ public class HogarService {
 
     /** Solo se puede eliminar un hogar que todavía no tiene encuesta. */
     public boolean eliminarHogar(long hogarId) {
+        Sesion.exigirModulo(RutasModulo.HOGARES);
         return ConexionBD.enTransaccion(c -> {
             Validar.condicion(!encuestaDao.buscarPorHogar(c, hogarId).isPresent(),
                     "No se puede eliminar el hogar porque ya tiene una encuesta.");

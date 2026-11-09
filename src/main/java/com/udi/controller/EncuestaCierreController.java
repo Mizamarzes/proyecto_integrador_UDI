@@ -2,7 +2,6 @@ package com.udi.controller;
 
 import com.udi.model.Encuesta;
 import com.udi.model.RegistroDiario;
-import com.udi.model.Usuario;
 import com.udi.model.Visita;
 import com.udi.model.enums.FormaPago;
 import com.udi.model.enums.ResultadoEntrevista;
@@ -192,7 +191,7 @@ public class EncuestaCierreController implements SeccionEncuesta {
         }
         d.visitas = visitaService.listarPorHogar(e.getHogarId());
         if (e.getCerradaPor() != null) {
-            d.cerradaPor = usuarioService.buscarUsuario(e.getCerradaPor()).map(Usuario::getNombreCompleto).orElse("");
+            d.cerradaPor = usuarioService.nombreUsuario(e.getCerradaPor());
         }
         return d;
     }

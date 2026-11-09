@@ -1,6 +1,6 @@
 package com.udi.util;
 
-import com.udi.exception.ReglaNegocioException;
+import com.udi.exception.AccesoDenegadoException;
 import com.udi.model.Modulo;
 import com.udi.model.Rol;
 import com.udi.model.Usuario;
@@ -67,17 +67,49 @@ public final class Sesion {
         return modulos.stream().anyMatch(m -> m.getSlug().equals(slugModulo));
     }
 
+    /** true si el rol tiene permiso sobre alguno de los módulos. */
+    public static boolean puedeAccederAlguno(String... slugsModulo) {
+        for (String slug : slugsModulo) {
+            if (puedeAcceder(slug)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** true si es administrador o su rol tiene alguno de los módulos (la misma regla del middleware de permisos). */
+    public static boolean tieneModulo(String... slugsModulo) {
+        return esAdmin() || puedeAccederAlguno(slugsModulo);
+    }
+
+    /** Cambia los módulos de la sesión cuando se editan los permisos de su propio rol. */
+    public static void recargarModulos(List<Modulo> modulosPermitidos) {
+        modulos = Collections.unmodifiableList(modulosPermitidos);
+    }
+
     public static Usuario exigirSesion() {
         if (usuario == null) {
-            throw new ReglaNegocioException("Debe iniciar sesión para realizar esta operación.");
+            throw new AccesoDenegadoException("Debe iniciar sesión para realizar esta operación.");
         }
         return usuario;
+    }
+
+    /**
+     * Valida en los servicios el mismo permiso que el middleware pide a la vista:
+     * el administrador pasa; los demás roles necesitan alguno de los módulos.
+     * Los conjuntos de slugs están en {@code middleware/RutasModulo}.
+     */
+    public static void exigirModulo(String... slugsModulo) {
+        exigirSesion();
+        if (!tieneModulo(slugsModulo)) {
+            throw new AccesoDenegadoException("Su rol no tiene permiso para realizar esta operación.");
+        }
     }
 
     public static void exigirAdmin() {
         exigirSesion();
         if (!esAdmin()) {
-            throw new ReglaNegocioException("Solo un administrador puede realizar esta operación.");
+            throw new AccesoDenegadoException("Solo un administrador puede realizar esta operación.");
         }
     }
 }

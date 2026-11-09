@@ -2,15 +2,13 @@ package com.udi.service;
 
 import com.udi.config.ConexionBD;
 import com.udi.dao.EncuestadorDAO;
-import com.udi.dao.ModuloDAO;
 import com.udi.dao.RolDAO;
-import com.udi.dao.RolModuloDAO;
 import com.udi.dao.UsuarioDAO;
+import com.udi.exception.AccesoDenegadoException;
 import com.udi.exception.ReglaNegocioException;
 import com.udi.model.Encuestador;
-import com.udi.model.Modulo;
+import com.udi.middleware.RutasModulo;
 import com.udi.model.Rol;
-import com.udi.model.RolModulo;
 import com.udi.model.Usuario;
 import com.udi.util.Seguridad;
 import com.udi.util.Sesion;
@@ -22,8 +20,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Gestión de usuarios, roles, módulos, permisos y encuestadores (RF-01).
- * Las operaciones que modifican datos solo las puede hacer un administrador.
+ * Gestión de usuarios y encuestadores (RF-01). Exige el módulo "usuarios"
+ * (el administrador siempre puede); los roles y permisos están en {@link RolService}.
+ * Solo un administrador puede crear, editar o asignar usuarios con rol ADMIN.
  */
 public class UsuarioService {
 
@@ -31,8 +30,6 @@ public class UsuarioService {
 
     private final UsuarioDAO usuarioDao = new UsuarioDAO();
     private final RolDAO rolDao = new RolDAO();
-    private final ModuloDAO moduloDao = new ModuloDAO();
-    private final RolModuloDAO rolModuloDao = new RolModuloDAO();
     private final EncuestadorDAO encuestadorDao = new EncuestadorDAO();
 
     // ------------------------------------------------------------------
@@ -40,6 +37,7 @@ public class UsuarioService {
     // ------------------------------------------------------------------
 
     public List<Usuario> listarUsuarios() {
+        Sesion.exigirModulo(RutasModulo.USUARIOS);
         return ConexionBD.consultar(usuarioDao::listar);
     }
 
@@ -48,11 +46,21 @@ public class UsuarioService {
         if (activo == null) {
             return listarUsuarios();
         }
+        Sesion.exigirModulo(RutasModulo.USUARIOS);
         return ConexionBD.consultar(c -> usuarioDao.listarPorActivo(c, activo));
     }
 
+    /** Usuario completo (incluye el hash de la contraseña): solo con el módulo de usuarios. */
     public Optional<Usuario> buscarUsuario(long id) {
+        Sesion.exigirModulo(RutasModulo.USUARIOS);
         return ConexionBD.consultar(c -> usuarioDao.buscarPorId(c, id));
+    }
+
+    /** Nombre completo del usuario, para mostrarlo en otras pantallas (cualquier rol con sesión). */
+    public String nombreUsuario(long id) {
+        Sesion.exigirSesion();
+        return ConexionBD.consultar(c -> usuarioDao.buscarPorId(c, id))
+                .map(Usuario::getNombreCompleto).orElse("");
     }
 
     /**
@@ -60,7 +68,7 @@ public class UsuarioService {
      * ENCUESTADOR, también crea su registro en la tabla encuestador.
      */
     public Usuario crearUsuario(Usuario usuario, String contrasena) {
-        Sesion.exigirAdmin();
+        Sesion.exigirModulo(RutasModulo.USUARIOS);
         validarContrasena(contrasena);
         return ConexionBD.enTransaccion(c -> {
             Rol rol = validarUsuario(c, usuario);
@@ -77,10 +85,11 @@ public class UsuarioService {
 
     /** Actualiza los datos del usuario. La contraseña se cambia con {@link #cambiarContrasena}. */
     public Usuario actualizarUsuario(Usuario usuario) {
-        Sesion.exigirAdmin();
+        Sesion.exigirModulo(RutasModulo.USUARIOS);
         Validar.requerido(usuario.getId(), "Id del usuario");
         return ConexionBD.enTransaccion(c -> {
             Validar.encontrado(usuarioDao.buscarPorId(c, usuario.getId()), "No existe el usuario " + usuario.getId() + ".");
+            validarNoTocaAdmin(c, usuario.getId());
             Rol rol = validarUsuario(c, usuario);
             usuarioDao.actualizar(c, usuario);
             if (Rol.ENCUESTADOR.equals(rol.getNombre())) {
@@ -90,23 +99,32 @@ public class UsuarioService {
         });
     }
 
-    /** Un administrador puede cambiar cualquier contraseña; los demás, solo la suya. */
+    /** Quien tiene el módulo de usuarios puede cambiar cualquier contraseña; los demás, solo la suya. */
     public void cambiarContrasena(long usuarioId, String nuevaContrasena) {
         Usuario actual = Sesion.exigirSesion();
-        if (!Sesion.esAdmin() && actual.getId() != usuarioId) {
+        boolean gestiona = Sesion.esAdmin() || Sesion.puedeAccederAlguno(RutasModulo.USUARIOS);
+        if (!gestiona && actual.getId() != usuarioId) {
             throw new ReglaNegocioException("Solo puede cambiar su propia contraseña.");
         }
         validarContrasena(nuevaContrasena);
-        ConexionBD.enTransaccion(c -> usuarioDao.actualizarPassword(c, usuarioId, Seguridad.hash(nuevaContrasena)));
+        ConexionBD.enTransaccion(c -> {
+            if (actual.getId() != usuarioId) {
+                validarNoTocaAdmin(c, usuarioId);
+            }
+            return usuarioDao.actualizarPassword(c, usuarioId, Seguridad.hash(nuevaContrasena));
+        });
     }
 
     /** Activa o desactiva el acceso de un usuario sin borrarlo. */
     public void cambiarActivo(long usuarioId, boolean activo) {
-        Sesion.exigirAdmin();
+        Sesion.exigirModulo(RutasModulo.USUARIOS);
         if (!activo && Sesion.idUsuario() == usuarioId) {
             throw new ReglaNegocioException("No puede desactivar su propio usuario.");
         }
-        ConexionBD.enTransaccion(c -> usuarioDao.actualizarActivo(c, usuarioId, activo));
+        ConexionBD.enTransaccion(c -> {
+            validarNoTocaAdmin(c, usuarioId);
+            return usuarioDao.actualizarActivo(c, usuarioId, activo);
+        });
     }
 
     /**
@@ -114,11 +132,12 @@ public class UsuarioService {
      * por las llaves foráneas: en ese caso se debe desactivar con {@link #cambiarActivo}.
      */
     public boolean eliminarUsuario(long usuarioId) {
-        Sesion.exigirAdmin();
+        Sesion.exigirModulo(RutasModulo.USUARIOS);
         if (Sesion.idUsuario() == usuarioId) {
             throw new ReglaNegocioException("No puede eliminar su propio usuario.");
         }
         return ConexionBD.enTransaccion(c -> {
+            validarNoTocaAdmin(c, usuarioId);
             Optional<Encuestador> encuestador = encuestadorDao.buscarPorUsuario(c, usuarioId);
             if (encuestador.isPresent()) {
                 encuestadorDao.eliminar(c, encuestador.get().getId());
@@ -138,140 +157,34 @@ public class UsuarioService {
         if (mismoCorreo.isPresent() && !mismoCorreo.get().getId().equals(usuario.getId())) {
             throw new ReglaNegocioException("Ya existe un usuario con el correo " + usuario.getEmail() + ".");
         }
-        return Validar.encontrado(rolDao.buscarPorId(c, usuario.getRolId()), "No existe el rol " + usuario.getRolId() + ".");
+        Rol rol = Validar.encontrado(rolDao.buscarPorId(c, usuario.getRolId()), "No existe el rol " + usuario.getRolId() + ".");
+        if (Rol.ADMIN.equals(rol.getNombre()) && !Sesion.esAdmin()) {
+            throw new AccesoDenegadoException("Solo un administrador puede asignar el rol " + Rol.ADMIN + ".");
+        }
+        return rol;
+    }
+
+    /**
+     * Quien tiene el módulo de usuarios sin ser administrador no puede cambiar
+     * a un administrador; si pudiera, podría darse acceso total.
+     */
+    private void validarNoTocaAdmin(Connection c, long usuarioId) throws SQLException {
+        if (Sesion.esAdmin()) {
+            return;
+        }
+        Optional<Usuario> usuario = usuarioDao.buscarPorId(c, usuarioId);
+        if (usuario.isPresent()) {
+            Optional<Rol> rol = rolDao.buscarPorId(c, usuario.get().getRolId());
+            if (rol.isPresent() && Rol.ADMIN.equals(rol.get().getNombre())) {
+                throw new AccesoDenegadoException("Solo un administrador puede modificar a otro administrador.");
+            }
+        }
     }
 
     private static void validarContrasena(String contrasena) {
         Validar.requerido(contrasena, "Contraseña");
         Validar.condicion(contrasena.length() >= LONGITUD_MINIMA_CONTRASENA,
                 "La contraseña debe tener al menos " + LONGITUD_MINIMA_CONTRASENA + " caracteres.");
-    }
-
-    // ------------------------------------------------------------------
-    // Roles
-    // ------------------------------------------------------------------
-
-    public List<Rol> listarRoles() {
-        return ConexionBD.consultar(rolDao::listar);
-    }
-
-    public Optional<Rol> buscarRol(long id) {
-        return ConexionBD.consultar(c -> rolDao.buscarPorId(c, id));
-    }
-
-    public Rol crearRol(Rol rol) {
-        Sesion.exigirAdmin();
-        return ConexionBD.enTransaccion(c -> {
-            validarRol(c, rol);
-            rol.setId(null);
-            rol.setCreatedBy(Sesion.idUsuario());
-            return rolDao.insertar(c, rol);
-        });
-    }
-
-    public Rol actualizarRol(Rol rol) {
-        Sesion.exigirAdmin();
-        Validar.requerido(rol.getId(), "Id del rol");
-        return ConexionBD.enTransaccion(c -> {
-            validarRol(c, rol);
-            Validar.condicion(rolDao.actualizar(c, rol), "No existe el rol " + rol.getId() + ".");
-            return rol;
-        });
-    }
-
-    /** Elimina el rol y sus permisos. Falla si algún usuario tiene ese rol. */
-    public boolean eliminarRol(long rolId) {
-        Sesion.exigirAdmin();
-        return ConexionBD.enTransaccion(c -> {
-            Validar.condicion(usuarioDao.listarPorRol(c, rolId).isEmpty(),
-                    "No se puede eliminar el rol porque hay usuarios que lo tienen asignado.");
-            return rolDao.eliminar(c, rolId);
-        });
-    }
-
-    private void validarRol(Connection c, Rol rol) throws SQLException {
-        Validar.requerido(rol.getNombre(), "Nombre del rol");
-        rol.setNombre(rol.getNombre().trim().toUpperCase());
-        Optional<Rol> mismoNombre = rolDao.buscarPorNombre(c, rol.getNombre());
-        if (mismoNombre.isPresent() && !mismoNombre.get().getId().equals(rol.getId())) {
-            throw new ReglaNegocioException("Ya existe el rol " + rol.getNombre() + ".");
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Módulos y permisos
-    // ------------------------------------------------------------------
-
-    public List<Modulo> listarModulos() {
-        return ConexionBD.consultar(moduloDao::listar);
-    }
-
-    public Optional<Modulo> buscarModulo(long id) {
-        return ConexionBD.consultar(c -> moduloDao.buscarPorId(c, id));
-    }
-
-    public Modulo crearModulo(Modulo modulo) {
-        Sesion.exigirAdmin();
-        return ConexionBD.enTransaccion(c -> {
-            validarModulo(c, modulo);
-            modulo.setId(null);
-            modulo.setCreatedBy(Sesion.idUsuario());
-            return moduloDao.insertar(c, modulo);
-        });
-    }
-
-    public Modulo actualizarModulo(Modulo modulo) {
-        Sesion.exigirAdmin();
-        Validar.requerido(modulo.getId(), "Id del módulo");
-        return ConexionBD.enTransaccion(c -> {
-            validarModulo(c, modulo);
-            Validar.condicion(moduloDao.actualizar(c, modulo), "No existe el módulo " + modulo.getId() + ".");
-            return modulo;
-        });
-    }
-
-    /** Elimina el módulo; sus permisos se borran en cascada. */
-    public boolean eliminarModulo(long moduloId) {
-        Sesion.exigirAdmin();
-        return ConexionBD.enTransaccion(c -> moduloDao.eliminar(c, moduloId));
-    }
-
-    public List<Modulo> listarModulosDeRol(long rolId) {
-        return ConexionBD.consultar(c -> moduloDao.listarPorRol(c, rolId));
-    }
-
-    /** Da permiso a un rol sobre un módulo. Si ya lo tenía, no hace nada. */
-    public void asignarModulo(long rolId, long moduloId) {
-        Sesion.exigirAdmin();
-        ConexionBD.enTransaccion(c -> {
-            Validar.condicion(rolDao.existe(c, rolId), "No existe el rol " + rolId + ".");
-            Validar.condicion(moduloDao.existe(c, moduloId), "No existe el módulo " + moduloId + ".");
-            if (rolModuloDao.buscarPorRolYModulo(c, rolId, moduloId).isPresent()) {
-                return null;
-            }
-            RolModulo permiso = new RolModulo();
-            permiso.setRolId(rolId);
-            permiso.setModuloId(moduloId);
-            permiso.setCreatedBy(Sesion.idUsuario());
-            return rolModuloDao.insertar(c, permiso);
-        });
-    }
-
-    public boolean quitarModulo(long rolId, long moduloId) {
-        Sesion.exigirAdmin();
-        return ConexionBD.enTransaccion(c -> rolModuloDao.eliminarPorRolYModulo(c, rolId, moduloId));
-    }
-
-    private void validarModulo(Connection c, Modulo modulo) throws SQLException {
-        Validar.requerido(modulo.getNombre(), "Nombre del módulo");
-        Validar.requerido(modulo.getSlug(), "Slug del módulo");
-        modulo.setSlug(modulo.getSlug().trim().toLowerCase());
-        Validar.condicion(modulo.getSlug().matches("^[a-z0-9-]+$"),
-                "El slug solo puede tener letras minúsculas, números y guiones.");
-        Optional<Modulo> mismoSlug = moduloDao.buscarPorSlug(c, modulo.getSlug());
-        if (mismoSlug.isPresent() && !mismoSlug.get().getId().equals(modulo.getId())) {
-            throw new ReglaNegocioException("Ya existe un módulo con el slug " + modulo.getSlug() + ".");
-        }
     }
 
     // ------------------------------------------------------------------
@@ -292,7 +205,7 @@ public class UsuarioService {
 
     /** Registra como encuestador a un usuario existente. */
     public Encuestador crearEncuestador(long usuarioId) {
-        Sesion.exigirAdmin();
+        Sesion.exigirModulo(RutasModulo.USUARIOS);
         return ConexionBD.enTransaccion(c -> {
             Validar.condicion(usuarioDao.existe(c, usuarioId), "No existe el usuario " + usuarioId + ".");
             return crearEncuestadorSiNoExiste(c, usuarioId);
@@ -301,7 +214,7 @@ public class UsuarioService {
 
     /** Elimina el encuestador. Falla si ya tiene encuestas o registros asociados. */
     public boolean eliminarEncuestador(long encuestadorId) {
-        Sesion.exigirAdmin();
+        Sesion.exigirModulo(RutasModulo.USUARIOS);
         return ConexionBD.enTransaccion(c -> encuestadorDao.eliminar(c, encuestadorId));
     }
 

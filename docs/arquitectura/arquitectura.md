@@ -101,7 +101,8 @@ proyecto_integrador_UDI/
     │       │
     │       ├── service/                      # ── MODELO: reglas de negocio ──
     │       │   ├── AuthService.java          # RF-01 Login, usuario activo, ultimo_acceso
-    │       │   ├── UsuarioService.java       # RF-01 Usuarios, roles, módulos, permisos y encuestadores
+    │       │   ├── UsuarioService.java       # RF-01 Usuarios y encuestadores (módulo «usuarios»)
+│       │   ├── RolService.java           # RF-01 Roles, módulos y matriz de permisos rol_modulo (módulo «roles»)
     │       │   ├── UbicacionService.java     # Región, departamento y municipio
     │       │   ├── CatalogoService.java      # Grupos de alimentos y lugares de compra
     │       │   ├── HogarService.java         # RF-02 Vivienda y hogares
@@ -116,6 +117,8 @@ proyecto_integrador_UDI/
     │       │   ├── NavbarController.java     # Hecho: barra lateral, encabezado y navegación (abrir, migas, marcarModulo)
     │       │   ├── UsuarioController.java    # Hecho: listado de usuarios con búsqueda y filtros por rol y estado
     │       │   ├── UsuarioFormController.java     # Hecho: crear, editar, contraseña, activar/desactivar y eliminar
+│       │   ├── RolController.java        # Hecho: matriz de permisos roles × módulos, renombrar y eliminar roles
+│       │   ├── RolFormController.java    # Hecho: modal nuevo/renombrar rol
     │       │   ├── EncuestaController.java   # Hecho: «Mis Encuestas» (encuestador) o listado global con filtros
     │       │   ├── NuevaEncuestaController.java   # Hecho: modal, elegir un hogar sin encuesta
     │       │   ├── EncuestaDetalleController.java # Hecho: encabezado y pestañas de la encuesta
@@ -133,13 +136,21 @@ proyecto_integrador_UDI/
     │       │   ├── ViviendaFormController.java    # Modal nueva/editar vivienda (Cap. A)
     │       │   └── HogarFormController.java       # Modal agregar/editar hogar (A.13, A.14)
     │       │
-    │       ├── exception/
+    │       ├── middleware/                   # ── Control de acceso a las vistas (como los middlewares de una API) ──
+│       │   ├── Middleware.java           # Interfaz: manejar(vista) o lanzar AccesoDenegadoException
+│       │   ├── AutenticacionMiddleware.java   # isAuth: exige sesión iniciada
+│       │   ├── PermisoModuloMiddleware.java   # ModulePermission: el rol debe tener el módulo de la vista (ADMIN pasa)
+│       │   ├── RutasModulo.java          # Vista → slugs de módulo (prefijo más largo) y conjuntos para los servicios
+│       │   └── Rutas.java                # Router: cadena de middlewares por ruta; exigir, puedeAbrir y permitir(nodo, vista)
+│       │
+│       ├── exception/
     │       │   ├── ReglaNegocioException.java     # Error de validación que se muestra al usuario
+    │       │   ├── AccesoDenegadoException.java   # Sin sesión o rol sin permiso (subclase de ReglaNegocioException)
     │       │   └── DatosException.java            # Error técnico de base de datos (envuelve SQLException)
     │       │
     │       └── util/
     │           ├── Sesion.java               # Usuario logueado (rol, permisos, created_by)
-    │           ├── Seguridad.java            # Hash SHA-256 de las contraseñas
+        │           ├── Seguridad.java            # Hash SHA-256 de las contraseñas
     │           ├── Validar.java              # Validaciones comunes de los servicios
     │           ├── Alertas.java              # Diálogos de información, error y confirmación
     │           ├── Formato.java              # Fechas, horas, pesos, códigos E-000001 y filtros de los campos
@@ -177,9 +188,13 @@ proyecto_integrador_UDI/
                 │   └── partials/
                 │       ├── vivienda_form.fxml        # Modal vivienda
                 │       └── hogar_form.fxml           # Modal hogar
-                └── usuarios/
-                    ├── usuario.fxml          # Hecho: listado
-                    └── usuario_form.fxml     # Hecho: formulario
+                ├── usuarios/
+                │   ├── usuario.fxml          # Hecho: listado
+                │   └── usuario_form.fxml     # Hecho: formulario
+                └── roles/
+                    ├── rol.fxml              # Hecho: matriz de permisos roles × módulos
+                    └── partials/
+                        └── rol_form.fxml             # Modal nuevo/renombrar rol
 ```
 
 ## Acceso a datos
@@ -204,7 +219,27 @@ Una vista se nombra con su ruta dentro de `ui`, sin extensión: `"modulos/encues
 
 - `App.setRoot("<vista>")` cambia toda la ventana (login ↔ menú), por ejemplo `App.setRoot("shared/layout/navbar")`.
 - Dentro del menú, `NavbarController.abrir("<vista>", migas...)` carga `ui/<vista>.fxml` en el área de contenido, pone el título y la ruta del encabezado y devuelve el controlador para pasarle datos (por ejemplo `formulario.editar(id)`).
-- La barra lateral muestra cada módulo si el rol tiene alguno de sus slugs en `rol_modulo`; el administrador ve todos. «Encuestas» aparece con cualquier módulo de captura (encuestas, visitas, caracteristicas-gasto, gastos-diarios, comidas-fuera-hogar) y «Viviendas y hogares» con viviendas u hogares.
+- **Middlewares de acceso** (`middleware/`). Igual que una API registra `router.get('/chats', isAuth, ModulePermissionMiddleware, controller)`, `Rutas` asigna a cada prefijo de vista una cadena de middlewares, y `App.cargar` la ejecuta con `Rutas.exigir(vista)` antes de cargar cualquier pantalla, pestaña, formulario o modal:
+
+  | Ruta | Cadena |
+  |---|---|
+  | `modulos/auth/` | (pública) |
+  | `modulos/usuarios/`, `modulos/roles/`, `modulos/viviendas/`, `modulos/encuestas/` | `AutenticacionMiddleware` → `PermisoModuloMiddleware` |
+  | cualquier otra (`shared/layout/navbar`…) | `AutenticacionMiddleware` |
+
+  `PermisoModuloMiddleware` deja pasar al ADMIN y, para los demás roles, busca los slugs de la vista en `RutasModulo` (gana el prefijo más largo) y exige que el rol tenga alguno en `rol_modulo`:
+
+  | Vista | Slugs |
+  |---|---|
+  | `modulos/encuestas/` (lista, detalle, Cap. A, cierre, nueva encuesta) | encuestas, visitas, caracteristicas-gasto, gastos-diarios, comidas-fuera-hogar |
+  | `encuestas/partials/encuesta_visitas` · `encuesta_capitulo_c` · `encuesta_gastos` | encuestas o el slug de su captura |
+  | `encuestas/partials/visita_form` · `renglon_form` | visitas · gastos-diarios o comidas-fuera-hogar |
+  | `modulos/viviendas/` · `viviendas/partials/vivienda_form` · `hogar_form` | viviendas u hogares · viviendas · hogares |
+  | `modulos/usuarios/` · `modulos/roles/` | usuarios · roles |
+
+  Así el crítico-digitador (solo «encuestas») ve las pestañas de la encuesta en solo lectura y el encuestador las diligencia.
+- Los controladores no validan roles: muestran cada botón o pestaña con `Rutas.permitir(nodo, vista)` (los mismos middlewares de la vista que abre) y, para las ediciones en línea de las pestañas, `EncuestaDetalleController.puedeEditar(RutasModulo.X)`. Los servicios repiten la validación con `Sesion.exigirModulo(RutasModulo.X)`, como una API que valida aunque el frontend oculte el botón.
+- Los permisos se cargan en `Sesion` al iniciar sesión; los cambios de la pantalla Roles y permisos aplican en el siguiente inicio de sesión (salvo el rol propio, que se recarga al guardar).
 - Los modales se abren con `Modal.cargar("<vista>", titulo)`: se prepara su controlador (`modal.controlador()...`) y se muestra con `modal.mostrar()`.
 - El detalle de una encuesta se abre con `EncuestaDetalleController.abrir(id, Pestana.X)`. Cada pestaña es una vista de `encuestas/partials/` cuyo controlador implementa `SeccionEncuesta`.
 - Los controladores llaman a los servicios con `Tareas.ejecutar(...)` para no congelar la ventana. Las tareas se ejecutan una a la vez porque la conexión es única, y los errores se muestran con `Alertas`.
@@ -232,7 +267,8 @@ El esquema de base de datos no usa triggers, así que estas reglas son responsab
 | El capítulo C debe tener los 25 grupos antes de pasar a los registros diarios (RF-07) | `CaracteristicaService` |
 | `created_by` toma el usuario de `Sesion` | Todos |
 | `updated_at = SYSTIMESTAMP` en cada `UPDATE` | Todos los DAO |
-| Las operaciones de usuarios, roles, módulos y catálogos solo las hace un administrador | `UsuarioService`, `UbicacionService`, `CatalogoService` |
+| Cada escritura exige el módulo de su pantalla (`Sesion.exigirModulo`, el ADMIN siempre puede); catálogos, ubicación y módulos solo los cambia un administrador | Todos los servicios; `UbicacionService`, `CatalogoService`, `RolService` |
+| El rol ADMIN no se edita, renombra ni elimina; solo un administrador asigna el rol ADMIN o modifica a otro administrador; no se elimina un rol con usuarios | `RolService`, `UsuarioService` |
 | Si no fue compra, el lugar y la frecuencia van vacíos; si fue compra, la frecuencia es obligatoria; `NUNCA` solo en el capítulo C; "Otra" exige el ¿cuál?; la equivalencia solo con unidad OTRA | `GastoDiarioService` |
 | C.3.1 y C.3.2 solo cuando la frecuencia supera la bisemana | `CaracteristicaService` |
 | El número del hogar va de 1 al total de hogares de la vivienda | `HogarService` |

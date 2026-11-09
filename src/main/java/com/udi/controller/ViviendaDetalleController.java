@@ -1,6 +1,7 @@
 package com.udi.controller;
 
 import com.udi.exception.ReglaNegocioException;
+import com.udi.middleware.Rutas;
 import com.udi.model.Encuesta;
 import com.udi.model.Hogar;
 import com.udi.model.Municipio;
@@ -35,6 +36,8 @@ import java.util.Map;
  */
 public class ViviendaDetalleController {
 
+    static final String VISTA_HOGAR = "modulos/viviendas/partials/hogar_form";
+
     @FXML
     private Label lblTitulo;
     @FXML
@@ -57,6 +60,10 @@ public class ViviendaDetalleController {
     private Label lblAviso;
     @FXML
     private Button btnAgregar;
+    @FXML
+    private Hyperlink lnkEditarVivienda;
+    @FXML
+    private Hyperlink lnkEncuestas;
     @FXML
     private Label lblTope;
     @FXML
@@ -89,6 +96,10 @@ public class ViviendaDetalleController {
 
     @FXML
     private void initialize() {
+        // Cada acción se muestra con los mismos middlewares que protegen la vista que abre
+        Rutas.permitir(lnkEditarVivienda, ViviendaController.VISTA_FORMULARIO);
+        Rutas.permitir(btnAgregar, VISTA_HOGAR);
+        Rutas.permitir(lnkEncuestas, "modulos/encuestas/encuesta");
         Formato.mostrar(lblAviso, false);
         configurarTabla();
     }
@@ -154,7 +165,7 @@ public class ViviendaDetalleController {
 
     @FXML
     private void editarVivienda() {
-        Modal<ViviendaFormController> modal = Modal.cargar("modulos/viviendas/partials/vivienda_form", "Editar vivienda");
+        Modal<ViviendaFormController> modal = Modal.cargar(ViviendaController.VISTA_FORMULARIO, "Editar vivienda");
         modal.controlador().editar(vivienda, guardada -> {
             avisar("Datos de la vivienda actualizados.");
             cargar(guardada.getId());
@@ -168,7 +179,7 @@ public class ViviendaDetalleController {
     }
 
     private void abrirHogar(Hogar hogar) {
-        Modal<HogarFormController> modal = Modal.cargar("modulos/viviendas/partials/hogar_form",
+        Modal<HogarFormController> modal = Modal.cargar(VISTA_HOGAR,
                 hogar == null ? "Agregar hogar" : "Editar hogar");
         modal.controlador().preparar(vivienda, hogares, hogar, guardado -> {
             avisar(hogar == null ? "Hogar " + guardado.getHogarNumero() + " agregado a la vivienda."
@@ -192,7 +203,7 @@ public class ViviendaDetalleController {
                 Tareas.ejecutar(() -> encuestaService.crear(nueva),
                         creada -> EncuestaDetalleController.abrir(creada.getId(), EncuestaDetalleController.Pestana.HOGAR));
             } else {
-                Modal<NuevaEncuestaController> modal = Modal.cargar("modulos/encuestas/partials/nueva_encuesta", "Nueva encuesta");
+                Modal<NuevaEncuestaController> modal = Modal.cargar(EncuestaController.VISTA_NUEVA, "Nueva encuesta");
                 modal.controlador().preparar(creada ->
                         EncuestaDetalleController.abrir(creada.getId(), EncuestaDetalleController.Pestana.HOGAR));
                 modal.controlador().buscar(Formato.codigo("H", hogar.getId()));
@@ -262,7 +273,10 @@ public class ViviendaDetalleController {
                 }
                 encuesta.setText(fila.encuesta == null ? "Crear encuesta" : "Ver encuesta");
                 // Un hogar con encuesta cerrada no se puede editar (RF-06)
-                Formato.mostrar(editar, fila.encuesta == null || !fila.encuesta.estaCerrada());
+                Formato.mostrar(editar, Rutas.puedeAbrir(VISTA_HOGAR)
+                        && (fila.encuesta == null || !fila.encuesta.estaCerrada()));
+                Formato.mostrar(encuesta, Rutas.puedeAbrir(fila.encuesta == null
+                        ? EncuestaController.VISTA_NUEVA : "modulos/encuestas/encuesta_detalle"));
                 setGraphic(caja);
             }
         });

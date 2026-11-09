@@ -37,7 +37,7 @@
          <HBox alignment="CENTER_LEFT">
             <Label text="Identificación de la vivienda (Cap. A)" styleClass="titulo-seccion" />
             <Region HBox.hgrow="ALWAYS" />
-            <Hyperlink text="Editar vivienda" onAction="#editarVivienda" styleClass="enlace" />
+            <Hyperlink fx:id="lnkEditarVivienda" text="Editar vivienda" onAction="#editarVivienda" styleClass="enlace" />
          </HBox>
          <GridPane hgap="24.0" vgap="14.0">
             <columnConstraints>
@@ -80,7 +80,7 @@
                <Label text="Hogares de la vivienda" styleClass="titulo-seccion" />
                <TextFlow>
                   <Label text="Cada hogar puede tener una sola encuesta. Los hogares sin encuesta aparecen en " styleClass="texto-suave" />
-                  <Hyperlink text="Encuestas › Nueva encuesta" onAction="#irEncuestas" styleClass="enlace" />
+                  <Hyperlink fx:id="lnkEncuestas" text="Encuestas › Nueva encuesta" onAction="#irEncuestas" styleClass="enlace" />
                   <Label text="." styleClass="texto-suave" />
                </TextFlow>
             </VBox>

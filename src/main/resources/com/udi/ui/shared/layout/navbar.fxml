@@ -45,6 +45,11 @@
                   <SVGPath styleClass="nav-icono" content="M8,7.5 A3,3 0 1,0 8,1.5 A3,3 0 1,0 8,7.5 Z M2,14.5 C2,10 14,10 14,14.5" />
                </graphic>
             </Button>
+            <Button fx:id="btnRoles" text="Roles y permisos" onAction="#irRoles" styleClass="nav-item" maxWidth="Infinity">
+               <graphic>
+                  <SVGPath styleClass="nav-icono" content="M8,1.5 L13.5,3.5 V8 C13.5,11.5 11,13.5 8,14.5 C5,13.5 2.5,11.5 2.5,8 V3.5 Z M5.5,8 L7.2,9.7 L10.5,6.4" />
+               </graphic>
+            </Button>
          </VBox>
 
          <Region VBox.vgrow="ALWAYS" />

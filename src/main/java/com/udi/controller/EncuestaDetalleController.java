@@ -2,6 +2,7 @@ package com.udi.controller;
 
 import com.udi.App;
 import com.udi.exception.ReglaNegocioException;
+import com.udi.middleware.Rutas;
 import com.udi.model.Encuesta;
 import com.udi.model.Hogar;
 import com.udi.model.Visita;
@@ -12,6 +13,7 @@ import com.udi.service.VisitaService;
 import com.udi.util.Alertas;
 import com.udi.util.Formato;
 import com.udi.util.Modal;
+import com.udi.util.Sesion;
 import com.udi.util.Tareas;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -79,6 +81,9 @@ public class EncuestaDetalleController {
     @FXML
     private StackPane contenido;
 
+    /** Formulario de visitas; su ruta exige el módulo de visitas (middleware/RutasModulo). */
+    static final String VISTA_VISITA = "modulos/encuestas/partials/visita_form";
+
     private final EncuestaService encuestaService = new EncuestaService();
     private final HogarService hogarService = new HogarService();
     private final VisitaService visitaService = new VisitaService();
@@ -105,7 +110,11 @@ public class EncuestaDetalleController {
         botones.put(Pestana.CAPITULO_C, tabCapituloC);
         botones.put(Pestana.GASTOS, tabGastos);
         botones.put(Pestana.CIERRE, tabCierre);
-        botones.forEach((pestana, boton) -> boton.setUserData(pestana));
+        botones.forEach((pestana, boton) -> {
+            boton.setUserData(pestana);
+            // Cada pestaña se muestra con los mismos middlewares que protegen su vista
+            Rutas.permitir(boton, pestana.vista);
+        });
         grupoPestanas.selectedToggleProperty().addListener((obs, antes, ahora) -> {
             if (ahora == null) {
                 // Una pestaña siempre queda elegida
@@ -141,9 +150,14 @@ public class EncuestaDetalleController {
         cargar(encuesta.getId(), actual);
     }
 
-    /** Cambia de pestaña. */
+    /** Cambia de pestaña. Si el rol no puede abrirla, va a la primera que sí pueda. */
     public void ir(Pestana pestana) {
         ToggleButton boton = botones.get(pestana);
+        if (!boton.isVisible()) {
+            boton = botones.values().stream().filter(ToggleButton::isVisible).findFirst()
+                    .orElseThrow(() -> new ReglaNegocioException("Su rol no tiene permiso para ver ninguna sección de la encuesta."));
+            pestana = (Pestana) boton.getUserData();
+        }
         if (boton.isSelected()) {
             mostrarPestana(pestana);
         } else {
@@ -173,6 +187,16 @@ public class EncuestaDetalleController {
 
     public Vivienda getVivienda() {
         return vivienda;
+    }
+
+    /**
+     * true si la encuesta está abierta y el rol tiene alguno de los módulos de
+     * captura indicados (constantes de {@code RutasModulo}). Las pestañas lo usan
+     * para mostrar los botones de editar; el crítico-digitador, que solo tiene
+     * "encuestas", ve las pestañas en solo lectura.
+     */
+    public boolean puedeEditar(String... slugsModulo) {
+        return esEditable() && Sesion.tieneModulo(slugsModulo);
     }
 
     /** false si la encuesta está cerrada (RF-06): las pestañas quedan en solo lectura. */
@@ -211,7 +235,7 @@ public class EncuestaDetalleController {
         texto.append(" · Periodo ").append(Formato.fecha(encuesta.getFechaDesde()))
                 .append(" – ").append(Formato.fecha(encuesta.getFechaHasta()));
         lblSubtitulo.setText(texto.toString());
-        Formato.mostrar(btnVisita, esEditable());
+        Formato.mostrar(btnVisita, esEditable() && Rutas.puedeAbrir(VISTA_VISITA));
     }
 
     @FXML
@@ -232,7 +256,7 @@ public class EncuestaDetalleController {
             Alertas.error("Control de visitas", "El hogar ya tiene las " + VisitaService.MAXIMO_VISITAS + " visitas permitidas.");
             return;
         }
-        Modal<VisitaFormController> modal = Modal.cargar("modulos/encuestas/partials/visita_form",
+        Modal<VisitaFormController> modal = Modal.cargar(VISTA_VISITA,
                 visita == null ? "Registrar visita" : "Editar visita");
         if (visita == null) {
             int siguiente = visitas.stream().mapToInt(Visita::getNumeroVisita).max().orElse(0) + 1;

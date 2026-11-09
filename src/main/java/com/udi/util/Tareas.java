@@ -1,6 +1,7 @@
 package com.udi.util;
 
 import com.udi.exception.DatosException;
+import com.udi.exception.AccesoDenegadoException;
 import com.udi.exception.ReglaNegocioException;
 import javafx.concurrent.Task;
 
@@ -50,7 +51,9 @@ public final class Tareas {
     }
 
     private static void mostrarError(Throwable error) {
-        if (error instanceof ReglaNegocioException) {
+        if (error instanceof AccesoDenegadoException) {
+            Alertas.error("Acceso denegado", error.getMessage());
+        } else if (error instanceof ReglaNegocioException) {
             Alertas.error("No se pudo completar la operación", error.getMessage());
         } else if (error instanceof DatosException) {
             Alertas.error("Error de base de datos", error.getMessage());

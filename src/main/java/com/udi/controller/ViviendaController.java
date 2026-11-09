@@ -1,5 +1,6 @@
 package com.udi.controller;
 
+import com.udi.middleware.Rutas;
 import com.udi.model.Encuesta;
 import com.udi.model.Hogar;
 import com.udi.model.Municipio;
@@ -18,6 +19,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
@@ -45,10 +47,14 @@ import java.util.Set;
  */
 public class ViviendaController {
 
+    static final String VISTA_FORMULARIO = "modulos/viviendas/partials/vivienda_form";
+
     private static final String TODAS = "Todas";
     private static final String POR_REGISTRAR = "Con hogares por registrar";
     private static final String SIN_ENCUESTA = "Con hogares sin encuesta";
 
+    @FXML
+    private Button btnNueva;
     @FXML
     private HBox boxAviso;
     @FXML
@@ -91,6 +97,7 @@ public class ViviendaController {
 
     @FXML
     private void initialize() {
+        Rutas.permitir(btnNueva, VISTA_FORMULARIO);
         Formato.mostrar(boxAviso, false);
         cmbFiltro.getItems().setAll(TODAS, POR_REGISTRAR, SIN_ENCUESTA);
         configurarTabla();
@@ -132,7 +139,7 @@ public class ViviendaController {
 
     @FXML
     private void nuevaVivienda() {
-        Modal<ViviendaFormController> modal = Modal.cargar("modulos/viviendas/partials/vivienda_form", "Nueva vivienda");
+        Modal<ViviendaFormController> modal = Modal.cargar(VISTA_FORMULARIO, "Nueva vivienda");
         modal.controlador().nueva(creada -> {
             nueva = creada.getId();
             lblAviso.setText("Vivienda " + Formato.codigo("V", creada.getId()) + " registrada: " + creada.getDireccion() + ".");

@@ -1,5 +1,6 @@
 package com.udi.controller;
 
+import com.udi.middleware.RutasModulo;
 import com.udi.model.ComidaFueraHogar;
 import com.udi.model.Encuesta;
 import com.udi.model.GastoDiario;
@@ -162,11 +163,13 @@ public class EncuestaGastosController implements SeccionEncuesta {
     public void mostrar(EncuestaDetalleController detalle) {
         this.detalle = detalle;
         boolean editable = detalle.esEditable();
-        Formato.mostrar(btnCrearDia, editable);
-        Formato.mostrar(btnAgregarGasto, editable);
-        Formato.mostrar(btnAgregarComida, editable);
-        Formato.mostrar(btnObservaciones, editable);
-        txtObservaciones.setEditable(editable);
+        // Cada acción exige el módulo de su captura: D (gastos-diarios) y D1 (comidas-fuera-hogar)
+        boolean editaDia = detalle.puedeEditar(RutasModulo.LINEA_14_DIAS);
+        Formato.mostrar(btnCrearDia, editaDia);
+        Formato.mostrar(btnAgregarGasto, detalle.puedeEditar(RutasModulo.GASTOS_DIARIOS));
+        Formato.mostrar(btnAgregarComida, detalle.puedeEditar(RutasModulo.COMIDAS));
+        Formato.mostrar(btnObservaciones, editaDia);
+        txtObservaciones.setEditable(editaDia);
         if (!editable) {
             lblSinRegistro.setText("La encuesta está cerrada: no se pueden crear registros nuevos.");
         }
@@ -423,7 +426,7 @@ public class EncuestaGastosController implements SeccionEncuesta {
             @Override
             protected void updateItem(GastoDiario gasto, boolean vacia) {
                 super.updateItem(gasto, vacia);
-                setGraphic(vacia || gasto == null || !detalle.esEditable() ? null : enlace);
+                setGraphic(vacia || gasto == null || !detalle.puedeEditar(RutasModulo.GASTOS_DIARIOS) ? null : enlace);
             }
         });
     }
@@ -452,7 +455,7 @@ public class EncuestaGastosController implements SeccionEncuesta {
             @Override
             protected void updateItem(ComidaFueraHogar comida, boolean vacia) {
                 super.updateItem(comida, vacia);
-                setGraphic(vacia || comida == null || !detalle.esEditable() ? null : enlace);
+                setGraphic(vacia || comida == null || !detalle.puedeEditar(RutasModulo.COMIDAS) ? null : enlace);
             }
         });
     }

@@ -1,5 +1,6 @@
 package com.udi.controller;
 
+import com.udi.middleware.RutasModulo;
 import com.udi.model.Visita;
 import com.udi.model.enums.ResultadoEntrevista;
 import com.udi.service.EncuestaService;
@@ -126,7 +127,8 @@ public class EncuestaVisitasController implements SeccionEncuesta {
             @Override
             protected void updateItem(Visita visita, boolean vacia) {
                 super.updateItem(visita, vacia);
-                setGraphic(vacia || visita == null || !detalle.esEditable() ? null : enlace);
+                // Editar solo si la encuesta está abierta y el rol tiene el módulo de visitas
+                setGraphic(vacia || visita == null || !detalle.puedeEditar(RutasModulo.VISITAS) ? null : enlace);
             }
         });
     }

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Modal «Nuevo rol» / «Renombrar rol» -->
+<VBox styleClass="modal" prefWidth="420.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.udi.controller.RolFormController">
+
+   <VBox styleClass="modal-encabezado" spacing="4.0">
+      <Label fx:id="lblTitulo" text="Nuevo rol" styleClass="titulo-modal" />
+      <Label fx:id="lblSubtitulo" text="El rol se crea sin módulos; asígnelos en la matriz de permisos."
+             styleClass="subtitulo-pagina" wrapText="true" />
+   </VBox>
+
+   <VBox styleClass="modal-cuerpo" spacing="16.0">
+      <VBox spacing="4.0">
+         <Label text="Nombre del rol *" styleClass="etiqueta-campo" />
+         <TextField fx:id="txtNombre" promptText="Ej. SUPERVISOR" styleClass="campo-linea" />
+         <Label text="Se guarda en mayúsculas y con _ en lugar de espacios (máximo 30 caracteres)." styleClass="texto-suave" wrapText="true" />
+      </VBox>
+      <Label fx:id="lblError" styleClass="banner-error" wrapText="true" maxWidth="Infinity" />
+   </VBox>
+
+   <HBox styleClass="modal-pie" spacing="10.0" alignment="CENTER_RIGHT">
+      <Button text="Cancelar" onAction="#cancelar" styleClass="boton-secundario" />
+      <Button fx:id="btnGuardar" text="Crear rol" onAction="#guardar" styleClass="boton-primario" defaultButton="true" />
+   </HBox>
+</VBox>

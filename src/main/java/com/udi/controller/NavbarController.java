@@ -1,6 +1,7 @@
 package com.udi.controller;
 
 import com.udi.App;
+import com.udi.middleware.Rutas;
 import com.udi.service.AuthService;
 import com.udi.util.Alertas;
 import com.udi.util.Formato;
@@ -21,6 +22,10 @@ import java.util.List;
 public class NavbarController {
 
     private static final String ACTIVO = "activo";
+    private static final String VISTA_ENCUESTAS = "modulos/encuestas/encuesta";
+    private static final String VISTA_VIVIENDAS = "modulos/viviendas/vivienda";
+    private static final String VISTA_USUARIOS = "modulos/usuarios/usuario";
+    private static final String VISTA_ROLES = "modulos/roles/rol";
 
     /** Menú visible; lo usan las pantallas para navegar con {@link #abrir}. */
     private static NavbarController actual;
@@ -41,6 +46,8 @@ public class NavbarController {
     private Button btnViviendas;
     @FXML
     private Button btnUsuarios;
+    @FXML
+    private Button btnRoles;
 
     private final AuthService authService = new AuthService();
 
@@ -49,16 +56,19 @@ public class NavbarController {
         actual = this;
         lblUsuario.setText(Sesion.getUsuario().getNombreCompleto());
         lblRol.setText(Formato.nombreRol(Sesion.getRol().getNombre()));
-        // Las pantallas de captura (visitas, capítulo C, gastos y comidas) viven dentro de la encuesta
-        permitir(btnEncuestas, "encuestas", "visitas", "caracteristicas-gasto", "gastos-diarios", "comidas-fuera-hogar");
-        permitir(btnViviendas, "viviendas", "hogares");
-        permitir(btnUsuarios, "usuarios");
+        // Cada botón se muestra con los mismos middlewares que protegen su vista (middleware/Rutas)
+        Rutas.permitir(btnEncuestas, VISTA_ENCUESTAS);
+        Rutas.permitir(btnViviendas, VISTA_VIVIENDAS);
+        Rutas.permitir(btnUsuarios, VISTA_USUARIOS);
+        Rutas.permitir(btnRoles, VISTA_ROLES);
         if (btnEncuestas.isVisible()) {
             irEncuestas();
         } else if (btnViviendas.isVisible()) {
             irViviendas();
         } else if (btnUsuarios.isVisible()) {
             irUsuarios();
+        } else if (btnRoles.isVisible()) {
+            irRoles();
         } else {
             sinModulos();
         }
@@ -84,17 +94,22 @@ public class NavbarController {
 
     @FXML
     private void irEncuestas() {
-        navegar(btnEncuestas, "modulos/encuestas/encuesta", "Encuestas");
+        navegar(btnEncuestas, VISTA_ENCUESTAS, "Encuestas");
     }
 
     @FXML
     private void irViviendas() {
-        navegar(btnViviendas, "modulos/viviendas/vivienda", "Viviendas y hogares");
+        navegar(btnViviendas, VISTA_VIVIENDAS, "Viviendas y hogares");
     }
 
     @FXML
     private void irUsuarios() {
-        navegar(btnUsuarios, "modulos/usuarios/usuario", "Usuarios");
+        navegar(btnUsuarios, VISTA_USUARIOS, "Usuarios");
+    }
+
+    @FXML
+    private void irRoles() {
+        navegar(btnRoles, VISTA_ROLES, "Roles y permisos");
     }
 
     @FXML
@@ -114,12 +129,13 @@ public class NavbarController {
     /** Marca en el menú el módulo de la pantalla que se abre desde otra (por ejemplo, la vivienda desde una encuesta). */
     public static void marcarModulo(String slug) {
         Button boton = "viviendas".equals(slug) ? actual.btnViviendas
-                : "usuarios".equals(slug) ? actual.btnUsuarios : actual.btnEncuestas;
+                : "usuarios".equals(slug) ? actual.btnUsuarios
+                : "roles".equals(slug) ? actual.btnRoles : actual.btnEncuestas;
         actual.marcar(boton);
     }
 
     private void marcar(Button boton) {
-        for (Button b : List.of(btnEncuestas, btnViviendas, btnUsuarios)) {
+        for (Button b : List.of(btnEncuestas, btnViviendas, btnUsuarios, btnRoles)) {
             b.getStyleClass().remove(ACTIVO);
         }
         boton.getStyleClass().add(ACTIVO);
@@ -132,15 +148,5 @@ public class NavbarController {
         contenido.getChildren().setAll(aviso);
         lblTitulo.setText("Sin módulos");
         lblMigas.setText("ENPH");
-    }
-
-    /** El administrador ve todos los módulos; los demás roles, los que tengan alguno de los módulos asignados. */
-    private static void permitir(Button boton, String... slugsModulo) {
-        boolean visible = Sesion.esAdmin();
-        for (String slug : slugsModulo) {
-            visible = visible || Sesion.puedeAcceder(slug);
-        }
-        boton.setVisible(visible);
-        boton.setManaged(visible);
     }
 }

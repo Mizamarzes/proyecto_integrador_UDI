@@ -4,6 +4,7 @@ import com.udi.config.ConexionBD;
 import com.udi.dao.HogarDAO;
 import com.udi.dao.VisitaDAO;
 import com.udi.exception.ReglaNegocioException;
+import com.udi.middleware.RutasModulo;
 import com.udi.model.Visita;
 import com.udi.util.Sesion;
 import com.udi.util.Validar;
@@ -35,6 +36,7 @@ public class VisitaService {
 
     /** Si no trae número de visita, se le asigna el siguiente del hogar. */
     public Visita crear(Visita visita) {
+        Sesion.exigirModulo(RutasModulo.VISITAS);
         Validar.requerido(visita.getHogarId(), "Hogar");
         return ConexionBD.enTransaccion(c -> {
             ReglasEncuesta.exigirHogarEditable(c, visita.getHogarId());
@@ -49,6 +51,7 @@ public class VisitaService {
     }
 
     public Visita actualizar(Visita visita) {
+        Sesion.exigirModulo(RutasModulo.VISITAS);
         Validar.requerido(visita.getId(), "Id de la visita");
         return ConexionBD.enTransaccion(c -> {
             Visita actual = Validar.encontrado(visitaDao.buscarPorId(c, visita.getId()),
@@ -62,6 +65,7 @@ public class VisitaService {
     }
 
     public boolean eliminar(long visitaId) {
+        Sesion.exigirModulo(RutasModulo.VISITAS);
         return ConexionBD.enTransaccion(c -> {
             Visita actual = Validar.encontrado(visitaDao.buscarPorId(c, visitaId), "No existe la visita " + visitaId + ".");
             ReglasEncuesta.exigirHogarEditable(c, actual.getHogarId());

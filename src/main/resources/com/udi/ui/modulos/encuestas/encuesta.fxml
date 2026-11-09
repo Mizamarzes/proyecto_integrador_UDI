@@ -21,7 +21,7 @@
          <Label fx:id="lblSubtitulo" text="Consulta, seguimiento y supervisión de encuestas." styleClass="subtitulo-pagina" />
       </VBox>
       <Region HBox.hgrow="ALWAYS" />
-      <Button text="+ Nueva encuesta" onAction="#nuevaEncuesta" styleClass="boton-accion" />
+      <Button fx:id="btnNueva" text="+ Nueva encuesta" onAction="#nuevaEncuesta" styleClass="boton-accion" />
    </HBox>
 
    <!-- Filtros -->

@@ -7,3 +7,4 @@
 - Cuadrar vistas por rol y demas
 
 - Crear seccion para exportar datos o syncronizar con Dane
+- Crear modulo de roles y permisos modulos

@@ -8,6 +8,7 @@ import com.udi.dao.RegistroDiarioDAO;
 import com.udi.dao.UsuarioDAO;
 import com.udi.dao.ViviendaDAO;
 import com.udi.exception.ReglaNegocioException;
+import com.udi.middleware.RutasModulo;
 import com.udi.model.Encuesta;
 import com.udi.model.EncuestaResumen;
 import com.udi.model.Encuestador;
@@ -158,6 +159,7 @@ public class EncuestaService {
 
     /** Crea la encuesta ABIERTA y calcula fecha_hasta. Un hogar solo tiene una encuesta. */
     public Encuesta crear(Encuesta encuesta) {
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Validar.requerido(encuesta.getHogarId(), "Hogar");
         Validar.requerido(encuesta.getEncuestadorId(), "Encuestador");
         Validar.requerido(encuesta.getFechaDesde(), "Fecha de inicio (desde el día)");
@@ -180,6 +182,7 @@ public class EncuestaService {
      * aquí (el estado se cambia con {@link #cerrar} y {@link #reabrir}).
      */
     public Encuesta actualizar(Encuesta encuesta) {
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Validar.requerido(encuesta.getId(), "Id de la encuesta");
         Validar.requerido(encuesta.getEncuestadorId(), "Encuestador");
         Validar.requerido(encuesta.getFechaDesde(), "Fecha de inicio (desde el día)");
@@ -202,6 +205,7 @@ public class EncuestaService {
 
     /** Marca el caso como completo (RF-06). Desde ese momento no admite cambios. */
     public void cerrar(long encuestaId) {
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Usuario usuario = Sesion.exigirSesion();
         ConexionBD.enTransaccion(c -> {
             ReglasEncuesta.exigirEditable(c, encuestaId);
@@ -223,6 +227,7 @@ public class EncuestaService {
 
     /** Elimina la encuesta con su capítulo C y sus días (en cascada). No aplica a encuestas cerradas. */
     public boolean eliminar(long encuestaId) {
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         return ConexionBD.enTransaccion(c -> {
             ReglasEncuesta.exigirEditable(c, encuestaId);
             return encuestaDao.eliminar(c, encuestaId);
