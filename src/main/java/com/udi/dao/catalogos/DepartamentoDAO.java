@@ -2,6 +2,7 @@ package com.udi.dao.catalogos;
 
 import com.udi.dao.BaseDAO;
 import com.udi.model.Departamento;
+import com.udi.model.Pagina;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -47,5 +48,13 @@ public class DepartamentoDAO extends BaseDAO<Departamento> {
 
     public List<Departamento> listarPorRegion(Connection c, long regionId) throws SQLException {
         return consultar(c, "SELECT * FROM departamento WHERE region_id = ? ORDER BY nombre", regionId);
+    }
+
+    /** Departamentos cuyo nombre contiene {@code texto}; {@code regionId} null no filtra por región. */
+    public Pagina<Departamento> buscar(Connection c, Long regionId, String texto, int desde, int limite)
+            throws SQLException {
+        return consultarPagina(c, "SELECT * FROM departamento WHERE " + sinTildes("nombre") + " LIKE ? "
+                        + "AND (? IS NULL OR region_id = ?) ORDER BY nombre, id",
+                desde, limite, patron(texto), regionId, regionId);
     }
 }

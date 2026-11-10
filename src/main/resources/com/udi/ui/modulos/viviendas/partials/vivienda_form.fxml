@@ -8,6 +8,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import com.udi.componentes.SelectBuscable?>
 
 <!-- Modal «Nueva vivienda» / «Editar vivienda» (capítulo A) -->
 <VBox styleClass="modal" prefWidth="760.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
@@ -31,15 +32,15 @@
             </columnConstraints>
             <VBox spacing="4.0">
                <Label text="1. Región *" styleClass="etiqueta-campo" />
-               <ComboBox fx:id="cmbRegion" promptText="Seleccione" styleClass="combo-linea" maxWidth="Infinity" />
+               <SelectBuscable fx:id="cmbRegion" promptText="Seleccione" maxWidth="Infinity" />
             </VBox>
             <VBox spacing="4.0" GridPane.columnIndex="1">
                <Label text="2. Departamento *" styleClass="etiqueta-campo" />
-               <ComboBox fx:id="cmbDepartamento" promptText="Seleccione" styleClass="combo-linea" maxWidth="Infinity" />
+               <SelectBuscable fx:id="cmbDepartamento" promptText="Seleccione" maxWidth="Infinity" />
             </VBox>
             <VBox spacing="4.0" GridPane.columnIndex="2">
                <Label text="3. Municipio *" styleClass="etiqueta-campo" />
-               <ComboBox fx:id="cmbMunicipio" promptText="Seleccione" styleClass="combo-linea" maxWidth="Infinity" />
+               <SelectBuscable fx:id="cmbMunicipio" promptText="Seleccione" maxWidth="Infinity" />
             </VBox>
             <VBox spacing="4.0" GridPane.columnIndex="3">
                <Label text="4. Clase *" styleClass="etiqueta-campo" />
@@ -93,11 +94,7 @@
                <Label text="11. Vivienda número *" styleClass="etiqueta-campo" />
                <TextField fx:id="txtViviendaNumero" promptText="Ej. 001" styleClass="campo-linea" />
             </VBox>
-            <VBox spacing="4.0" GridPane.columnIndex="2">
-               <Label text="12. Total de hogares *" styleClass="etiqueta-campo" />
-               <TextField fx:id="txtTotalHogares" promptText="1 a 99" styleClass="campo-linea" />
-            </VBox>
-            <VBox spacing="4.0" GridPane.columnIndex="3">
+            <VBox spacing="4.0" GridPane.columnIndex="2" GridPane.columnSpan="2">
                <Label text="17. Teléfono de contacto" styleClass="etiqueta-campo" />
                <TextField fx:id="txtTelefono" promptText="Fijo o móvil" styleClass="campo-linea" />
             </VBox>

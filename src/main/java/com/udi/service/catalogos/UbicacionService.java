@@ -6,6 +6,7 @@ import com.udi.dao.catalogos.MunicipioDAO;
 import com.udi.dao.catalogos.RegionDAO;
 import com.udi.model.Departamento;
 import com.udi.model.Municipio;
+import com.udi.model.Pagina;
 import com.udi.model.Region;
 import com.udi.util.Sesion;
 import com.udi.util.Validar;
@@ -29,6 +30,11 @@ public class UbicacionService {
 
     public List<Region> listarRegiones() {
         return ConexionBD.consultar(regionDao::listar);
+    }
+
+    /** Página de regiones cuyo nombre contiene {@code texto} (para los selects con buscador). */
+    public Pagina<Region> buscarRegiones(String texto, int desde, int limite) {
+        return ConexionBD.consultar(c -> regionDao.buscar(c, texto, desde, limite));
     }
 
     public Optional<Region> buscarRegion(long id) {
@@ -72,6 +78,11 @@ public class UbicacionService {
 
     public List<Departamento> listarDepartamentosPorRegion(long regionId) {
         return ConexionBD.consultar(c -> departamentoDao.listarPorRegion(c, regionId));
+    }
+
+    /** Página de departamentos que contienen {@code texto}; {@code regionId} null no filtra. */
+    public Pagina<Departamento> buscarDepartamentos(Long regionId, String texto, int desde, int limite) {
+        return ConexionBD.consultar(c -> departamentoDao.buscar(c, regionId, texto, desde, limite));
     }
 
     public Optional<Departamento> buscarDepartamento(long id) {
@@ -127,6 +138,11 @@ public class UbicacionService {
 
     public List<Municipio> listarMunicipiosPorDepartamento(long departamentoId) {
         return ConexionBD.consultar(c -> municipioDao.listarPorDepartamento(c, departamentoId));
+    }
+
+    /** Página de municipios que contienen {@code texto}; los filtros en null no se aplican. */
+    public Pagina<Municipio> buscarMunicipios(Long regionId, Long departamentoId, String texto, int desde, int limite) {
+        return ConexionBD.consultar(c -> municipioDao.buscar(c, regionId, departamentoId, texto, desde, limite));
     }
 
     public Optional<Municipio> buscarMunicipio(long id) {

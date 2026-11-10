@@ -1,6 +1,7 @@
 package com.udi.dao.catalogos;
 
 import com.udi.dao.BaseDAO;
+import com.udi.model.Pagina;
 import com.udi.model.Region;
 
 import java.sql.Connection;
@@ -41,5 +42,11 @@ public class RegionDAO extends BaseDAO<Region> {
     public boolean actualizar(Connection c, Region e) throws SQLException {
         String sql = "UPDATE region SET nombre = ? WHERE id = ?";
         return ejecutar(c, sql, e.getNombre(), e.getId()) > 0;
+    }
+
+    /** Regiones cuyo nombre contiene {@code texto}, ordenadas por nombre. */
+    public Pagina<Region> buscar(Connection c, String texto, int desde, int limite) throws SQLException {
+        return consultarPagina(c, "SELECT * FROM region WHERE " + sinTildes("nombre") + " LIKE ? ORDER BY nombre, id",
+                desde, limite, patron(texto));
     }
 }

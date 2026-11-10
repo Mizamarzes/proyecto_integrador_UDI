@@ -34,6 +34,11 @@ public class HogarService {
         return ConexionBD.consultar(viviendaDao::listar);
     }
 
+    /** Viviendas filtradas por región, departamento y municipio; cada filtro en null no se aplica. */
+    public List<Vivienda> listarViviendas(Long regionId, Long departamentoId, Long municipioId) {
+        return ConexionBD.consultar(c -> viviendaDao.filtrar(c, regionId, departamentoId, municipioId));
+    }
+
     public List<Vivienda> listarViviendasPorMunicipio(long municipioId) {
         return ConexionBD.consultar(c -> viviendaDao.listarPorMunicipio(c, municipioId));
     }
@@ -48,21 +53,18 @@ public class HogarService {
             validarVivienda(c, vivienda);
             vivienda.setId(null);
             vivienda.setCreatedBy(Sesion.idUsuario());
-            return viviendaDao.insertar(c, vivienda);
+            viviendaDao.insertar(c, vivienda);
+            return viviendaDao.buscarPorId(c, vivienda.getId()).orElse(vivienda);
         });
     }
 
-    /** total_hogares no puede quedar por debajo de los hogares ya registrados. */
     public Vivienda actualizarVivienda(Vivienda vivienda) {
         Sesion.exigirModulo(RutasModulo.VIVIENDAS);
         Validar.requerido(vivienda.getId(), "Id de la vivienda");
         return ConexionBD.enTransaccion(c -> {
             validarVivienda(c, vivienda);
-            long registrados = hogarDao.contarPorVivienda(c, vivienda.getId());
-            Validar.condicion(vivienda.getTotalHogares() >= registrados, "La vivienda ya tiene " + registrados
-                    + " hogares registrados; el total de hogares no puede ser menor.");
             Validar.condicion(viviendaDao.actualizar(c, vivienda), "No existe la vivienda " + vivienda.getId() + ".");
-            return vivienda;
+            return viviendaDao.buscarPorId(c, vivienda.getId()).orElse(vivienda);
         });
     }
 
@@ -79,7 +81,6 @@ public class HogarService {
     private void validarVivienda(Connection c, Vivienda vivienda) throws SQLException {
         Validar.requerido(vivienda.getMunicipioId(), "Municipio");
         Validar.rango(vivienda.getClase(), 1, 3, "Clase");
-        Validar.rango(vivienda.getTotalHogares(), 1, 99, "Total de hogares en la vivienda");
         Validar.requerido(vivienda.getDireccion(), "Dirección");
         Validar.condicion(municipioDao.existe(c, vivienda.getMunicipioId()),
                 "No existe el municipio " + vivienda.getMunicipioId() + ".");
@@ -101,21 +102,29 @@ public class HogarService {
         return ConexionBD.consultar(c -> hogarDao.buscarPorId(c, id));
     }
 
+    /** El número del hogar (A.13) lo asigna el sistema: el siguiente al mayor de la vivienda. */
     public Hogar crearHogar(Hogar hogar) {
         Sesion.exigirModulo(RutasModulo.VIVIENDAS);
         return ConexionBD.enTransaccion(c -> {
             hogar.setId(null);
+            Validar.requerido(hogar.getViviendaId(), "Vivienda");
+            hogar.setHogarNumero(hogarDao.siguienteNumero(c, hogar.getViviendaId()));
+            Validar.condicion(hogar.getHogarNumero() <= 99, "La vivienda ya tiene el máximo de 99 hogares.");
             validarHogar(c, hogar);
             hogar.setCreatedBy(Sesion.idUsuario());
             return hogarDao.insertar(c, hogar);
         });
     }
 
+    /** El número del hogar no cambia al editar. */
     public Hogar actualizarHogar(Hogar hogar) {
         Sesion.exigirModulo(RutasModulo.VIVIENDAS);
         Validar.requerido(hogar.getId(), "Id del hogar");
         return ConexionBD.enTransaccion(c -> {
             ReglasEncuesta.exigirHogarEditable(c, hogar.getId());
+            Hogar actual = Validar.encontrado(hogarDao.buscarPorId(c, hogar.getId()), "No existe el hogar " + hogar.getId() + ".");
+            hogar.setViviendaId(actual.getViviendaId());
+            hogar.setHogarNumero(actual.getHogarNumero());
             validarHogar(c, hogar);
             Validar.condicion(hogarDao.actualizar(c, hogar), "No existe el hogar " + hogar.getId() + ".");
             return hogar;
@@ -132,12 +141,15 @@ public class HogarService {
         });
     }
 
-    /** A.13: el número del hogar va de 1 al total de hogares de la vivienda y no se repite. */
+    /**
+     * A.13: el número del hogar va de 1 a 99 (NUMBER(2)) y no se repite en la
+     * vivienda. El total de hogares de la vivienda (A.12) es la cantidad registrada.
+     */
     private void validarHogar(Connection c, Hogar hogar) throws SQLException {
         Validar.requerido(hogar.getViviendaId(), "Vivienda");
-        Vivienda vivienda = Validar.encontrado(viviendaDao.buscarPorId(c, hogar.getViviendaId()),
+        Validar.condicion(viviendaDao.existe(c, hogar.getViviendaId()),
                 "No existe la vivienda " + hogar.getViviendaId() + ".");
-        Validar.rango(hogar.getHogarNumero(), 1, vivienda.getTotalHogares(), "Hogar número");
+        Validar.rango(hogar.getHogarNumero(), 1, 99, "Hogar número");
         Validar.rango(hogar.getTotalPersonas(), 1, 99, "Total de personas en el hogar");
         Optional<Hogar> mismoNumero = hogarDao.buscarPorViviendaYNumero(c, hogar.getViviendaId(), hogar.getHogarNumero());
         if (mismoNumero.isPresent() && !mismoNumero.get().getId().equals(hogar.getId())) {

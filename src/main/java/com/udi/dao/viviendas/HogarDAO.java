@@ -55,6 +55,11 @@ public class HogarDAO extends BaseDAO<Hogar> {
         return consultar(c, "SELECT * FROM hogar WHERE vivienda_id = ? ORDER BY hogar_numero", viviendaId);
     }
 
+    /** Siguiente número de hogar (A.13) libre en la vivienda: el mayor registrado + 1. */
+    public int siguienteNumero(Connection c, long viviendaId) throws SQLException {
+        return (int) consultarNumero(c, "SELECT NVL(MAX(hogar_numero), 0) + 1 FROM hogar WHERE vivienda_id = ?", viviendaId);
+    }
+
     public long contarPorVivienda(Connection c, long viviendaId) throws SQLException {
         return consultarNumero(c, "SELECT COUNT(*) FROM hogar WHERE vivienda_id = ?", viviendaId);
     }

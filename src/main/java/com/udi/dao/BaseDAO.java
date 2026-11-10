@@ -2,6 +2,7 @@ package com.udi.dao;
 
 import com.udi.model.Entidad;
 import com.udi.model.EntidadAuditable;
+import com.udi.model.Pagina;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -11,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -98,6 +100,39 @@ public abstract class BaseDAO<T extends Entidad> {
     protected Optional<T> consultarUno(Connection c, String sql, Object... parametros) throws SQLException {
         List<T> resultado = consultar(c, sql, parametros);
         return resultado.isEmpty() ? Optional.empty() : Optional.of(resultado.get(0));
+    }
+
+    /**
+     * Ejecuta {@code sql} (que debe traer su ORDER BY) y devuelve solo la página
+     * que empieza en {@code desde} con hasta {@code limite} registros. Oracle 10g
+     * no tiene OFFSET/FETCH, así que se pagina con ROWNUM; se pide un registro
+     * de más para saber si hay otra página.
+     */
+    protected Pagina<T> consultarPagina(Connection c, String sql, int desde, int limite, Object... parametros)
+            throws SQLException {
+        String paginado = "SELECT * FROM (SELECT t.*, ROWNUM rn FROM (" + sql + ") t WHERE ROWNUM <= ?) WHERE rn > ?";
+        Object[] todos = new Object[parametros.length + 2];
+        System.arraycopy(parametros, 0, todos, 0, parametros.length);
+        todos[parametros.length] = desde + limite + 1;
+        todos[parametros.length + 1] = desde;
+        List<T> registros = consultar(c, paginado, todos);
+        boolean hayMas = registros.size() > limite;
+        return new Pagina<>(hayMas ? new ArrayList<>(registros.subList(0, limite)) : registros, hayMas);
+    }
+
+    /**
+     * Patrón LIKE que busca {@code texto} en cualquier parte, en minúsculas y
+     * sin tildes. Se compara contra {@link #sinTildes(String)} de la columna.
+     */
+    protected static String patron(String texto) {
+        String limpio = texto == null ? "" : Normalizer.normalize(texto.trim().toLowerCase(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        return "%" + limpio + "%";
+    }
+
+    /** Expresión SQL con la columna en minúsculas y sin tildes, para buscar con {@link #patron(String)}. */
+    protected static String sinTildes(String columna) {
+        return "TRANSLATE(LOWER(" + columna + "), 'áéíóúü', 'aeiouu')";
     }
 
     /** Para consultas que devuelven un solo número: COUNT, MAX, NEXTVAL. Null se toma como 0. */

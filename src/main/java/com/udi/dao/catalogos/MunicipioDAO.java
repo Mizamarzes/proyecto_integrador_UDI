@@ -2,6 +2,7 @@ package com.udi.dao.catalogos;
 
 import com.udi.dao.BaseDAO;
 import com.udi.model.Municipio;
+import com.udi.model.Pagina;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -47,5 +48,17 @@ public class MunicipioDAO extends BaseDAO<Municipio> {
 
     public List<Municipio> listarPorDepartamento(Connection c, long departamentoId) throws SQLException {
         return consultar(c, "SELECT * FROM municipio WHERE departamento_id = ? ORDER BY nombre", departamentoId);
+    }
+
+    /**
+     * Municipios cuyo nombre contiene {@code texto}. {@code departamentoId} y
+     * {@code regionId} en null no filtran.
+     */
+    public Pagina<Municipio> buscar(Connection c, Long regionId, Long departamentoId, String texto, int desde, int limite)
+            throws SQLException {
+        return consultarPagina(c, "SELECT m.* FROM municipio m JOIN departamento d ON d.id = m.departamento_id "
+                        + "WHERE " + sinTildes("m.nombre") + " LIKE ? AND (? IS NULL OR m.departamento_id = ?) "
+                        + "AND (? IS NULL OR d.region_id = ?) ORDER BY m.nombre, m.id",
+                desde, limite, patron(texto), departamentoId, departamentoId, regionId, regionId);
     }
 }

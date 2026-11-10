@@ -958,3 +958,110 @@
 .matriz-estado.guardado {
     -fx-text-fill: #1f6b3a;
 }
+
+/* ── Select con buscador (componentes/SelectBuscable) ─ */
+
+.select-buscable {
+    -fx-cursor: hand;
+    -fx-padding: 0;
+    -fx-min-height: 30px;
+}
+
+.select-buscable .select-texto {
+    -fx-text-fill: -color-texto;
+    -fx-padding: 5 2 5 2;
+}
+
+.select-buscable .select-texto.select-prompt {
+    -fx-text-fill: -color-suave;
+}
+
+.select-buscable .arrow-button {
+    -fx-padding: 0 6 0 6;
+}
+
+.select-buscable .arrow {
+    -fx-background-color: -color-tinta;
+    -fx-shape: "M 0 0 h 7 l -3.5 4 z";
+    -fx-scale-shape: true;
+    -fx-padding: 0.166667em 0.333333em 0.166667em 0.333333em;
+}
+
+/* Sin scroll horizontal: los nombres largos se recortan con «…» */
+.select-popup .select-lista .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+}
+
+.select-buscable:disabled {
+    -fx-opacity: 0.6;
+}
+
+/* El popup es otra ventana: repite los colores de .root */
+.select-popup {
+    -color-tarjeta: #fdfcf7;
+    -color-tinta: #1b2838;
+    -color-texto: #2b2b2b;
+    -color-suave: #5f5a50;
+    -color-linea: #b7ae9e;
+    -fx-font-size: 13px;
+    -fx-background-color: -color-tarjeta;
+    -fx-border-color: -color-linea;
+    -fx-border-width: 1;
+    -fx-padding: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 10, 0, 0, 3);
+}
+
+.select-popup .select-buscador {
+    -fx-background-color: white;
+    -fx-background-radius: 0;
+    -fx-border-color: -color-linea;
+    -fx-border-width: 1;
+    -fx-padding: 5 8 5 8;
+}
+
+.select-popup .select-buscador:focused {
+    -fx-border-color: -color-tinta;
+}
+
+.select-popup .select-lista {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.select-popup .select-lista .list-cell {
+    -fx-padding: 6 8 6 8;
+    -fx-background-color: transparent;
+    -fx-text-fill: -color-texto;
+    -fx-cursor: hand;
+}
+
+.select-popup .select-lista .list-cell:filled:hover {
+    -fx-background-color: #ece4d6;
+}
+
+.select-popup .select-lista .list-cell:filled:selected {
+    -fx-background-color: -color-tinta;
+    -fx-text-fill: white;
+}
+
+.select-popup .select-lista .list-cell.select-opcion-vacia {
+    -fx-font-style: italic;
+}
+
+.select-popup .select-ver-mas {
+    -fx-background-color: transparent;
+    -fx-border-color: -color-linea;
+    -fx-border-width: 1;
+    -fx-background-radius: 0;
+    -fx-text-fill: -color-tinta;
+    -fx-font-weight: bold;
+    -fx-padding: 3 8 3 8;
+    -fx-cursor: hand;
+}
+
+.select-popup .select-ver-mas:hover {
+    -fx-background-color: #ece4d6;
+}

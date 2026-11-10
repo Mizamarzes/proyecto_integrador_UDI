@@ -8,6 +8,8 @@ module com.udi {
     requires ojdbc6;
 
     opens com.udi to javafx.fxml;
+    // Controles propios que se usan en FXML (SelectBuscable)
+    opens com.udi.componentes to javafx.fxml;
     // Controladores de las vistas FXML, uno por módulo
     opens com.udi.controller.auth to javafx.fxml;
     opens com.udi.controller.encuestas to javafx.fxml;

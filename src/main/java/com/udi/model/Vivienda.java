@@ -1,6 +1,12 @@
 package com.udi.model;
 
-/** Espacio físico donde viven uno o más hogares (capítulo A). */
+/**
+ * Espacio físico donde viven uno o más hogares (capítulo A).
+ *
+ * Los nombres de la ubicación (región, departamento, municipio) y el total de
+ * hogares no son columnas de la tabla: los llena {@code ViviendaDAO} al
+ * consultar, y el total de hogares (A.12) es la cantidad de hogares registrados.
+ */
 public class Vivienda extends EntidadAuditable {
 
     private Long municipioId;
@@ -11,10 +17,17 @@ public class Vivienda extends EntidadAuditable {
     private String segmento;
     private Integer edificacionNumero;
     private Integer viviendaNumero;
-    private Integer totalHogares;
     private String barrio;
     private String direccion;
     private String telefono;
+
+    // Solo lectura, calculados en la consulta
+    private Long departamentoId;
+    private Long regionId;
+    private String municipioNombre;
+    private String departamentoNombre;
+    private String regionNombre;
+    private int totalHogares;
 
     public Long getMunicipioId() {
         return municipioId;
@@ -80,14 +93,6 @@ public class Vivienda extends EntidadAuditable {
         this.viviendaNumero = viviendaNumero;
     }
 
-    public Integer getTotalHogares() {
-        return totalHogares;
-    }
-
-    public void setTotalHogares(Integer totalHogares) {
-        this.totalHogares = totalHogares;
-    }
-
     public String getBarrio() {
         return barrio;
     }
@@ -110,6 +115,55 @@ public class Vivienda extends EntidadAuditable {
 
     public void setTelefono(String telefono) {
         this.telefono = telefono;
+    }
+
+    public Long getDepartamentoId() {
+        return departamentoId;
+    }
+
+    public void setDepartamentoId(Long departamentoId) {
+        this.departamentoId = departamentoId;
+    }
+
+    public Long getRegionId() {
+        return regionId;
+    }
+
+    public void setRegionId(Long regionId) {
+        this.regionId = regionId;
+    }
+
+    public String getMunicipioNombre() {
+        return municipioNombre;
+    }
+
+    public void setMunicipioNombre(String municipioNombre) {
+        this.municipioNombre = municipioNombre;
+    }
+
+    public String getDepartamentoNombre() {
+        return departamentoNombre;
+    }
+
+    public void setDepartamentoNombre(String departamentoNombre) {
+        this.departamentoNombre = departamentoNombre;
+    }
+
+    public String getRegionNombre() {
+        return regionNombre;
+    }
+
+    public void setRegionNombre(String regionNombre) {
+        this.regionNombre = regionNombre;
+    }
+
+    /** A.12: hogares registrados en la vivienda. */
+    public int getTotalHogares() {
+        return totalHogares;
+    }
+
+    public void setTotalHogares(int totalHogares) {
+        this.totalHogares = totalHogares;
     }
 
     @Override

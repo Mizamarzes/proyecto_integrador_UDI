@@ -270,4 +270,4 @@ El esquema de base de datos no usa triggers, así que estas reglas son responsab
 | Los roles no se renombran (el código usa ADMIN y ENCUESTADOR por su nombre); ADMIN y ENCUESTADOR son roles del sistema y no se eliminan, aunque los permisos del ENCUESTADOR sí se editan; los permisos del ADMIN no se editan; solo un administrador asigna el rol ADMIN o modifica a otro administrador; no se elimina un rol con usuarios | `RolService`, `UsuarioService` |
 | Si no fue compra, el lugar y la frecuencia van vacíos; si fue compra, la frecuencia es obligatoria; `NUNCA` solo en el capítulo C; "Otra" exige el ¿cuál?; la equivalencia solo con unidad OTRA | `GastoDiarioService` |
 | C.3.1 y C.3.2 solo cuando la frecuencia supera la bisemana | `CaracteristicaService` |
-| El número del hogar va de 1 al total de hogares de la vivienda | `HogarService` |
+| El número del hogar va de 1 a 99 y no se repite en la vivienda; el total de hogares (A.12) es la cantidad registrada, no se guarda | `HogarService` |

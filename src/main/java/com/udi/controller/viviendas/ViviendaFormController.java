@@ -1,10 +1,10 @@
 package com.udi.controller.viviendas;
 
+import com.udi.componentes.SelectBuscable;
 import com.udi.model.Departamento;
 import com.udi.model.Municipio;
 import com.udi.model.Region;
 import com.udi.model.Vivienda;
-import com.udi.service.catalogos.UbicacionService;
 import com.udi.service.viviendas.HogarService;
 import com.udi.util.Formato;
 import com.udi.util.Modal;
@@ -19,7 +19,6 @@ import javafx.scene.control.TextFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /** Modal para registrar o editar una vivienda (capítulo A). */
 public class ViviendaFormController {
@@ -27,11 +26,11 @@ public class ViviendaFormController {
     @FXML
     private Label lblTitulo;
     @FXML
-    private ComboBox<Region> cmbRegion;
+    private SelectBuscable<Region> cmbRegion;
     @FXML
-    private ComboBox<Departamento> cmbDepartamento;
+    private SelectBuscable<Departamento> cmbDepartamento;
     @FXML
-    private ComboBox<Municipio> cmbMunicipio;
+    private SelectBuscable<Municipio> cmbMunicipio;
     @FXML
     private ComboBox<String> cmbClase;
     @FXML
@@ -47,8 +46,6 @@ public class ViviendaFormController {
     @FXML
     private TextField txtViviendaNumero;
     @FXML
-    private TextField txtTotalHogares;
-    @FXML
     private TextField txtTelefono;
     @FXML
     private TextField txtBarrio;
@@ -59,11 +56,9 @@ public class ViviendaFormController {
     @FXML
     private Button btnGuardar;
 
-    private final UbicacionService ubicacionService = new UbicacionService();
     private final HogarService hogarService = new HogarService();
 
-    private List<Departamento> departamentos = new ArrayList<>();
-    private List<Municipio> municipios = new ArrayList<>();
+    private SelectoresUbicacion ubicacion;
     private Vivienda vivienda;
     private Consumer<Vivienda> alGuardar;
 
@@ -76,19 +71,9 @@ public class ViviendaFormController {
         Formato.soloEnteros(txtSegmento, 4);
         Formato.soloEnteros(txtEdificacion, 4);
         Formato.soloEnteros(txtViviendaNumero, 4);
-        Formato.soloEnteros(txtTotalHogares, 2);
         txtTelefono.setTextFormatter(new TextFormatter<String>(c -> c.getControlNewText().matches("[0-9 +]{0,20}") ? c : null));
 
-        cmbRegion.valueProperty().addListener((obs, antes, region) -> {
-            cmbDepartamento.getItems().setAll(region == null ? List.of() : departamentos.stream()
-                    .filter(d -> d.getRegionId().equals(region.getId())).collect(Collectors.toList()));
-            cmbDepartamento.setValue(null);
-        });
-        cmbDepartamento.valueProperty().addListener((obs, antes, departamento) -> {
-            cmbMunicipio.getItems().setAll(departamento == null ? List.of() : municipios.stream()
-                    .filter(m -> m.getDepartamentoId().equals(departamento.getId())).collect(Collectors.toList()));
-            cmbMunicipio.setValue(null);
-        });
+        ubicacion = new SelectoresUbicacion(cmbRegion, cmbDepartamento, cmbMunicipio, true);
         Formato.mostrar(lblError, false);
     }
 
@@ -97,8 +82,6 @@ public class ViviendaFormController {
         vivienda = new Vivienda();
         lblTitulo.setText("Nueva vivienda");
         cmbClase.setValue(ViviendaController.textoClase(1));
-        txtTotalHogares.setText("1");
-        cargarUbicaciones();
     }
 
     public void editar(Vivienda existente, Consumer<Vivienda> alGuardar) {
@@ -112,33 +95,11 @@ public class ViviendaFormController {
         txtSegmento.setText(existente.getSegmento());
         txtEdificacion.setText(texto(existente.getEdificacionNumero()));
         txtViviendaNumero.setText(texto(existente.getViviendaNumero()));
-        txtTotalHogares.setText(texto(existente.getTotalHogares()));
         txtTelefono.setText(existente.getTelefono());
         txtBarrio.setText(existente.getBarrio());
         txtDireccion.setText(existente.getDireccion());
         btnGuardar.setText("Guardar cambios");
-        cargarUbicaciones();
-    }
-
-    /** Carga regiones, departamentos y municipios; en edición selecciona los de la vivienda. */
-    private void cargarUbicaciones() {
-        Tareas.ejecutar(() -> {
-            departamentos = ubicacionService.listarDepartamentos();
-            municipios = ubicacionService.listarMunicipios();
-            return ubicacionService.listarRegiones();
-        }, regiones -> {
-            cmbRegion.getItems().setAll(regiones);
-            Long municipioId = vivienda.getMunicipioId();
-            if (municipioId == null) {
-                return;
-            }
-            municipios.stream().filter(m -> m.getId().equals(municipioId)).findFirst().ifPresent(m ->
-                    departamentos.stream().filter(d -> d.getId().equals(m.getDepartamentoId())).findFirst().ifPresent(d -> {
-                        regiones.stream().filter(r -> r.getId().equals(d.getRegionId())).findFirst().ifPresent(cmbRegion::setValue);
-                        cmbDepartamento.setValue(d);
-                        cmbMunicipio.setValue(m);
-                    }));
-        });
+        ubicacion.seleccionar(existente);
     }
 
     @FXML
@@ -152,10 +113,6 @@ public class ViviendaFormController {
         }
         if (entero(txtEdificacion) == null || entero(txtViviendaNumero) == null) {
             errores.add("Escriba el número de la edificación y de la vivienda.");
-        }
-        Integer total = entero(txtTotalHogares);
-        if (total == null || total < 1) {
-            errores.add("El total de hogares va de 1 a 99.");
         }
         if (Formato.texto(txtBarrio.getText()) == null || Formato.texto(txtDireccion.getText()) == null) {
             errores.add("Escriba el barrio y la dirección de la vivienda.");
@@ -175,7 +132,6 @@ public class ViviendaFormController {
         vivienda.setSegmento(Formato.texto(txtSegmento.getText()));
         vivienda.setEdificacionNumero(entero(txtEdificacion));
         vivienda.setViviendaNumero(entero(txtViviendaNumero));
-        vivienda.setTotalHogares(total);
         vivienda.setTelefono(Formato.texto(txtTelefono.getText()));
         vivienda.setBarrio(Formato.texto(txtBarrio.getText()));
         vivienda.setDireccion(Formato.texto(txtDireccion.getText()));

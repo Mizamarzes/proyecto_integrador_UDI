@@ -185,7 +185,6 @@ Table vivienda [headercolor: #2980B9] {
   segmento varchar2(10) [note: 'A.8']
   edificacion_numero number(4) [note: 'A.10']
   vivienda_numero number(4) [note: 'A.11']
-  total_hogares number(2) [not null, note: 'A.12 Total de hogares en la vivienda']
   barrio varchar2(120) [note: 'A.15']
   direccion varchar2(200) [not null, note: 'A.16']
   telefono varchar2(20) [note: 'A.17']

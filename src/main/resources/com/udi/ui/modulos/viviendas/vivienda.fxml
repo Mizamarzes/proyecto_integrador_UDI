@@ -10,6 +10,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
+<?import com.udi.componentes.SelectBuscable?>
 
 <!-- Listado de viviendas con el avance de sus hogares (capítulo A) -->
 <VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
@@ -30,13 +31,25 @@
    </HBox>
 
    <HBox styleClass="tarjeta" alignment="BOTTOM_LEFT" spacing="20.0">
-      <VBox spacing="4.0">
+      <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
          <Label text="Buscar" styleClass="etiqueta-campo" />
-         <TextField fx:id="txtBuscar" promptText="Código, dirección o barrio…" styleClass="campo-linea" prefWidth="220.0" minWidth="120.0" />
+         <TextField fx:id="txtBuscar" promptText="Código, dirección o barrio…" styleClass="campo-linea" prefWidth="200.0" minWidth="120.0" />
+      </VBox>
+      <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
+         <Label text="Región" styleClass="etiqueta-campo" />
+         <SelectBuscable fx:id="cmbRegion" prefWidth="150.0" maxWidth="Infinity" />
+      </VBox>
+      <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
+         <Label text="Departamento" styleClass="etiqueta-campo" />
+         <SelectBuscable fx:id="cmbDepartamento" prefWidth="170.0" maxWidth="Infinity" />
+      </VBox>
+      <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
+         <Label text="Municipio" styleClass="etiqueta-campo" />
+         <SelectBuscable fx:id="cmbMunicipio" prefWidth="170.0" maxWidth="Infinity" />
       </VBox>
       <VBox spacing="4.0">
          <Label text="Hogares" styleClass="etiqueta-campo" />
-         <ComboBox fx:id="cmbFiltro" styleClass="combo-linea" prefWidth="230.0" />
+         <ComboBox fx:id="cmbFiltro" styleClass="combo-linea" prefWidth="200.0" />
       </VBox>
       <Button text="Limpiar" onAction="#limpiar" styleClass="boton-secundario" minWidth="-Infinity" />
       <Region HBox.hgrow="ALWAYS" />
@@ -46,9 +59,12 @@
    <TableView fx:id="tabla" styleClass="tabla" VBox.vgrow="ALWAYS">
       <columns>
          <TableColumn fx:id="colCodigo" text="Vivienda" styleClass="columna-codigo" prefWidth="90.0" />
-         <TableColumn fx:id="colDireccion" text="Dirección / Barrio" prefWidth="220.0" />
-         <TableColumn fx:id="colCartografia" text="Ubicación cartográfica" prefWidth="150.0" />
-         <TableColumn fx:id="colHogares" text="Hogares (A.12)" prefWidth="160.0" sortable="false" />
+         <TableColumn fx:id="colDireccion" text="Dirección / Barrio" prefWidth="200.0" />
+         <TableColumn fx:id="colRegion" text="Región" prefWidth="100.0" />
+         <TableColumn fx:id="colDepartamento" text="Departamento" prefWidth="120.0" />
+         <TableColumn fx:id="colMunicipio" text="Municipio" prefWidth="120.0" />
+         <TableColumn fx:id="colCartografia" text="Ubicación cartográfica" prefWidth="140.0" />
+         <TableColumn fx:id="colHogares" text="Hogares (A.12)" prefWidth="100.0" />
          <TableColumn fx:id="colEncuestas" text="Encuestas" prefWidth="150.0" />
          <TableColumn fx:id="colAcciones" text="Acciones" prefWidth="110.0" sortable="false" />
       </columns>

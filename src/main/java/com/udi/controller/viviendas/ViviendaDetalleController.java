@@ -8,9 +8,7 @@ import com.udi.exception.ReglaNegocioException;
 import com.udi.middleware.Rutas;
 import com.udi.model.Encuesta;
 import com.udi.model.Hogar;
-import com.udi.model.Municipio;
 import com.udi.model.Vivienda;
-import com.udi.service.catalogos.UbicacionService;
 import com.udi.service.encuestas.EncuestaService;
 import com.udi.service.viviendas.HogarService;
 import com.udi.util.Formato;
@@ -49,6 +47,10 @@ public class ViviendaDetalleController {
     @FXML
     private Label lblSubtitulo;
     @FXML
+    private Label lblRegion;
+    @FXML
+    private Label lblDepartamento;
+    @FXML
     private Label lblMunicipio;
     @FXML
     private Label lblSectorSeccion;
@@ -85,7 +87,6 @@ public class ViviendaDetalleController {
 
     private final HogarService hogarService = new HogarService();
     private final EncuestaService encuestaService = new EncuestaService();
-    private final UbicacionService ubicacionService = new UbicacionService();
 
     private Vivienda vivienda;
     private List<Hogar> hogares = new ArrayList<>();
@@ -113,8 +114,6 @@ public class ViviendaDetalleController {
             Datos datos = new Datos();
             datos.vivienda = hogarService.buscarVivienda(id)
                     .orElseThrow(() -> new ReglaNegocioException("No existe la vivienda " + id + "."));
-            datos.municipio = datos.vivienda.getMunicipioId() == null ? null
-                    : ubicacionService.buscarMunicipio(datos.vivienda.getMunicipioId()).orElse(null);
             datos.hogares = hogarService.listarHogaresPorVivienda(id);
             for (Hogar h : datos.hogares) {
                 encuestaService.buscarPorHogar(h.getId()).ifPresent(e -> datos.encuestas.put(h.getId(), e));
@@ -126,22 +125,25 @@ public class ViviendaDetalleController {
     private void pintar(Datos datos) {
         vivienda = datos.vivienda;
         hogares = datos.hogares;
-        String municipio = datos.municipio == null ? "" : datos.municipio.getNombre();
+        String municipio = vivienda.getMunicipioNombre() == null ? "" : vivienda.getMunicipioNombre();
         lblTitulo.setText(vivienda.getDireccion());
         lblCodigo.setText(Formato.codigo("V", vivienda.getId()));
         lblSubtitulo.setText((vivienda.getBarrio() == null ? "" : vivienda.getBarrio() + " · ") + municipio
                 + " · " + ViviendaController.textoClase(vivienda.getClase()).replaceFirst("^\\d\\. ", ""));
-        lblMunicipio.setText(municipio + (vivienda.getMunicipioId() == null ? "" : " (" + vivienda.getMunicipioId() + ")"));
+        lblRegion.setText(guion(vivienda.getRegionNombre()));
+        lblDepartamento.setText(guion(vivienda.getDepartamentoNombre()));
+        lblMunicipio.setText(guion(vivienda.getMunicipioNombre()));
         lblSectorSeccion.setText(guion(vivienda.getSector()) + " · " + guion(vivienda.getSeccion()));
         lblManzanaSegmento.setText(guion(vivienda.getManzana()) + " · " + guion(vivienda.getSegmento()));
         lblEdificacion.setText(ViviendaController.tresDigitos(vivienda.getEdificacionNumero()) + " · "
                 + ViviendaController.tresDigitos(vivienda.getViviendaNumero()));
         lblTelefono.setText(vivienda.getTelefono() == null ? "—" : vivienda.getTelefono());
-        lblRegistrados.setText(hogares.size() + " de " + vivienda.getTotalHogares());
+        lblRegistrados.setText(String.valueOf(hogares.size()));
 
-        boolean completa = hogares.size() >= vivienda.getTotalHogares();
+        // hogar_numero es NUMBER(2): una vivienda admite hasta 99 hogares
+        boolean completa = hogares.size() >= HogarFormController.MAXIMO_HOGARES;
         btnAgregar.setDisable(completa);
-        lblTope.setText(completa ? "Ya están registrados los " + vivienda.getTotalHogares() + " hogares de la vivienda." : "");
+        lblTope.setText(completa ? "La vivienda ya tiene el máximo de " + HogarFormController.MAXIMO_HOGARES + " hogares." : "");
         Formato.mostrar(lblTope, completa);
 
         List<Fila> filas = new ArrayList<>();
@@ -298,7 +300,6 @@ public class ViviendaDetalleController {
 
     private static final class Datos {
         private Vivienda vivienda;
-        private Municipio municipio;
         private List<Hogar> hogares = new ArrayList<>();
         private final Map<Long, Encuesta> encuestas = new HashMap<>();
     }

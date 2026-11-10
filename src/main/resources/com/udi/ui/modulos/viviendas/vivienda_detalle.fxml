@@ -46,26 +46,34 @@
                <ColumnConstraints percentWidth="33.4" />
             </columnConstraints>
             <VBox spacing="2.0">
-               <Label text="Municipio" styleClass="dato-etiqueta" />
-               <Label fx:id="lblMunicipio" styleClass="dato-valor" />
+               <Label text="Región (A.1)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblRegion" styleClass="dato-valor" />
             </VBox>
             <VBox spacing="2.0" GridPane.columnIndex="1">
+               <Label text="Departamento (A.2)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblDepartamento" styleClass="dato-valor" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.columnIndex="2">
+               <Label text="Municipio (A.3)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblMunicipio" styleClass="dato-valor" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.rowIndex="1">
                <Label text="Sector / Sección" styleClass="dato-etiqueta" />
                <Label fx:id="lblSectorSeccion" styleClass="dato-codigo" />
             </VBox>
-            <VBox spacing="2.0" GridPane.columnIndex="2">
+            <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="1">
                <Label text="Manzana / Segmento" styleClass="dato-etiqueta" />
                <Label fx:id="lblManzanaSegmento" styleClass="dato-codigo" />
             </VBox>
-            <VBox spacing="2.0" GridPane.rowIndex="1">
+            <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="2">
                <Label text="Edificación / Vivienda" styleClass="dato-etiqueta" />
                <Label fx:id="lblEdificacion" styleClass="dato-codigo" />
             </VBox>
-            <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="1">
+            <VBox spacing="2.0" GridPane.rowIndex="2">
                <Label text="Teléfono" styleClass="dato-etiqueta" />
                <Label fx:id="lblTelefono" styleClass="dato-valor" />
             </VBox>
-            <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="2">
+            <VBox spacing="2.0" GridPane.rowIndex="2" GridPane.columnIndex="1">
                <Label text="Hogares registrados (A.12)" styleClass="dato-etiqueta" />
                <Label fx:id="lblRegistrados" styleClass="dato-valor" />
             </VBox>

@@ -112,7 +112,6 @@ CREATE TABLE vivienda (
   segmento            VARCHAR2(10),
   edificacion_numero  NUMBER(4),
   vivienda_numero     NUMBER(4),
-  total_hogares       NUMBER(2)      NOT NULL,
   barrio              VARCHAR2(120),
   direccion           VARCHAR2(200)  NOT NULL,
   telefono            VARCHAR2(20),
@@ -120,8 +119,7 @@ CREATE TABLE vivienda (
   updated_at          TIMESTAMP,
   created_by          NUMBER(10),
   CONSTRAINT pk_vivienda PRIMARY KEY (id),
-  CONSTRAINT ck_vivienda_clase CHECK (clase IN (1, 2, 3)),
-  CONSTRAINT ck_vivienda_total_hogares CHECK (total_hogares >= 1)
+  CONSTRAINT ck_vivienda_clase CHECK (clase IN (1, 2, 3))
 );
 
 CREATE TABLE hogar (
@@ -566,26 +564,26 @@ INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modul
 -- ---------------------------------------------------------------------
 -- Viviendas (10)
 -- ---------------------------------------------------------------------
-INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 118, 1, '0101', '01', '07', '001', 12, 1, 2, 'Cabecera del Llano', 'Calle 45 # 12-30', '6076345678', 3);
-INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 118, 1, '0102', '03', '15', '002', 4, 1, 1, 'San Alonso', 'Carrera 27 # 18-45', '6076451234', 4);
-INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 342, 1, '0201', '02', '22', '003', 8, 2, 1, 'Canaveral', 'Calle 30 # 25-71', '6076389012', 5);
-INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 374, 1, '0301', '01', '05', '004', 3, 1, 1, 'Centro', 'Carrera 25 # 30-12', '6076467890', 6);
-INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 661, 1, '0401', '04', '11', '005', 6, 1, 1, 'La Candelaria', 'Calle 9 # 6-20', '6076553210', 7);
-INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 275, 1, '0501', '02', '18', '006', 9, 3, 1, 'La Riviera', 'Avenida 0 # 12-34', '6075781234', 8);
-INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 1013, 1, '0601', '01', '02', '007', 1, 1, 1, 'Centro', 'Calle 19 # 9-35', '6087423456', 9);
-INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 547, 1, '0701', '05', '33', '008', 15, 2, 1, 'Laureles', 'Circular 4 # 73-12', '6044112233', 10);
-INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 88, 1, '0801', '03', '27', '009', 7, 1, 1, 'El Prado', 'Carrera 54 # 64-120', '6053445566', 11);
-INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 150, 1, '1001', '02', '09', '010', 5, 1, 1, 'San Fernando', 'Calle 5 # 38-25', '6025567788', 12);
+INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, barrio, direccion, telefono, created_by)
+  VALUES (seq_vivienda.NEXTVAL, 118, 1, '0101', '01', '07', '001', 12, 1, 'Cabecera del Llano', 'Calle 45 # 12-30', '6076345678', 3);
+INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, barrio, direccion, telefono, created_by)
+  VALUES (seq_vivienda.NEXTVAL, 118, 1, '0102', '03', '15', '002', 4, 1, 'San Alonso', 'Carrera 27 # 18-45', '6076451234', 4);
+INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, barrio, direccion, telefono, created_by)
+  VALUES (seq_vivienda.NEXTVAL, 342, 1, '0201', '02', '22', '003', 8, 2, 'Canaveral', 'Calle 30 # 25-71', '6076389012', 5);
+INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, barrio, direccion, telefono, created_by)
+  VALUES (seq_vivienda.NEXTVAL, 374, 1, '0301', '01', '05', '004', 3, 1, 'Centro', 'Carrera 25 # 30-12', '6076467890', 6);
+INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, barrio, direccion, telefono, created_by)
+  VALUES (seq_vivienda.NEXTVAL, 661, 1, '0401', '04', '11', '005', 6, 1, 'La Candelaria', 'Calle 9 # 6-20', '6076553210', 7);
+INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, barrio, direccion, telefono, created_by)
+  VALUES (seq_vivienda.NEXTVAL, 275, 1, '0501', '02', '18', '006', 9, 3, 'La Riviera', 'Avenida 0 # 12-34', '6075781234', 8);
+INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, barrio, direccion, telefono, created_by)
+  VALUES (seq_vivienda.NEXTVAL, 1013, 1, '0601', '01', '02', '007', 1, 1, 'Centro', 'Calle 19 # 9-35', '6087423456', 9);
+INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, barrio, direccion, telefono, created_by)
+  VALUES (seq_vivienda.NEXTVAL, 547, 1, '0701', '05', '33', '008', 15, 2, 'Laureles', 'Circular 4 # 73-12', '6044112233', 10);
+INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, barrio, direccion, telefono, created_by)
+  VALUES (seq_vivienda.NEXTVAL, 88, 1, '0801', '03', '27', '009', 7, 1, 'El Prado', 'Carrera 54 # 64-120', '6053445566', 11);
+INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, barrio, direccion, telefono, created_by)
+  VALUES (seq_vivienda.NEXTVAL, 150, 1, '1001', '02', '09', '010', 5, 1, 'San Fernando', 'Calle 5 # 38-25', '6025567788', 12);
 
 -- ---------------------------------------------------------------------
 -- Hogares (10)

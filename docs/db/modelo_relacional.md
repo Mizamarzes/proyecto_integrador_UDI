@@ -185,7 +185,7 @@ Restricción única: `(rol_id, modulo_id)`, para que un rol no tenga el mismo m�
 
 ### Capítulo A, B y D2
 
-**`vivienda`**: el espacio físico (casa, apartamento, habitación con entrada independiente) donde viven uno o más hogares (capítulo A).
+**`vivienda`**: el espacio físico (casa, apartamento, habitación con entrada independiente) donde viven uno o más hogares (capítulo A). El A.12 *total de hogares en la vivienda* no se guarda: es la cantidad de filas de `hogar` de la vivienda (`ViviendaDAO` lo calcula con `COUNT`).
 
 | Columna | Tipo | Restricciones | Descripción |
 |---|---|---|---|
@@ -198,7 +198,6 @@ Restricción única: `(rol_id, modulo_id)`, para que un rol no tenga el mismo m�
 | segmento | VARCHAR2(10) | | A.8 Segmento |
 | edificacion_numero | NUMBER(4) | | A.10 Edificación número |
 | vivienda_numero | NUMBER(4) | | A.11 Vivienda número |
-| total_hogares | NUMBER(2) | NN | A.12 Total de hogares en la vivienda |
 | barrio | VARCHAR2(120) | | A.15 Barrio, centro poblado o vereda |
 | direccion | VARCHAR2(200) | NN | A.16 Dirección de la vivienda |
 | telefono | VARCHAR2(20) | | A.17 Teléfono |
