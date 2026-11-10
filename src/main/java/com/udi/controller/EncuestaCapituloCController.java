@@ -1,6 +1,5 @@
 package com.udi.controller;
 
-import com.udi.middleware.RutasModulo;
 import com.udi.model.CaracteristicaGasto;
 import com.udi.model.GrupoAlimento;
 import com.udi.model.enums.FrecuenciaCompra;
@@ -84,8 +83,8 @@ public class EncuestaCapituloCController implements SeccionEncuesta {
     @Override
     public void mostrar(EncuestaDetalleController detalle) {
         this.detalle = detalle;
-        Formato.mostrar(btnDescartar, detalle.puedeEditar(RutasModulo.CARACTERISTICAS));
-        Formato.mostrar(btnGuardar, detalle.puedeEditar(RutasModulo.CARACTERISTICAS));
+        Formato.mostrar(btnDescartar, detalle.esEditable());
+        Formato.mostrar(btnGuardar, detalle.esEditable());
         long encuestaId = detalle.getEncuesta().getId();
         Tareas.ejecutar(() -> {
             Datos datos = new Datos();
@@ -281,7 +280,7 @@ public class EncuestaCapituloCController implements SeccionEncuesta {
             txtValor.textProperty().addListener((obs, antes, ahora) -> actualizarAvance());
             compra.selectedToggleProperty().addListener((obs, antes, ahora) -> actualizarAvance());
 
-            boolean editable = detalle.puedeEditar(RutasModulo.CARACTERISTICAS);
+            boolean editable = detalle.esEditable();
             cmbFrecuencia.setDisable(!editable);
             txtValor.setDisable(!editable);
             rbSi.setDisable(!editable);

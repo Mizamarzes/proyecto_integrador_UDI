@@ -117,8 +117,8 @@ proyecto_integrador_UDI/
     │       │   ├── NavbarController.java     # Hecho: barra lateral, encabezado y navegación (abrir, migas, marcarModulo)
     │       │   ├── UsuarioController.java    # Hecho: listado de usuarios con búsqueda y filtros por rol y estado
     │       │   ├── UsuarioFormController.java     # Hecho: crear, editar, contraseña, activar/desactivar y eliminar
-│       │   ├── RolController.java        # Hecho: matriz de permisos roles × módulos, renombrar y eliminar roles
-│       │   ├── RolFormController.java    # Hecho: modal nuevo/renombrar rol
+│       │   ├── RolController.java        # Hecho: matriz de permisos roles × módulos, crear y eliminar roles
+│       │   ├── RolFormController.java    # Hecho: modal nuevo rol
     │       │   ├── EncuestaController.java   # Hecho: «Mis Encuestas» (encuestador) o listado global con filtros
     │       │   ├── NuevaEncuestaController.java   # Hecho: modal, elegir un hogar sin encuesta
     │       │   ├── EncuestaDetalleController.java # Hecho: encabezado y pestañas de la encuesta
@@ -194,7 +194,7 @@ proyecto_integrador_UDI/
                 └── roles/
                     ├── rol.fxml              # Hecho: matriz de permisos roles × módulos
                     └── partials/
-                        └── rol_form.fxml             # Modal nuevo/renombrar rol
+                        └── rol_form.fxml             # Modal nuevo rol
 ```
 
 ## Acceso a datos
@@ -224,21 +224,20 @@ Una vista se nombra con su ruta dentro de `ui`, sin extensión: `"modulos/encues
   | Ruta | Cadena |
   |---|---|
   | `modulos/auth/` | (pública) |
-  | `modulos/usuarios/`, `modulos/roles/`, `modulos/viviendas/`, `modulos/encuestas/` | `AutenticacionMiddleware` → `PermisoModuloMiddleware` |
+  | `modulos/usuarios/`, `modulos/roles/`, `modulos/viviendas/`, `modulos/encuestas/`, `modulos/reportes/` | `AutenticacionMiddleware` → `PermisoModuloMiddleware` |
   | cualquier otra (`shared/layout/navbar`…) | `AutenticacionMiddleware` |
 
-  `PermisoModuloMiddleware` deja pasar al ADMIN y, para los demás roles, busca los slugs de la vista en `RutasModulo` (gana el prefijo más largo) y exige que el rol tenga alguno en `rol_modulo`:
+  `PermisoModuloMiddleware` deja pasar al ADMIN y, para los demás roles, busca el slug de la vista en `RutasModulo` (gana el prefijo más largo) y exige que el rol lo tenga en `rol_modulo`. Hay 5 módulos y cada uno agrupa todas sus pantallas:
 
-  | Vista | Slugs |
-  |---|---|
-  | `modulos/encuestas/` (lista, detalle, Cap. A, cierre, nueva encuesta) | encuestas, visitas, caracteristicas-gasto, gastos-diarios, comidas-fuera-hogar |
-  | `encuestas/partials/encuesta_visitas` · `encuesta_capitulo_c` · `encuesta_gastos` | encuestas o el slug de su captura |
-  | `encuestas/partials/visita_form` · `renglon_form` | visitas · gastos-diarios o comidas-fuera-hogar |
-  | `modulos/viviendas/` · `viviendas/partials/vivienda_form` · `hogar_form` | viviendas u hogares · viviendas · hogares |
-  | `modulos/usuarios/` · `modulos/roles/` | usuarios · roles |
+  | Vista | Módulo (slug) | Incluye |
+  |---|---|---|
+  | `modulos/usuarios/` | usuarios | Listado y formulario de usuarios |
+  | `modulos/roles/` | roles | Matriz de permisos y modal de rol |
+  | `modulos/viviendas/` | viviendas («Viviendas y hogares») | Viviendas, detalle, modales de vivienda y hogar |
+  | `modulos/encuestas/` | encuestas | Listado, nueva encuesta, detalle y sus pestañas: control de visitas, Cap. A, Cap. C, línea de 14 días (D y D1) y cierre |
+  | `modulos/reportes/` | reportes | (pendiente) |
 
-  Así el crítico-digitador (solo «encuestas») ve las pestañas de la encuesta en solo lectura y el encuestador las diligencia.
-- Los controladores no validan roles: muestran cada botón o pestaña con `Rutas.permitir(nodo, vista)` (los mismos middlewares de la vista que abre) y, para las ediciones en línea de las pestañas, `EncuestaDetalleController.puedeEditar(RutasModulo.X)`. Los servicios repiten la validación con `Sesion.exigirModulo(RutasModulo.X)`, como una API que valida aunque el frontend oculte el botón.
+- Los controladores no validan roles: muestran cada botón o pestaña con `Rutas.permitir(nodo, vista)` (los mismos middlewares de la vista que abre), por ejemplo los enlaces de la vivienda que llevan a Encuestas. Dentro de la encuesta, lo que se puede editar depende solo de que esté abierta (`EncuestaDetalleController.esEditable()`). Los servicios repiten la validación con `Sesion.exigirModulo(RutasModulo.X)`, como una API que valida aunque el frontend oculte el botón.
 - Los permisos se cargan en `Sesion` al iniciar sesión; los cambios de la pantalla Roles y permisos aplican en el siguiente inicio de sesión (salvo el rol propio, que se recarga al guardar).
 - Los modales se abren con `Modal.cargar("<vista>", titulo)`: se prepara su controlador (`modal.controlador()...`) y se muestra con `modal.mostrar()`.
 - El detalle de una encuesta se abre con `EncuestaDetalleController.abrir(id, Pestana.X)`. Cada pestaña es una vista de `encuestas/partials/` cuyo controlador implementa `SeccionEncuesta`.
@@ -268,7 +267,7 @@ El esquema de base de datos no usa triggers, así que estas reglas son responsab
 | `created_by` toma el usuario de `Sesion` | Todos |
 | `updated_at = SYSTIMESTAMP` en cada `UPDATE` | Todos los DAO |
 | Cada escritura exige el módulo de su pantalla (`Sesion.exigirModulo`, el ADMIN siempre puede); catálogos, ubicación y módulos solo los cambia un administrador | Todos los servicios; `UbicacionService`, `CatalogoService`, `RolService` |
-| El rol ADMIN no se edita, renombra ni elimina; solo un administrador asigna el rol ADMIN o modifica a otro administrador; no se elimina un rol con usuarios | `RolService`, `UsuarioService` |
+| Los roles no se renombran (el código usa ADMIN y ENCUESTADOR por su nombre); ADMIN y ENCUESTADOR son roles del sistema y no se eliminan, aunque los permisos del ENCUESTADOR sí se editan; los permisos del ADMIN no se editan; solo un administrador asigna el rol ADMIN o modifica a otro administrador; no se elimina un rol con usuarios | `RolService`, `UsuarioService` |
 | Si no fue compra, el lugar y la frecuencia van vacíos; si fue compra, la frecuencia es obligatoria; `NUNCA` solo en el capítulo C; "Otra" exige el ¿cuál?; la equivalencia solo con unidad OTRA | `GastoDiarioService` |
 | C.3.1 y C.3.2 solo cuando la frecuencia supera la bisemana | `CaracteristicaService` |
 | El número del hogar va de 1 al total de hogares de la vivienda | `HogarService` |

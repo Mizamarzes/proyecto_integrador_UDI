@@ -536,30 +536,23 @@ INSERT INTO encuestador (id, usuario_id, created_by) VALUES (seq_encuestador.NEX
 INSERT INTO encuestador (id, usuario_id, created_by) VALUES (seq_encuestador.NEXTVAL, 12, 1);
 
 -- ---------------------------------------------------------------------
--- Módulos (10) y permisos por rol (10)
+-- Módulos (5) y permisos por rol (6)
+-- Cada módulo agrupa sus pantallas: «viviendas» incluye los hogares y
+-- «encuestas» incluye control de visitas, capítulo C, gastos y comidas.
 -- ---------------------------------------------------------------------
 INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Usuarios', 'usuarios', 1);
 INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Roles y permisos', 'roles', 1);
-INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Viviendas', 'viviendas', 1);
-INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Hogares', 'hogares', 1);
+INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Viviendas y hogares', 'viviendas', 1);
 INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Encuestas', 'encuestas', 1);
-INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Control de visitas', 'visitas', 1);
-INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Características del gasto', 'caracteristicas-gasto', 1);
-INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Gastos diarios', 'gastos-diarios', 1);
-INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Comidas fuera del hogar', 'comidas-fuera-hogar', 1);
 INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Reportes', 'reportes', 1);
 
--- ADMIN: usuarios y roles | CRITICO_DIGITADOR: encuestas y reportes | ENCUESTADOR: captura
+-- ADMIN: usuarios y roles | CRITICO_DIGITADOR: encuestas y reportes | ENCUESTADOR: viviendas y encuestas
 INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 1, 1, 1);
 INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 1, 2, 1);
+INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 2, 4, 1);
 INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 2, 5, 1);
-INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 2, 10, 1);
 INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 3, 3, 1);
 INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 3, 4, 1);
-INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 3, 6, 1);
-INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 3, 7, 1);
-INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 3, 8, 1);
-INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 3, 9, 1);
 
 -- ---------------------------------------------------------------------
 -- Ubicación: regiones (10), departamentos (10) y municipios (10)

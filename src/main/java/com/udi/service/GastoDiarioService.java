@@ -56,7 +56,7 @@ public class GastoDiarioService {
      * si no viene, se calcula. RF-07: el capítulo C debe estar completo antes.
      */
     public RegistroDiario crearRegistro(RegistroDiario registro) {
-        Sesion.exigirModulo(RutasModulo.LINEA_14_DIAS);
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Validar.requerido(registro.getEncuestaId(), "Encuesta");
         return ConexionBD.enTransaccion(c -> {
             Encuesta encuesta = ReglasEncuesta.exigirEditable(c, registro.getEncuestaId());
@@ -70,7 +70,7 @@ public class GastoDiarioService {
     }
 
     public RegistroDiario actualizarRegistro(RegistroDiario registro) {
-        Sesion.exigirModulo(RutasModulo.LINEA_14_DIAS);
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Validar.requerido(registro.getId(), "Id del registro diario");
         return ConexionBD.enTransaccion(c -> {
             RegistroDiario actual = Validar.encontrado(registroDao.buscarPorId(c, registro.getId()),
@@ -85,7 +85,7 @@ public class GastoDiarioService {
 
     /** Elimina el día con todos sus renglones (en cascada). */
     public boolean eliminarRegistro(long registroId) {
-        Sesion.exigirModulo(RutasModulo.LINEA_14_DIAS);
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         return ConexionBD.enTransaccion(c -> {
             RegistroDiario actual = Validar.encontrado(registroDao.buscarPorId(c, registroId),
                     "No existe el registro diario " + registroId + ".");
@@ -127,7 +127,7 @@ public class GastoDiarioService {
 
     /** Si no trae número de orden, se le asigna el siguiente del día. Si no trae encuestador, el de la encuesta. */
     public GastoDiario crearGasto(GastoDiario gasto) {
-        Sesion.exigirModulo(RutasModulo.GASTOS_DIARIOS);
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Validar.requerido(gasto.getRegistroDiarioId(), "Registro diario");
         return ConexionBD.enTransaccion(c -> {
             Dia dia = obtenerDiaEditable(c, gasto.getRegistroDiarioId());
@@ -145,7 +145,7 @@ public class GastoDiarioService {
     }
 
     public GastoDiario actualizarGasto(GastoDiario gasto) {
-        Sesion.exigirModulo(RutasModulo.GASTOS_DIARIOS);
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Validar.requerido(gasto.getId(), "Id del gasto");
         return ConexionBD.enTransaccion(c -> {
             GastoDiario actual = Validar.encontrado(gastoDao.buscarPorId(c, gasto.getId()),
@@ -162,7 +162,7 @@ public class GastoDiarioService {
     }
 
     public boolean eliminarGasto(long gastoId) {
-        Sesion.exigirModulo(RutasModulo.GASTOS_DIARIOS);
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         return ConexionBD.enTransaccion(c -> {
             GastoDiario actual = Validar.encontrado(gastoDao.buscarPorId(c, gastoId), "No existe el gasto " + gastoId + ".");
             obtenerDiaEditable(c, actual.getRegistroDiarioId());
@@ -207,7 +207,7 @@ public class GastoDiarioService {
 
     /** Si no trae número de orden, se le asigna el siguiente del día. Si no trae encuestador, el de la encuesta. */
     public ComidaFueraHogar crearComida(ComidaFueraHogar comida) {
-        Sesion.exigirModulo(RutasModulo.COMIDAS);
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Validar.requerido(comida.getRegistroDiarioId(), "Registro diario");
         return ConexionBD.enTransaccion(c -> {
             Dia dia = obtenerDiaEditable(c, comida.getRegistroDiarioId());
@@ -225,7 +225,7 @@ public class GastoDiarioService {
     }
 
     public ComidaFueraHogar actualizarComida(ComidaFueraHogar comida) {
-        Sesion.exigirModulo(RutasModulo.COMIDAS);
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Validar.requerido(comida.getId(), "Id de la comida");
         return ConexionBD.enTransaccion(c -> {
             ComidaFueraHogar actual = Validar.encontrado(comidaDao.buscarPorId(c, comida.getId()),
@@ -242,7 +242,7 @@ public class GastoDiarioService {
     }
 
     public boolean eliminarComida(long comidaId) {
-        Sesion.exigirModulo(RutasModulo.COMIDAS);
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         return ConexionBD.enTransaccion(c -> {
             ComidaFueraHogar actual = Validar.encontrado(comidaDao.buscarPorId(c, comidaId),
                     "No existe la comida " + comidaId + ".");

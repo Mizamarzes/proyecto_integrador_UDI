@@ -28,7 +28,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * Roles y permisos: matriz de roles (filas) por módulos (columnas). Cada
@@ -96,11 +95,17 @@ public class RolController {
         checksModulo.clear();
         detallesRol.clear();
 
-        ColumnConstraints colRol = new ColumnConstraints(ANCHO_ROL);
-        colRol.setHgrow(Priority.SOMETIMES);
+        // Ancho mínimo fijo y el resto del espacio repartido: la columna de roles
+        // conserva su ancho y las de módulos se estiran por igual hasta llenar la tarjeta
+        ColumnConstraints colRol = new ColumnConstraints();
+        colRol.setMinWidth(ANCHO_ROL);
+        colRol.setPrefWidth(ANCHO_ROL);
+        colRol.setHgrow(Priority.NEVER);
         matriz.getColumnConstraints().add(colRol);
         for (int i = 0; i < modulos.size(); i++) {
-            ColumnConstraints col = new ColumnConstraints(ANCHO_MODULO);
+            ColumnConstraints col = new ColumnConstraints();
+            col.setMinWidth(ANCHO_MODULO);
+            col.setPrefWidth(ANCHO_MODULO);
             col.setHgrow(Priority.ALWAYS);
             matriz.getColumnConstraints().add(col);
         }
@@ -142,14 +147,12 @@ public class RolController {
         Label detalle = new Label(admin ? "Acceso total" : "");
         detalle.getStyleClass().add("matriz-rol-detalle");
         VBox textos = new VBox(2, nombre, detalle);
-        if (!admin) {
-            Hyperlink renombrar = new Hyperlink("Renombrar");
-            renombrar.getStyleClass().add("enlace");
-            renombrar.setOnAction(e -> renombrarRol(rol));
+        // ADMIN y ENCUESTADOR son roles del sistema: no se eliminan
+        if (!rol.esDelSistema()) {
             Hyperlink eliminar = new Hyperlink("Eliminar");
             eliminar.getStyleClass().add("enlace");
             eliminar.setOnAction(e -> eliminarRol(rol));
-            textos.getChildren().add(new HBox(10, renombrar, eliminar));
+            textos.getChildren().add(eliminar);
         }
         HBox cabecera = new HBox(10, checkRol, textos);
         cabecera.setAlignment(Pos.CENTER_LEFT);
@@ -281,13 +284,9 @@ public class RolController {
     @FXML
     private void nuevoRol() {
         if (descartarCambios()) {
-            abrirFormulario(null, creado -> cargar());
-        }
-    }
-
-    private void renombrarRol(Rol rol) {
-        if (descartarCambios()) {
-            abrirFormulario(rol, guardadoRol -> cargar());
+            Modal<RolFormController> modal = Modal.cargar(VISTA_FORMULARIO, "Nuevo rol");
+            modal.controlador().preparar(creado -> cargar());
+            modal.mostrar();
         }
     }
 
@@ -299,12 +298,6 @@ public class RolController {
                 + " y sus permisos? No se puede si hay usuarios con ese rol.")) {
             Tareas.ejecutar(() -> rolService.eliminarRol(rol.getId()), eliminado -> cargar());
         }
-    }
-
-    private void abrirFormulario(Rol rol, Consumer<Rol> alGuardar) {
-        Modal<RolFormController> modal = Modal.cargar(VISTA_FORMULARIO, rol == null ? "Nuevo rol" : "Renombrar rol");
-        modal.controlador().preparar(rol, alGuardar);
-        modal.mostrar();
     }
 
     /** Al recargar la matriz se pierden los cambios sin guardar; se pide confirmación. */

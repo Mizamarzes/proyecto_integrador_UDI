@@ -17,6 +17,15 @@ public class Rol extends EntidadAuditable {
         this.nombre = nombre;
     }
 
+    /**
+     * Roles que el código reconoce por su nombre: ADMIN (acceso total) y
+     * ENCUESTADOR ("Mis Encuestas", registro en la tabla encuestador y creación
+     * de encuestas). No se pueden eliminar; los permisos del ENCUESTADOR sí se editan.
+     */
+    public boolean esDelSistema() {
+        return ADMIN.equals(nombre) || ENCUESTADOR.equals(nombre);
+    }
+
     @Override
     public String toString() {
         return nombre;

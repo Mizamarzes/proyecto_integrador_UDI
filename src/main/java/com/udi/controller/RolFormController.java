@@ -12,7 +12,7 @@ import javafx.scene.control.TextField;
 
 import java.util.function.Consumer;
 
-/** Modal para crear un rol o cambiarle el nombre. Los permisos se asignan en la matriz. */
+/** Modal para crear un rol. Los permisos se asignan en la matriz; los roles no se renombran. */
 public class RolFormController {
 
     @FXML
@@ -28,7 +28,6 @@ public class RolFormController {
 
     private final RolService rolService = new RolService();
 
-    private Rol rol;
     private Consumer<Rol> alGuardar;
 
     @FXML
@@ -36,20 +35,8 @@ public class RolFormController {
         Formato.mostrar(lblError, false);
     }
 
-    /** {@code existente} null crea un rol nuevo. */
-    public void preparar(Rol existente, Consumer<Rol> alGuardar) {
+    public void preparar(Consumer<Rol> alGuardar) {
         this.alGuardar = alGuardar;
-        if (existente == null) {
-            rol = new Rol();
-        } else {
-            rol = new Rol();
-            rol.setId(existente.getId());
-            rol.setNombre(existente.getNombre());
-            txtNombre.setText(existente.getNombre());
-            lblTitulo.setText("Renombrar rol");
-            lblSubtitulo.setText("Los usuarios y permisos del rol se conservan.");
-            btnGuardar.setText("Guardar cambios");
-        }
     }
 
     @FXML
@@ -60,10 +47,10 @@ public class RolFormController {
             Formato.mostrar(lblError, true);
             return;
         }
+        Rol rol = new Rol();
         rol.setNombre(nombre);
-        boolean esNuevo = rol.getId() == null;
         Formato.mostrar(lblError, false);
-        Tareas.ejecutar(() -> esNuevo ? rolService.crearRol(rol) : rolService.actualizarRol(rol), guardado -> {
+        Tareas.ejecutar(() -> rolService.crearRol(rol), guardado -> {
             Modal.cerrar(btnGuardar);
             alGuardar.accept(guardado);
         });

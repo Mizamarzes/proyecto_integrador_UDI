@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- Modal «Nuevo rol» / «Renombrar rol» -->
+<!-- Modal «Nuevo rol» -->
 <VBox styleClass="modal" prefWidth="420.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.udi.controller.RolFormController">
 

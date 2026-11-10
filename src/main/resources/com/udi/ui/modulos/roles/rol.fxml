@@ -27,7 +27,7 @@
    <!-- Matriz -->
    <VBox spacing="8.0" VBox.vgrow="ALWAYS">
       <Label text="Lista de roles" styleClass="etiqueta-campo" />
-      <ScrollPane styleClass="matriz-scroll" fitToHeight="false" VBox.vgrow="ALWAYS">
+      <ScrollPane styleClass="matriz-scroll" fitToWidth="true" fitToHeight="false" VBox.vgrow="ALWAYS">
          <GridPane fx:id="matriz" styleClass="matriz" />
       </ScrollPane>
       <HBox spacing="10.0" alignment="CENTER_LEFT">

@@ -118,7 +118,7 @@ Para no repetirlas en cada tabla, se describen aquí una sola vez. Todas las tab
 |---|---|---|---|
 | id | NUMBER(10) | PK | Identificador |
 | nombre | VARCHAR2(60) | NN | Nombre visible del módulo |
-| slug | VARCHAR2(60) | NN, UQ | Identificador para el menú (`usuarios`, `digitacion`…) |
+| slug | VARCHAR2(60) | NN, UQ | Identificador que usa el control de acceso (`usuarios`, `roles`, `viviendas`, `encuestas`, `reportes`) |
 
 **`rol`**
 

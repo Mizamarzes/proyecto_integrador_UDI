@@ -101,7 +101,7 @@ public class HogarService {
     }
 
     public Hogar crearHogar(Hogar hogar) {
-        Sesion.exigirModulo(RutasModulo.HOGARES);
+        Sesion.exigirModulo(RutasModulo.VIVIENDAS);
         return ConexionBD.enTransaccion(c -> {
             hogar.setId(null);
             validarHogar(c, hogar);
@@ -111,7 +111,7 @@ public class HogarService {
     }
 
     public Hogar actualizarHogar(Hogar hogar) {
-        Sesion.exigirModulo(RutasModulo.HOGARES);
+        Sesion.exigirModulo(RutasModulo.VIVIENDAS);
         Validar.requerido(hogar.getId(), "Id del hogar");
         return ConexionBD.enTransaccion(c -> {
             ReglasEncuesta.exigirHogarEditable(c, hogar.getId());
@@ -123,7 +123,7 @@ public class HogarService {
 
     /** Solo se puede eliminar un hogar que todavía no tiene encuesta. */
     public boolean eliminarHogar(long hogarId) {
-        Sesion.exigirModulo(RutasModulo.HOGARES);
+        Sesion.exigirModulo(RutasModulo.VIVIENDAS);
         return ConexionBD.enTransaccion(c -> {
             Validar.condicion(!encuestaDao.buscarPorHogar(c, hogarId).isPresent(),
                     "No se puede eliminar el hogar porque ya tiene una encuesta.");

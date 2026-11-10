@@ -34,7 +34,7 @@ public class CaracteristicaService {
 
     /** Si no trae encuestador, se toma el de la encuesta. */
     public CaracteristicaGasto crear(CaracteristicaGasto caracteristica) {
-        Sesion.exigirModulo(RutasModulo.CARACTERISTICAS);
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Validar.requerido(caracteristica.getEncuestaId(), "Encuesta");
         return ConexionBD.enTransaccion(c -> {
             Encuesta encuesta = ReglasEncuesta.exigirEditable(c, caracteristica.getEncuestaId());
@@ -49,7 +49,7 @@ public class CaracteristicaService {
     }
 
     public CaracteristicaGasto actualizar(CaracteristicaGasto caracteristica) {
-        Sesion.exigirModulo(RutasModulo.CARACTERISTICAS);
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Validar.requerido(caracteristica.getId(), "Id del registro");
         return ConexionBD.enTransaccion(c -> {
             CaracteristicaGasto actual = Validar.encontrado(caracteristicaDao.buscarPorId(c, caracteristica.getId()),
@@ -66,7 +66,7 @@ public class CaracteristicaService {
     }
 
     public boolean eliminar(long id) {
-        Sesion.exigirModulo(RutasModulo.CARACTERISTICAS);
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         return ConexionBD.enTransaccion(c -> {
             CaracteristicaGasto actual = Validar.encontrado(caracteristicaDao.buscarPorId(c, id),
                     "No existe el registro " + id + " del capítulo C.");

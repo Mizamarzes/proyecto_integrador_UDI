@@ -25,8 +25,9 @@ import java.util.Set;
 /**
  * Roles, módulos y permisos de cada rol sobre los módulos (tabla rol_modulo).
  * Las escrituras exigen el módulo "roles" (el administrador siempre puede).
- * El rol ADMIN tiene acceso total por el middleware de permisos, así que no se
- * edita, renombra ni elimina.
+ * Los roles no se renombran: se crean y, si no tienen usuarios, se eliminan.
+ * ADMIN y ENCUESTADOR no se eliminan porque el código los usa por su nombre, y
+ * los permisos del ADMIN no se editan (tiene acceso total).
  */
 public class RolService {
 
@@ -63,24 +64,12 @@ public class RolService {
         });
     }
 
-    public Rol actualizarRol(Rol rol) {
-        Sesion.exigirModulo(RutasModulo.ROLES);
-        Validar.requerido(rol.getId(), "Id del rol");
-        return ConexionBD.enTransaccion(c -> {
-            Rol actual = Validar.encontrado(rolDao.buscarPorId(c, rol.getId()), "No existe el rol " + rol.getId() + ".");
-            validarNoEsAdmin(actual);
-            validarRol(c, rol);
-            rolDao.actualizar(c, rol);
-            return rol;
-        });
-    }
-
     /** Elimina el rol y sus permisos (en cascada). Falla si algún usuario tiene ese rol. */
     public boolean eliminarRol(long rolId) {
         Sesion.exigirModulo(RutasModulo.ROLES);
         return ConexionBD.enTransaccion(c -> {
             Rol actual = Validar.encontrado(rolDao.buscarPorId(c, rolId), "No existe el rol " + rolId + ".");
-            validarNoEsAdmin(actual);
+            validarNoEsDelSistema(actual);
             Validar.condicion(usuarioDao.listarPorRol(c, rolId).isEmpty(),
                     "No se puede eliminar el rol porque hay usuarios que lo tienen asignado.");
             return rolDao.eliminar(c, rolId);
@@ -100,9 +89,11 @@ public class RolService {
         }
     }
 
-    private static void validarNoEsAdmin(Rol rol) {
-        if (Rol.ADMIN.equals(rol.getNombre())) {
-            throw new ReglaNegocioException("El rol " + Rol.ADMIN + " tiene acceso total y no se puede modificar.");
+    /** ADMIN y ENCUESTADOR los usa el código por su nombre: borrarlos rompería sus reglas. */
+    private static void validarNoEsDelSistema(Rol rol) {
+        if (rol.esDelSistema()) {
+            throw new ReglaNegocioException("El rol " + rol.getNombre()
+                    + " es un rol del sistema y no se puede eliminar.");
         }
     }
 

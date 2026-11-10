@@ -13,7 +13,6 @@ import com.udi.service.VisitaService;
 import com.udi.util.Alertas;
 import com.udi.util.Formato;
 import com.udi.util.Modal;
-import com.udi.util.Sesion;
 import com.udi.util.Tareas;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -81,7 +80,7 @@ public class EncuestaDetalleController {
     @FXML
     private StackPane contenido;
 
-    /** Formulario de visitas; su ruta exige el módulo de visitas (middleware/RutasModulo). */
+    /** Formulario de visitas (módulo «encuestas», middleware/RutasModulo). */
     static final String VISTA_VISITA = "modulos/encuestas/partials/visita_form";
 
     private final EncuestaService encuestaService = new EncuestaService();
@@ -187,16 +186,6 @@ public class EncuestaDetalleController {
 
     public Vivienda getVivienda() {
         return vivienda;
-    }
-
-    /**
-     * true si la encuesta está abierta y el rol tiene alguno de los módulos de
-     * captura indicados (constantes de {@code RutasModulo}). Las pestañas lo usan
-     * para mostrar los botones de editar; el crítico-digitador, que solo tiene
-     * "encuestas", ve las pestañas en solo lectura.
-     */
-    public boolean puedeEditar(String... slugsModulo) {
-        return esEditable() && Sesion.tieneModulo(slugsModulo);
     }
 
     /** false si la encuesta está cerrada (RF-06): las pestañas quedan en solo lectura. */

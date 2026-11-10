@@ -36,7 +36,7 @@ public class VisitaService {
 
     /** Si no trae número de visita, se le asigna el siguiente del hogar. */
     public Visita crear(Visita visita) {
-        Sesion.exigirModulo(RutasModulo.VISITAS);
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Validar.requerido(visita.getHogarId(), "Hogar");
         return ConexionBD.enTransaccion(c -> {
             ReglasEncuesta.exigirHogarEditable(c, visita.getHogarId());
@@ -51,7 +51,7 @@ public class VisitaService {
     }
 
     public Visita actualizar(Visita visita) {
-        Sesion.exigirModulo(RutasModulo.VISITAS);
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Validar.requerido(visita.getId(), "Id de la visita");
         return ConexionBD.enTransaccion(c -> {
             Visita actual = Validar.encontrado(visitaDao.buscarPorId(c, visita.getId()),
@@ -65,7 +65,7 @@ public class VisitaService {
     }
 
     public boolean eliminar(long visitaId) {
-        Sesion.exigirModulo(RutasModulo.VISITAS);
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         return ConexionBD.enTransaccion(c -> {
             Visita actual = Validar.encontrado(visitaDao.buscarPorId(c, visitaId), "No existe la visita " + visitaId + ".");
             ReglasEncuesta.exigirHogarEditable(c, actual.getHogarId());
