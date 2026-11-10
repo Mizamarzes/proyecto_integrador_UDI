@@ -420,9 +420,9 @@ CREATE SEQUENCE seq_rol                  START WITH 1  INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE seq_rol_modulo           START WITH 1  INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE seq_usuario              START WITH 1  INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE seq_encuestador          START WITH 1  INCREMENT BY 1 NOCACHE;
-CREATE SEQUENCE seq_region               START WITH 1  INCREMENT BY 1 NOCACHE;
-CREATE SEQUENCE seq_departamento         START WITH 1  INCREMENT BY 1 NOCACHE;
-CREATE SEQUENCE seq_municipio            START WITH 1  INCREMENT BY 1 NOCACHE;
+CREATE SEQUENCE seq_region               START WITH 7  INCREMENT BY 1 NOCACHE;
+CREATE SEQUENCE seq_departamento         START WITH 100 INCREMENT BY 1 NOCACHE;
+CREATE SEQUENCE seq_municipio            START WITH 1103 INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE seq_vivienda             START WITH 1  INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE seq_hogar                START WITH 1  INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE seq_encuesta             START WITH 1  INCREMENT BY 1 NOCACHE;
@@ -555,64 +555,37 @@ INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modul
 INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 3, 4, 1);
 
 -- ---------------------------------------------------------------------
--- Ubicación: regiones (10), departamentos (10) y municipios (10)
+-- Ubicación: 6 regiones, 33 departamentos (id = código DANE) y 1102
+-- municipios. Están en inserts/; @@ los busca junto a este script, así que
+-- hay que copiar la carpeta docs/db completa al contenedor.
 -- ---------------------------------------------------------------------
-INSERT INTO region (id, nombre) VALUES (seq_region.NEXTVAL, 'Caribe');
-INSERT INTO region (id, nombre) VALUES (seq_region.NEXTVAL, 'Oriental');
-INSERT INTO region (id, nombre) VALUES (seq_region.NEXTVAL, 'Central');
-INSERT INTO region (id, nombre) VALUES (seq_region.NEXTVAL, 'Pacífica');
-INSERT INTO region (id, nombre) VALUES (seq_region.NEXTVAL, 'Bogotá');
-INSERT INTO region (id, nombre) VALUES (seq_region.NEXTVAL, 'Antioquia');
-INSERT INTO region (id, nombre) VALUES (seq_region.NEXTVAL, 'Valle del Cauca');
-INSERT INTO region (id, nombre) VALUES (seq_region.NEXTVAL, 'San Andrés');
-INSERT INTO region (id, nombre) VALUES (seq_region.NEXTVAL, 'Orinoquía-Amazonía');
-INSERT INTO region (id, nombre) VALUES (seq_region.NEXTVAL, 'Eje Cafetero');
-
-INSERT INTO departamento (id, nombre, region_id) VALUES (seq_departamento.NEXTVAL, 'Santander', 2);
-INSERT INTO departamento (id, nombre, region_id) VALUES (seq_departamento.NEXTVAL, 'Norte de Santander', 2);
-INSERT INTO departamento (id, nombre, region_id) VALUES (seq_departamento.NEXTVAL, 'Boyacá', 2);
-INSERT INTO departamento (id, nombre, region_id) VALUES (seq_departamento.NEXTVAL, 'Antioquia', 6);
-INSERT INTO departamento (id, nombre, region_id) VALUES (seq_departamento.NEXTVAL, 'Atlántico', 1);
-INSERT INTO departamento (id, nombre, region_id) VALUES (seq_departamento.NEXTVAL, 'Bolívar', 1);
-INSERT INTO departamento (id, nombre, region_id) VALUES (seq_departamento.NEXTVAL, 'Valle del Cauca', 7);
-INSERT INTO departamento (id, nombre, region_id) VALUES (seq_departamento.NEXTVAL, 'Cundinamarca', 3);
-INSERT INTO departamento (id, nombre, region_id) VALUES (seq_departamento.NEXTVAL, 'Bogotá D.C.', 5);
-INSERT INTO departamento (id, nombre, region_id) VALUES (seq_departamento.NEXTVAL, 'San Andrés y Providencia', 8);
-
-INSERT INTO municipio (id, nombre, departamento_id) VALUES (seq_municipio.NEXTVAL, 'Bucaramanga', 1);
-INSERT INTO municipio (id, nombre, departamento_id) VALUES (seq_municipio.NEXTVAL, 'Floridablanca', 1);
-INSERT INTO municipio (id, nombre, departamento_id) VALUES (seq_municipio.NEXTVAL, 'Girón', 1);
-INSERT INTO municipio (id, nombre, departamento_id) VALUES (seq_municipio.NEXTVAL, 'Piedecuesta', 1);
-INSERT INTO municipio (id, nombre, departamento_id) VALUES (seq_municipio.NEXTVAL, 'Cúcuta', 2);
-INSERT INTO municipio (id, nombre, departamento_id) VALUES (seq_municipio.NEXTVAL, 'Tunja', 3);
-INSERT INTO municipio (id, nombre, departamento_id) VALUES (seq_municipio.NEXTVAL, 'Medellín', 4);
-INSERT INTO municipio (id, nombre, departamento_id) VALUES (seq_municipio.NEXTVAL, 'Barranquilla', 5);
-INSERT INTO municipio (id, nombre, departamento_id) VALUES (seq_municipio.NEXTVAL, 'Cartagena', 6);
-INSERT INTO municipio (id, nombre, departamento_id) VALUES (seq_municipio.NEXTVAL, 'Cali', 7);
+@@inserts/regiones.sql
+@@inserts/departamentos.sql
+@@inserts/municipios.sql
 
 -- ---------------------------------------------------------------------
 -- Viviendas (10)
 -- ---------------------------------------------------------------------
 INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 1, 1, '0101', '01', '07', '001', 12, 1, 2, 'Cabecera del Llano', 'Calle 45 # 12-30', '6076345678', 3);
+  VALUES (seq_vivienda.NEXTVAL, 118, 1, '0101', '01', '07', '001', 12, 1, 2, 'Cabecera del Llano', 'Calle 45 # 12-30', '6076345678', 3);
 INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 1, 1, '0102', '03', '15', '002', 4, 1, 1, 'San Alonso', 'Carrera 27 # 18-45', '6076451234', 4);
+  VALUES (seq_vivienda.NEXTVAL, 118, 1, '0102', '03', '15', '002', 4, 1, 1, 'San Alonso', 'Carrera 27 # 18-45', '6076451234', 4);
 INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 2, 1, '0201', '02', '22', '003', 8, 2, 1, 'Canaveral', 'Calle 30 # 25-71', '6076389012', 5);
+  VALUES (seq_vivienda.NEXTVAL, 342, 1, '0201', '02', '22', '003', 8, 2, 1, 'Canaveral', 'Calle 30 # 25-71', '6076389012', 5);
 INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 3, 1, '0301', '01', '05', '004', 3, 1, 1, 'Centro', 'Carrera 25 # 30-12', '6076467890', 6);
+  VALUES (seq_vivienda.NEXTVAL, 374, 1, '0301', '01', '05', '004', 3, 1, 1, 'Centro', 'Carrera 25 # 30-12', '6076467890', 6);
 INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 4, 1, '0401', '04', '11', '005', 6, 1, 1, 'La Candelaria', 'Calle 9 # 6-20', '6076553210', 7);
+  VALUES (seq_vivienda.NEXTVAL, 661, 1, '0401', '04', '11', '005', 6, 1, 1, 'La Candelaria', 'Calle 9 # 6-20', '6076553210', 7);
 INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 5, 1, '0501', '02', '18', '006', 9, 3, 1, 'La Riviera', 'Avenida 0 # 12-34', '6075781234', 8);
+  VALUES (seq_vivienda.NEXTVAL, 275, 1, '0501', '02', '18', '006', 9, 3, 1, 'La Riviera', 'Avenida 0 # 12-34', '6075781234', 8);
 INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 6, 1, '0601', '01', '02', '007', 1, 1, 1, 'Centro', 'Calle 19 # 9-35', '6087423456', 9);
+  VALUES (seq_vivienda.NEXTVAL, 1013, 1, '0601', '01', '02', '007', 1, 1, 1, 'Centro', 'Calle 19 # 9-35', '6087423456', 9);
 INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 7, 1, '0701', '05', '33', '008', 15, 2, 1, 'Laureles', 'Circular 4 # 73-12', '6044112233', 10);
+  VALUES (seq_vivienda.NEXTVAL, 547, 1, '0701', '05', '33', '008', 15, 2, 1, 'Laureles', 'Circular 4 # 73-12', '6044112233', 10);
 INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 8, 1, '0801', '03', '27', '009', 7, 1, 1, 'El Prado', 'Carrera 54 # 64-120', '6053445566', 11);
+  VALUES (seq_vivienda.NEXTVAL, 88, 1, '0801', '03', '27', '009', 7, 1, 1, 'El Prado', 'Carrera 54 # 64-120', '6053445566', 11);
 INSERT INTO vivienda (id, municipio_id, clase, sector, seccion, manzana, segmento, edificacion_numero, vivienda_numero, total_hogares, barrio, direccion, telefono, created_by)
-  VALUES (seq_vivienda.NEXTVAL, 10, 1, '1001', '02', '09', '010', 5, 1, 1, 'San Fernando', 'Calle 5 # 38-25', '6025567788', 12);
+  VALUES (seq_vivienda.NEXTVAL, 150, 1, '1001', '02', '09', '010', 5, 1, 1, 'San Fernando', 'Calle 5 # 38-25', '6025567788', 12);
 
 -- ---------------------------------------------------------------------
 -- Hogares (10)

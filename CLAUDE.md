@@ -29,7 +29,7 @@ There are no tests or test dependencies yet.
 
 ### Database (Oracle 10g XE in Docker)
 
-The dev database runs in the local container `oracle-xe-10g` (host port 1522, SID `XE`, admin `system/oracle`). The app connects as `enph/enph` (see `db.properties`). To (re)create the schema:
+The dev database runs in the local container `oracle-xe-10g` (host port 1522, SID `XE`, admin `system/oracle`). The app connects with the user in the local `db.properties` (the example and the commands below use `enph/enph`, but a developer's `db.properties` may point to another schema in the same container — check it before running scripts). To (re)create the schema:
 
 ```bash
 # as system: DROP USER enph CASCADE; then
@@ -37,9 +37,12 @@ The dev database runs in the local container `oracle-xe-10g` (host port 1522, SI
 # GRANT CREATE SESSION, CREATE TABLE, CREATE SEQUENCE TO enph;
 docker exec -it oracle-xe-10g sqlplus system/oracle
 
-docker cp docs/db/esquema_oracle10g.sql oracle-xe-10g:/tmp/esquema_oracle10g.sql
-docker exec -it -e NLS_LANG=AMERICAN_AMERICA.AL32UTF8 oracle-xe-10g sqlplus enph/enph @/tmp/esquema_oracle10g.sql
+docker cp docs/db oracle-xe-10g:/tmp/db   # whole folder: the script runs inserts/*.sql with @@
+docker exec -it -e NLS_LANG=AMERICAN_AMERICA.AL32UTF8 oracle-xe-10g sqlplus enph/enph @/tmp/db/esquema_oracle10g.sql
 ```
+
+- Locations come from `docs/db/inserts/` (`regiones.sql` 6 natural regions with ids 1–6, `departamentos.sql` 33 departments whose `id` is the DANE code, `municipios.sql` 1102 municipalities with ids 1–1102 that are not DANE codes), so `seq_region`/`seq_departamento`/`seq_municipio` start at 7/100/1103. `inserts/recargar_ubicaciones.sql` swaps the old 10-row test seed for these in an existing database.
+- The `ZHS16GBK` charset has no `ñ`/`Ñ` and no uppercase accented letters: `ñ` is stored as `?` and `Á` turns into `á` (e.g. `Nariño`, `Útica`).
 
 - `NLS_LANG` is required: the database charset is `ZHS16GBK`, and accented text is corrupted without it.
 - The seed data uses hard-coded FK ids (1, 2, 3…), so the script only works on an empty schema with sequences starting at 1. There is a commented cleanup block at the top of the script.
