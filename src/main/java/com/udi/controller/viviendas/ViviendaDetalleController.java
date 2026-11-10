@@ -13,6 +13,7 @@ import com.udi.service.encuestas.EncuestaService;
 import com.udi.service.viviendas.HogarService;
 import com.udi.util.Formato;
 import com.udi.util.Modal;
+import com.udi.util.RangoFechas;
 import com.udi.util.Tareas;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -27,6 +28,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,17 +43,19 @@ public class ViviendaDetalleController {
     static final String VISTA_HOGAR = "modulos/viviendas/partials/hogar_form";
 
     @FXML
-    private Label lblTitulo;
-    @FXML
     private Label lblCodigo;
-    @FXML
-    private Label lblSubtitulo;
     @FXML
     private Label lblRegion;
     @FXML
     private Label lblDepartamento;
     @FXML
     private Label lblMunicipio;
+    @FXML
+    private Label lblClase;
+    @FXML
+    private Label lblBarrio;
+    @FXML
+    private Label lblDireccion;
     @FXML
     private Label lblSectorSeccion;
     @FXML
@@ -80,6 +84,8 @@ public class ViviendaDetalleController {
     private TableColumn<Fila, String> colPersonas;
     @FXML
     private TableColumn<Fila, String> colCiclo;
+    @FXML
+    private TableColumn<Fila, LocalDateTime> colCreacion;
     @FXML
     private TableColumn<Fila, Fila> colEncuesta;
     @FXML
@@ -112,7 +118,7 @@ public class ViviendaDetalleController {
     private void cargar(long id) {
         Tareas.ejecutar(() -> {
             Datos datos = new Datos();
-            datos.vivienda = hogarService.buscarVivienda(id)
+            datos.vivienda = hogarService.buscarViviendaVisible(id)
                     .orElseThrow(() -> new ReglaNegocioException("No existe la vivienda " + id + "."));
             datos.hogares = hogarService.listarHogaresPorVivienda(id);
             for (Hogar h : datos.hogares) {
@@ -125,14 +131,13 @@ public class ViviendaDetalleController {
     private void pintar(Datos datos) {
         vivienda = datos.vivienda;
         hogares = datos.hogares;
-        String municipio = vivienda.getMunicipioNombre() == null ? "" : vivienda.getMunicipioNombre();
-        lblTitulo.setText(vivienda.getDireccion());
         lblCodigo.setText(Formato.codigo("V", vivienda.getId()));
-        lblSubtitulo.setText((vivienda.getBarrio() == null ? "" : vivienda.getBarrio() + " · ") + municipio
-                + " · " + ViviendaController.textoClase(vivienda.getClase()).replaceFirst("^\\d\\. ", ""));
         lblRegion.setText(guion(vivienda.getRegionNombre()));
         lblDepartamento.setText(guion(vivienda.getDepartamentoNombre()));
         lblMunicipio.setText(guion(vivienda.getMunicipioNombre()));
+        lblClase.setText(ViviendaController.textoClase(vivienda.getClase()).replaceFirst("^\\d\\. ", ""));
+        lblBarrio.setText(guion(vivienda.getBarrio()));
+        lblDireccion.setText(guion(vivienda.getDireccion()));
         lblSectorSeccion.setText(guion(vivienda.getSector()) + " · " + guion(vivienda.getSeccion()));
         lblManzanaSegmento.setText(guion(vivienda.getManzana()) + " · " + guion(vivienda.getSegmento()));
         lblEdificacion.setText(ViviendaController.tresDigitos(vivienda.getEdificacionNumero()) + " · "
@@ -227,6 +232,8 @@ public class ViviendaDetalleController {
             return new ReadOnlyStringWrapper(personas + (personas == 1 ? " persona" : " personas"));
         });
         colCiclo.setCellValueFactory(d -> new ReadOnlyStringWrapper(guion(d.getValue().hogar.getCiclo())));
+        colCreacion.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue().hogar.getCreatedAt()));
+        colCreacion.setCellFactory(col -> RangoFechas.celdaFecha());
         colEncuesta.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue()));
         colAcciones.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue()));
 

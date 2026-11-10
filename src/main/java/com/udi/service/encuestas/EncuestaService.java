@@ -89,11 +89,11 @@ public class EncuestaService {
                 encuestas = encuestaDao.listar(c);
             }
             Map<Long, String> nombres = nombresEncuestadores(c);
-            Map<Long, String> direcciones = direccionesHogares(c);
+            Map<Long, Vivienda> viviendas = viviendasDeHogares(c);
             List<EncuestaResumen> resumen = new ArrayList<>();
             for (Encuesta e : encuestas) {
                 resumen.add(new EncuestaResumen(e, nombres.getOrDefault(e.getEncuestadorId(), ""),
-                        direcciones.getOrDefault(e.getHogarId(), "")));
+                        viviendas.get(e.getHogarId())));
             }
             resumen.sort(Comparator.comparing(r -> r.getEncuesta().getId()));
             return resumen;
@@ -234,17 +234,17 @@ public class EncuestaService {
         });
     }
 
-    /** Dirección de la vivienda de cada hogar, por id del hogar. */
-    private Map<Long, String> direccionesHogares(Connection c) throws SQLException {
-        Map<Long, String> porVivienda = new HashMap<>();
+    /** Vivienda de cada hogar (con su dirección y ubicación), por id del hogar. */
+    private Map<Long, Vivienda> viviendasDeHogares(Connection c) throws SQLException {
+        Map<Long, Vivienda> porId = new HashMap<>();
         for (Vivienda v : viviendaDao.listar(c)) {
-            porVivienda.put(v.getId(), v.getDireccion());
+            porId.put(v.getId(), v);
         }
-        Map<Long, String> direcciones = new HashMap<>();
+        Map<Long, Vivienda> viviendas = new HashMap<>();
         for (Hogar h : hogarDao.listar(c)) {
-            direcciones.put(h.getId(), porVivienda.getOrDefault(h.getViviendaId(), ""));
+            viviendas.put(h.getId(), porId.get(h.getViviendaId()));
         }
-        return direcciones;
+        return viviendas;
     }
 
     private Map<Long, String> nombresEncuestadores(Connection c) throws SQLException {

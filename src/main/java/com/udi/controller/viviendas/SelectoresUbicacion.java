@@ -17,8 +17,9 @@ import com.udi.util.Tareas;
  * Con {@code obligatorio} (formulario) el departamento y el municipio se
  * habilitan cuando se elige el nivel anterior; sin él (filtros) siempre están
  * habilitados y elegir un municipio completa su departamento y región.
+ * También lo usan los filtros del listado de encuestas.
  */
-final class SelectoresUbicacion {
+public final class SelectoresUbicacion {
 
     private final SelectBuscable<Region> region;
     private final SelectBuscable<Departamento> departamento;
@@ -26,7 +27,7 @@ final class SelectoresUbicacion {
     private final boolean obligatorio;
     private final UbicacionService servicio = new UbicacionService();
 
-    SelectoresUbicacion(SelectBuscable<Region> region, SelectBuscable<Departamento> departamento,
+    public SelectoresUbicacion(SelectBuscable<Region> region, SelectBuscable<Departamento> departamento,
                         SelectBuscable<Municipio> municipio, boolean obligatorio) {
         this.region = region;
         this.departamento = departamento;
@@ -83,7 +84,7 @@ final class SelectoresUbicacion {
         municipio.setValue(m);
     }
 
-    void limpiar() {
+    public void limpiar() {
         municipio.setValue(null);
         departamento.setValue(null);
         region.setValue(null);

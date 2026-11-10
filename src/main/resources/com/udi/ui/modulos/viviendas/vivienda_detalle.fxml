@@ -22,14 +22,9 @@
          <Insets right="14.0" bottom="8.0" />
       </padding>
 
-      <HBox alignment="BOTTOM_LEFT" spacing="12.0">
-         <VBox spacing="4.0" HBox.hgrow="ALWAYS">
-            <HBox alignment="CENTER_LEFT" spacing="12.0">
-               <Label fx:id="lblTitulo" styleClass="titulo-pagina" />
-               <Label fx:id="lblCodigo" styleClass="chip" />
-            </HBox>
-            <Label fx:id="lblSubtitulo" styleClass="subtitulo-pagina" />
-         </VBox>
+      <HBox alignment="CENTER_LEFT" spacing="12.0">
+         <Label fx:id="lblCodigo" styleClass="titulo-pagina" />
+         <Region HBox.hgrow="ALWAYS" />
          <Button text="← Volver a viviendas" onAction="#volver" styleClass="boton-secundario" minWidth="-Infinity" />
       </HBox>
 
@@ -58,22 +53,34 @@
                <Label fx:id="lblMunicipio" styleClass="dato-valor" />
             </VBox>
             <VBox spacing="2.0" GridPane.rowIndex="1">
+               <Label text="Clase (A.4)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblClase" styleClass="dato-valor" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="1">
+               <Label text="Barrio, centro poblado o vereda (A.15)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblBarrio" styleClass="dato-valor" wrapText="true" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="2">
+               <Label text="Dirección (A.16)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblDireccion" styleClass="dato-valor" wrapText="true" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.rowIndex="2">
                <Label text="Sector / Sección" styleClass="dato-etiqueta" />
                <Label fx:id="lblSectorSeccion" styleClass="dato-codigo" />
             </VBox>
-            <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="1">
+            <VBox spacing="2.0" GridPane.rowIndex="2" GridPane.columnIndex="1">
                <Label text="Manzana / Segmento" styleClass="dato-etiqueta" />
                <Label fx:id="lblManzanaSegmento" styleClass="dato-codigo" />
             </VBox>
-            <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="2">
+            <VBox spacing="2.0" GridPane.rowIndex="2" GridPane.columnIndex="2">
                <Label text="Edificación / Vivienda" styleClass="dato-etiqueta" />
                <Label fx:id="lblEdificacion" styleClass="dato-codigo" />
             </VBox>
-            <VBox spacing="2.0" GridPane.rowIndex="2">
+            <VBox spacing="2.0" GridPane.rowIndex="3">
                <Label text="Teléfono" styleClass="dato-etiqueta" />
                <Label fx:id="lblTelefono" styleClass="dato-valor" />
             </VBox>
-            <VBox spacing="2.0" GridPane.rowIndex="2" GridPane.columnIndex="1">
+            <VBox spacing="2.0" GridPane.rowIndex="3" GridPane.columnIndex="1">
                <Label text="Hogares registrados (A.12)" styleClass="dato-etiqueta" />
                <Label fx:id="lblRegistrados" styleClass="dato-valor" />
             </VBox>
@@ -102,6 +109,7 @@
                <TableColumn fx:id="colNumero" text="Hogar N.º (A.13)" prefWidth="120.0" />
                <TableColumn fx:id="colPersonas" text="Total de personas (A.14)" prefWidth="160.0" />
                <TableColumn fx:id="colCiclo" text="Ciclo (A.9)" prefWidth="90.0" />
+               <TableColumn fx:id="colCreacion" text="Fecha de creación" prefWidth="120.0" />
                <TableColumn fx:id="colEncuesta" text="Encuesta" prefWidth="180.0" sortable="false" />
                <TableColumn fx:id="colAcciones" text="Acciones" prefWidth="200.0" sortable="false" />
             </columns>

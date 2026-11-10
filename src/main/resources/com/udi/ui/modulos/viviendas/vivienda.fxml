@@ -2,6 +2,7 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
@@ -30,31 +31,44 @@
       <Hyperlink text="Agregar sus hogares" onAction="#abrirNueva" />
    </HBox>
 
-   <HBox styleClass="tarjeta" alignment="BOTTOM_LEFT" spacing="20.0">
-      <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
-         <Label text="Buscar" styleClass="etiqueta-campo" />
-         <TextField fx:id="txtBuscar" promptText="Código, dirección o barrio…" styleClass="campo-linea" prefWidth="200.0" minWidth="120.0" />
-      </VBox>
-      <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
-         <Label text="Región" styleClass="etiqueta-campo" />
-         <SelectBuscable fx:id="cmbRegion" prefWidth="150.0" maxWidth="Infinity" />
-      </VBox>
-      <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
-         <Label text="Departamento" styleClass="etiqueta-campo" />
-         <SelectBuscable fx:id="cmbDepartamento" prefWidth="170.0" maxWidth="Infinity" />
-      </VBox>
-      <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
-         <Label text="Municipio" styleClass="etiqueta-campo" />
-         <SelectBuscable fx:id="cmbMunicipio" prefWidth="170.0" maxWidth="Infinity" />
-      </VBox>
-      <VBox spacing="4.0">
-         <Label text="Hogares" styleClass="etiqueta-campo" />
-         <ComboBox fx:id="cmbFiltro" styleClass="combo-linea" prefWidth="200.0" />
-      </VBox>
-      <Button text="Limpiar" onAction="#limpiar" styleClass="boton-secundario" minWidth="-Infinity" />
-      <Region HBox.hgrow="ALWAYS" />
-      <Label fx:id="lblTotal" styleClass="texto-suave" minWidth="-Infinity" />
-   </HBox>
+   <!-- Filtros: texto y ubicación arriba; hogares, fecha de creación y total abajo -->
+   <VBox styleClass="tarjeta" spacing="14.0">
+      <HBox alignment="BOTTOM_LEFT" spacing="20.0">
+         <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
+            <Label text="Buscar" styleClass="etiqueta-campo" />
+            <TextField fx:id="txtBuscar" promptText="Código, dirección o barrio…" styleClass="campo-linea" prefWidth="200.0" minWidth="120.0" />
+         </VBox>
+         <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
+            <Label text="Región" styleClass="etiqueta-campo" />
+            <SelectBuscable fx:id="cmbRegion" prefWidth="150.0" maxWidth="Infinity" />
+         </VBox>
+         <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
+            <Label text="Departamento" styleClass="etiqueta-campo" />
+            <SelectBuscable fx:id="cmbDepartamento" prefWidth="170.0" maxWidth="Infinity" />
+         </VBox>
+         <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
+            <Label text="Municipio" styleClass="etiqueta-campo" />
+            <SelectBuscable fx:id="cmbMunicipio" prefWidth="170.0" maxWidth="Infinity" />
+         </VBox>
+      </HBox>
+      <HBox alignment="BOTTOM_LEFT" spacing="20.0">
+         <VBox spacing="4.0">
+            <Label text="Hogares" styleClass="etiqueta-campo" />
+            <ComboBox fx:id="cmbFiltro" styleClass="combo-linea" prefWidth="200.0" />
+         </VBox>
+         <VBox spacing="4.0">
+            <Label text="Creada desde" styleClass="etiqueta-campo" />
+            <DatePicker fx:id="dtpDesde" promptText="dd/mm/aaaa" styleClass="campo-fecha" prefWidth="150.0" />
+         </VBox>
+         <VBox spacing="4.0">
+            <Label text="Creada hasta" styleClass="etiqueta-campo" />
+            <DatePicker fx:id="dtpHasta" promptText="dd/mm/aaaa" styleClass="campo-fecha" prefWidth="150.0" />
+         </VBox>
+         <Button text="Limpiar" onAction="#limpiar" styleClass="boton-secundario" minWidth="-Infinity" />
+         <Region HBox.hgrow="ALWAYS" />
+         <Label fx:id="lblTotal" styleClass="texto-suave" minWidth="-Infinity" />
+      </HBox>
+   </VBox>
 
    <TableView fx:id="tabla" styleClass="tabla" VBox.vgrow="ALWAYS">
       <columns>
@@ -66,6 +80,7 @@
          <TableColumn fx:id="colCartografia" text="Ubicación cartográfica" prefWidth="140.0" />
          <TableColumn fx:id="colHogares" text="Hogares (A.12)" prefWidth="100.0" />
          <TableColumn fx:id="colEncuestas" text="Encuestas" prefWidth="150.0" />
+         <TableColumn fx:id="colCreacion" text="Fecha de creación" prefWidth="110.0" />
          <TableColumn fx:id="colAcciones" text="Acciones" prefWidth="110.0" sortable="false" />
       </columns>
    </TableView>

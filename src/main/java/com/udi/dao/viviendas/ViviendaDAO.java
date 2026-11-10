@@ -91,15 +91,20 @@ public class ViviendaDAO extends BaseDAO<Vivienda> {
                 e.getBarrio(), e.getDireccion(), e.getTelefono(), e.getId()) > 0;
     }
 
-    public List<Vivienda> listarPorMunicipio(Connection c, long municipioId) throws SQLException {
-        return consultar(c, SELECT + "WHERE v.municipio_id = ? ORDER BY v.direccion", municipioId);
+    /** Viviendas del municipio; {@code creadoPor} en null no filtra por quien las registró. */
+    public List<Vivienda> listarPorMunicipio(Connection c, long municipioId, Long creadoPor) throws SQLException {
+        return consultar(c, SELECT + "WHERE v.municipio_id = ? AND (? IS NULL OR v.created_by = ?) "
+                + "ORDER BY v.direccion", municipioId, creadoPor, creadoPor);
     }
 
-    /** Viviendas de la ubicación indicada; cada filtro en null no se aplica. */
-    public List<Vivienda> filtrar(Connection c, Long regionId, Long departamentoId, Long municipioId)
+    /**
+     * Viviendas de la ubicación indicada y registradas por {@code creadoPor};
+     * cada filtro en null no se aplica.
+     */
+    public List<Vivienda> filtrar(Connection c, Long regionId, Long departamentoId, Long municipioId, Long creadoPor)
             throws SQLException {
         return consultar(c, SELECT + "WHERE (? IS NULL OR r.id = ?) AND (? IS NULL OR d.id = ?) "
-                        + "AND (? IS NULL OR v.municipio_id = ?) ORDER BY v.id",
-                regionId, regionId, departamentoId, departamentoId, municipioId, municipioId);
+                        + "AND (? IS NULL OR v.municipio_id = ?) AND (? IS NULL OR v.created_by = ?) ORDER BY v.id",
+                regionId, regionId, departamentoId, departamentoId, municipioId, municipioId, creadoPor, creadoPor);
     }
 }

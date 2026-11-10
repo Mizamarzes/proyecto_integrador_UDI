@@ -1,13 +1,21 @@
 package com.udi.controller.encuestas;
 
+import com.udi.componentes.SelectBuscable;
+import com.udi.controller.viviendas.SelectoresUbicacion;
 import com.udi.middleware.Rutas;
+import com.udi.model.Departamento;
 import com.udi.model.Encuesta;
 import com.udi.model.EncuestaResumen;
+import com.udi.model.Entidad;
+import com.udi.model.Municipio;
+import com.udi.model.Region;
 import com.udi.model.Rol;
+import com.udi.model.Vivienda;
 import com.udi.model.enums.EstadoEncuesta;
 import com.udi.service.encuestas.EncuestaService;
 import com.udi.util.Formato;
 import com.udi.util.Modal;
+import com.udi.util.RangoFechas;
 import com.udi.util.Sesion;
 import com.udi.util.Tareas;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -20,6 +28,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
@@ -32,12 +41,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 
 /**
  * Listado de encuestas. El encuestador ve «Mis Encuestas» (las suyas, con el
- * avance de los 14 días); los demás roles ven todas con su encuestador.
+ * avance de los 14 días); los demás roles ven todas con su encuestador. Todos
+ * los filtros, también los de región, departamento y municipio de la vivienda,
+ * se aplican sobre lo ya cargado.
  */
 public class EncuestaController {
 
@@ -83,11 +95,21 @@ public class EncuestaController {
     @FXML
     private TextField txtBuscar;
     @FXML
+    private SelectBuscable<Region> cmbRegion;
+    @FXML
+    private SelectBuscable<Departamento> cmbDepartamento;
+    @FXML
+    private SelectBuscable<Municipio> cmbMunicipio;
+    @FXML
     private ComboBox<String> cmbEstado;
     @FXML
     private VBox boxPeriodo;
     @FXML
     private ComboBox<Periodo> cmbPeriodo;
+    @FXML
+    private DatePicker dtpDesde;
+    @FXML
+    private DatePicker dtpHasta;
     @FXML
     private TableView<EncuestaResumen> tabla;
     @FXML
@@ -95,13 +117,19 @@ public class EncuestaController {
     @FXML
     private TableColumn<EncuestaResumen, EncuestaResumen> colHogar;
     @FXML
-    private TableColumn<EncuestaResumen, String> colInformante;
+    private TableColumn<EncuestaResumen, String> colRegion;
+    @FXML
+    private TableColumn<EncuestaResumen, String> colDepartamento;
+    @FXML
+    private TableColumn<EncuestaResumen, String> colMunicipio;
     @FXML
     private TableColumn<EncuestaResumen, String> colEncuestador;
     @FXML
     private TableColumn<EncuestaResumen, EstadoEncuesta> colEstado;
     @FXML
     private TableColumn<EncuestaResumen, String> colFecha;
+    @FXML
+    private TableColumn<EncuestaResumen, LocalDateTime> colCreacion;
     @FXML
     private TableColumn<EncuestaResumen, EncuestaResumen> colAvance;
     @FXML
@@ -120,6 +148,10 @@ public class EncuestaController {
     /** El encuestador ve sus encuestas con el avance; los demás roles, la vista global. */
     private final boolean esEncuestador = Sesion.tieneRol(Rol.ENCUESTADOR);
 
+    private SelectoresUbicacion ubicacion;
+    /** Filtro por la fecha de creación de la encuesta. */
+    private RangoFechas creacion;
+
     @FXML
     private void initialize() {
         Rutas.permitir(btnNueva, VISTA_NUEVA);
@@ -133,11 +165,19 @@ public class EncuestaController {
             cmbEstado.getItems().add(estado.getDescripcion());
         }
         cmbPeriodo.getItems().setAll(Periodo.values());
+        cmbRegion.setOpcionVacia("Todas");
+        cmbDepartamento.setOpcionVacia("Todos");
+        cmbMunicipio.setOpcionVacia("Todos");
+        ubicacion = new SelectoresUbicacion(cmbRegion, cmbDepartamento, cmbMunicipio, false);
+        creacion = new RangoFechas(dtpDesde, dtpHasta, this::filtrar);
         configurarTabla();
 
         txtBuscar.textProperty().addListener((obs, antes, ahora) -> filtrar());
         cmbEstado.valueProperty().addListener((obs, antes, ahora) -> filtrar());
         cmbPeriodo.valueProperty().addListener((obs, antes, ahora) -> filtrar());
+        cmbRegion.valueProperty().addListener((obs, antes, ahora) -> filtrar());
+        cmbDepartamento.valueProperty().addListener((obs, antes, ahora) -> filtrar());
+        cmbMunicipio.valueProperty().addListener((obs, antes, ahora) -> filtrar());
         limpiar();
 
         Tareas.ejecutar(encuestaService::listarResumen, encuestas::setAll);
@@ -148,6 +188,8 @@ public class EncuestaController {
         txtBuscar.clear();
         cmbEstado.setValue(TODOS);
         cmbPeriodo.setValue(Periodo.TODOS);
+        ubicacion.limpiar();
+        creacion.limpiar();
     }
 
     /** Nueva encuesta = seleccionar un hogar que todavía no tenga encuesta. */
@@ -192,7 +234,6 @@ public class EncuestaController {
         tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         // Columnas según el rol (maquetas «Mis Encuestas» y «Administrador · Encuestas»)
-        colInformante.setVisible(esEncuestador);
         colAvance.setVisible(esEncuestador);
         colEncuestador.setVisible(!esEncuestador);
         colFecha.setVisible(!esEncuestador);
@@ -200,13 +241,14 @@ public class EncuestaController {
 
         colId.setCellValueFactory(d -> new ReadOnlyStringWrapper(Formato.codigo("E", d.getValue().getEncuesta().getId())));
         colHogar.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue()));
-        colInformante.setCellValueFactory(d -> {
-            String nombre = d.getValue().getEncuesta().getInformanteNombre();
-            return new ReadOnlyStringWrapper(nombre == null ? "Por registrar" : nombre);
-        });
+        colRegion.setCellValueFactory(d -> new ReadOnlyStringWrapper(d.getValue().getRegion()));
+        colDepartamento.setCellValueFactory(d -> new ReadOnlyStringWrapper(d.getValue().getDepartamento()));
+        colMunicipio.setCellValueFactory(d -> new ReadOnlyStringWrapper(d.getValue().getMunicipio()));
         colEncuestador.setCellValueFactory(d -> new ReadOnlyStringWrapper(d.getValue().getEncuestador()));
         colEstado.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue().getEncuesta().getEstado()));
         colFecha.setCellValueFactory(d -> new ReadOnlyStringWrapper(Formato.fecha(d.getValue().getEncuesta().getFechaDesde())));
+        colCreacion.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue().getEncuesta().getCreatedAt()));
+        colCreacion.setCellFactory(col -> RangoFechas.celdaFecha());
         colAvance.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue()));
         colAcciones.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue()));
 
@@ -306,6 +348,9 @@ public class EncuestaController {
         String texto = txtBuscar.getText() == null ? "" : txtBuscar.getText().trim().toLowerCase();
         String estado = cmbEstado.getValue();
         Periodo periodo = cmbPeriodo.getValue() == null ? Periodo.TODOS : cmbPeriodo.getValue();
+        Long regionId = id(cmbRegion.getValue());
+        Long departamentoId = id(cmbDepartamento.getValue());
+        Long municipioId = id(cmbMunicipio.getValue());
         filtradas.setPredicate(fila -> {
             Encuesta e = fila.getEncuesta();
             boolean coincideTexto = texto.isEmpty()
@@ -316,9 +361,18 @@ public class EncuestaController {
                     || (e.getInformanteNombre() != null && e.getInformanteNombre().toLowerCase().contains(texto));
             boolean coincideEstado = estado == null || TODOS.equals(estado)
                     || e.getEstado().getDescripcion().equals(estado);
-            return coincideTexto && coincideEstado && periodo.incluye(e);
+            Vivienda v = fila.getVivienda();
+            boolean coincideUbicacion = (regionId == null || (v != null && regionId.equals(v.getRegionId())))
+                    && (departamentoId == null || (v != null && departamentoId.equals(v.getDepartamentoId())))
+                    && (municipioId == null || (v != null && municipioId.equals(v.getMunicipioId())));
+            return coincideTexto && coincideEstado && coincideUbicacion && periodo.incluye(e)
+                    && creacion.incluye(e.getCreatedAt());
         });
         actualizarTotal();
+    }
+
+    private static Long id(Entidad entidad) {
+        return entidad == null ? null : entidad.getId();
     }
 
     private void actualizarTotal() {

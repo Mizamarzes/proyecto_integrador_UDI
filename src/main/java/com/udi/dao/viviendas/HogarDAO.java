@@ -51,8 +51,14 @@ public class HogarDAO extends BaseDAO<Hogar> {
                 e.getId()) > 0;
     }
 
-    public List<Hogar> listarPorVivienda(Connection c, long viviendaId) throws SQLException {
-        return consultar(c, "SELECT * FROM hogar WHERE vivienda_id = ? ORDER BY hogar_numero", viviendaId);
+    /** Hogares de la vivienda; {@code creadoPor} en null no filtra por quien los registró. */
+    public List<Hogar> listarPorVivienda(Connection c, long viviendaId, Long creadoPor) throws SQLException {
+        return consultar(c, "SELECT * FROM hogar WHERE vivienda_id = ? AND (? IS NULL OR created_by = ?) "
+                + "ORDER BY hogar_numero", viviendaId, creadoPor, creadoPor);
+    }
+
+    public List<Hogar> listarPorCreador(Connection c, long creadoPor) throws SQLException {
+        return consultar(c, "SELECT * FROM hogar WHERE created_by = ? ORDER BY id", creadoPor);
     }
 
     /** Siguiente número de hogar (A.13) libre en la vivienda: el mayor registrado + 1. */

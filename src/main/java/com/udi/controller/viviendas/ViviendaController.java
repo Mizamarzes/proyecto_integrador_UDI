@@ -14,6 +14,7 @@ import com.udi.service.encuestas.EncuestaService;
 import com.udi.service.viviendas.HogarService;
 import com.udi.util.Formato;
 import com.udi.util.Modal;
+import com.udi.util.RangoFechas;
 import com.udi.util.Tareas;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -25,6 +26,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
@@ -35,6 +37,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,7 +49,8 @@ import java.util.Set;
  * Listado de viviendas del módulo «Viviendas y hogares». Cada vivienda
  * muestra su ubicación, cuántos hogares tiene registrados y cuántos no tienen
  * encuesta. Los filtros de región, departamento y municipio se aplican en la
- * consulta; la búsqueda por texto y el de hogares, sobre lo ya cargado.
+ * consulta; la búsqueda por texto, el de hogares y el de fecha de creación,
+ * sobre lo ya cargado.
  */
 public class ViviendaController {
 
@@ -73,6 +77,10 @@ public class ViviendaController {
     @FXML
     private ComboBox<String> cmbFiltro;
     @FXML
+    private DatePicker dtpDesde;
+    @FXML
+    private DatePicker dtpHasta;
+    @FXML
     private Label lblTotal;
     @FXML
     private TableView<Fila> tabla;
@@ -93,6 +101,8 @@ public class ViviendaController {
     @FXML
     private TableColumn<Fila, String> colEncuestas;
     @FXML
+    private TableColumn<Fila, LocalDateTime> colCreacion;
+    @FXML
     private TableColumn<Fila, Fila> colAcciones;
 
     private final HogarService hogarService = new HogarService();
@@ -101,6 +111,8 @@ public class ViviendaController {
     private final FilteredList<Fila> filtradas = new FilteredList<>(viviendas);
 
     private SelectoresUbicacion ubicacion;
+    /** Filtro por la fecha de creación de la vivienda. */
+    private RangoFechas creacion;
     /** Junta en una sola consulta los cambios encadenados de los filtros de ubicación. */
     private boolean recargaPendiente;
     /** Vivienda recién creada, para el enlace «Agregar sus hogares». */
@@ -121,6 +133,7 @@ public class ViviendaController {
         cmbDepartamento.setOpcionVacia("Todos");
         cmbMunicipio.setOpcionVacia("Todos");
         ubicacion = new SelectoresUbicacion(cmbRegion, cmbDepartamento, cmbMunicipio, false);
+        creacion = new RangoFechas(dtpDesde, dtpHasta, this::filtrar);
         configurarTabla();
         txtBuscar.textProperty().addListener((obs, antes, ahora) -> filtrar());
         cmbFiltro.valueProperty().addListener((obs, antes, ahora) -> filtrar());
@@ -169,6 +182,7 @@ public class ViviendaController {
         txtBuscar.clear();
         cmbFiltro.setValue(TODAS);
         ubicacion.limpiar();
+        creacion.limpiar();
     }
 
     @FXML
@@ -203,6 +217,8 @@ public class ViviendaController {
         colCartografia.setCellValueFactory(d -> new ReadOnlyStringWrapper(cartografia(d.getValue().vivienda)));
         colHogares.setCellValueFactory(d -> new ReadOnlyStringWrapper(textoHogares(d.getValue().registrados)));
         colEncuestas.setCellValueFactory(d -> new ReadOnlyStringWrapper(d.getValue().textoEncuestas()));
+        colCreacion.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue().vivienda.getCreatedAt()));
+        colCreacion.setCellFactory(col -> RangoFechas.celdaFecha());
         colAcciones.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue()));
 
         colDireccion.setCellFactory(col -> new TableCell<>() {
@@ -275,7 +291,7 @@ public class ViviendaController {
             boolean coincideFiltro = filtro == null || TODAS.equals(filtro)
                     || (SIN_HOGARES.equals(filtro) && fila.registrados == 0)
                     || (SIN_ENCUESTA.equals(filtro) && fila.sinEncuesta > 0);
-            return coincideTexto && coincideFiltro;
+            return coincideTexto && coincideFiltro && creacion.incluye(v.getCreatedAt());
         });
         actualizarTotal();
     }

@@ -5,9 +5,12 @@ import com.udi.dao.catalogos.MunicipioDAO;
 import com.udi.dao.encuestas.EncuestaDAO;
 import com.udi.dao.viviendas.HogarDAO;
 import com.udi.dao.viviendas.ViviendaDAO;
+import com.udi.exception.AccesoDenegadoException;
 import com.udi.exception.ReglaNegocioException;
 import com.udi.middleware.RutasModulo;
+import com.udi.model.EntidadAuditable;
 import com.udi.model.Hogar;
+import com.udi.model.Rol;
 import com.udi.model.Vivienda;
 import com.udi.service.encuestas.ReglasEncuesta;
 import com.udi.util.Sesion;
@@ -18,7 +21,12 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-/** Viviendas y hogares del capítulo A (RF-02). */
+/**
+ * Viviendas y hogares del capítulo A (RF-02). Un encuestador solo ve y modifica
+ * las viviendas y los hogares que él registró (created_by); los demás roles ven
+ * todos. {@link #buscarVivienda} y {@link #buscarHogar} no filtran porque los usa
+ * el detalle de la encuesta, cuyo hogar pudo registrarlo otro usuario.
+ */
 public class HogarService {
 
     private final ViviendaDAO viviendaDao = new ViviendaDAO();
@@ -31,20 +39,30 @@ public class HogarService {
     // ------------------------------------------------------------------
 
     public List<Vivienda> listarViviendas() {
-        return ConexionBD.consultar(viviendaDao::listar);
+        return listarViviendas(null, null, null);
     }
 
     /** Viviendas filtradas por región, departamento y municipio; cada filtro en null no se aplica. */
     public List<Vivienda> listarViviendas(Long regionId, Long departamentoId, Long municipioId) {
-        return ConexionBD.consultar(c -> viviendaDao.filtrar(c, regionId, departamentoId, municipioId));
+        Long creador = creadorVisible();
+        return ConexionBD.consultar(c -> viviendaDao.filtrar(c, regionId, departamentoId, municipioId, creador));
     }
 
     public List<Vivienda> listarViviendasPorMunicipio(long municipioId) {
-        return ConexionBD.consultar(c -> viviendaDao.listarPorMunicipio(c, municipioId));
+        Long creador = creadorVisible();
+        return ConexionBD.consultar(c -> viviendaDao.listarPorMunicipio(c, municipioId, creador));
     }
 
+    /** Vivienda sin filtrar por quien la registró (detalle de la encuesta). */
     public Optional<Vivienda> buscarVivienda(long id) {
         return ConexionBD.consultar(c -> viviendaDao.buscarPorId(c, id));
+    }
+
+    /** Vivienda para el módulo de viviendas: un encuestador solo abre las que registró. */
+    public Optional<Vivienda> buscarViviendaVisible(long id) {
+        Optional<Vivienda> vivienda = buscarVivienda(id);
+        vivienda.ifPresent(v -> exigirVisible(v, "Solo puede consultar las viviendas que usted registró."));
+        return vivienda;
     }
 
     public Vivienda crearVivienda(Vivienda vivienda) {
@@ -62,6 +80,7 @@ public class HogarService {
         Sesion.exigirModulo(RutasModulo.VIVIENDAS);
         Validar.requerido(vivienda.getId(), "Id de la vivienda");
         return ConexionBD.enTransaccion(c -> {
+            exigirViviendaVisible(c, vivienda.getId());
             validarVivienda(c, vivienda);
             Validar.condicion(viviendaDao.actualizar(c, vivienda), "No existe la vivienda " + vivienda.getId() + ".");
             return viviendaDao.buscarPorId(c, vivienda.getId()).orElse(vivienda);
@@ -72,6 +91,7 @@ public class HogarService {
     public boolean eliminarVivienda(long viviendaId) {
         Sesion.exigirModulo(RutasModulo.VIVIENDAS);
         return ConexionBD.enTransaccion(c -> {
+            exigirViviendaVisible(c, viviendaId);
             Validar.condicion(hogarDao.contarPorVivienda(c, viviendaId) == 0,
                     "No se puede eliminar la vivienda porque tiene hogares registrados.");
             return viviendaDao.eliminar(c, viviendaId);
@@ -91,13 +111,16 @@ public class HogarService {
     // ------------------------------------------------------------------
 
     public List<Hogar> listarHogares() {
-        return ConexionBD.consultar(hogarDao::listar);
+        Long creador = creadorVisible();
+        return ConexionBD.consultar(c -> creador == null ? hogarDao.listar(c) : hogarDao.listarPorCreador(c, creador));
     }
 
     public List<Hogar> listarHogaresPorVivienda(long viviendaId) {
-        return ConexionBD.consultar(c -> hogarDao.listarPorVivienda(c, viviendaId));
+        Long creador = creadorVisible();
+        return ConexionBD.consultar(c -> hogarDao.listarPorVivienda(c, viviendaId, creador));
     }
 
+    /** Hogar sin filtrar por quien lo registró (detalle de la encuesta). */
     public Optional<Hogar> buscarHogar(long id) {
         return ConexionBD.consultar(c -> hogarDao.buscarPorId(c, id));
     }
@@ -108,6 +131,7 @@ public class HogarService {
         return ConexionBD.enTransaccion(c -> {
             hogar.setId(null);
             Validar.requerido(hogar.getViviendaId(), "Vivienda");
+            exigirViviendaVisible(c, hogar.getViviendaId());
             hogar.setHogarNumero(hogarDao.siguienteNumero(c, hogar.getViviendaId()));
             Validar.condicion(hogar.getHogarNumero() <= 99, "La vivienda ya tiene el máximo de 99 hogares.");
             validarHogar(c, hogar);
@@ -123,6 +147,7 @@ public class HogarService {
         return ConexionBD.enTransaccion(c -> {
             ReglasEncuesta.exigirHogarEditable(c, hogar.getId());
             Hogar actual = Validar.encontrado(hogarDao.buscarPorId(c, hogar.getId()), "No existe el hogar " + hogar.getId() + ".");
+            exigirVisible(actual, "Solo puede modificar los hogares que usted registró.");
             hogar.setViviendaId(actual.getViviendaId());
             hogar.setHogarNumero(actual.getHogarNumero());
             validarHogar(c, hogar);
@@ -135,6 +160,8 @@ public class HogarService {
     public boolean eliminarHogar(long hogarId) {
         Sesion.exigirModulo(RutasModulo.VIVIENDAS);
         return ConexionBD.enTransaccion(c -> {
+            hogarDao.buscarPorId(c, hogarId)
+                    .ifPresent(h -> exigirVisible(h, "Solo puede eliminar los hogares que usted registró."));
             Validar.condicion(!encuestaDao.buscarPorHogar(c, hogarId).isPresent(),
                     "No se puede eliminar el hogar porque ya tiene una encuesta.");
             return hogarDao.eliminar(c, hogarId);
@@ -155,5 +182,26 @@ public class HogarService {
         if (mismoNumero.isPresent() && !mismoNumero.get().getId().equals(hogar.getId())) {
             throw new ReglaNegocioException("La vivienda ya tiene registrado el hogar número " + hogar.getHogarNumero() + ".");
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Visibilidad por quien registró
+    // ------------------------------------------------------------------
+
+    /** Usuario por el que se filtra: el de la sesión si es encuestador; null (sin filtro) para los demás roles. */
+    private static Long creadorVisible() {
+        return Sesion.tieneRol(Rol.ENCUESTADOR) ? Sesion.idUsuario() : null;
+    }
+
+    private static void exigirVisible(EntidadAuditable registro, String mensaje) {
+        Long creador = creadorVisible();
+        if (creador != null && !creador.equals(registro.getCreatedBy())) {
+            throw new AccesoDenegadoException(mensaje);
+        }
+    }
+
+    private void exigirViviendaVisible(Connection c, long viviendaId) throws SQLException {
+        viviendaDao.buscarPorId(c, viviendaId)
+                .ifPresent(v -> exigirVisible(v, "Solo puede modificar las viviendas que usted registró."));
     }
 }
