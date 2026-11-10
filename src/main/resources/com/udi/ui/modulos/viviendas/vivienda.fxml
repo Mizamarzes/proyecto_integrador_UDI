@@ -13,7 +13,7 @@
 
 <!-- Listado de viviendas con el avance de sus hogares (capítulo A) -->
 <VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.ViviendaController">
+      fx:controller="com.udi.controller.viviendas.ViviendaController">
 
    <HBox alignment="CENTER_LEFT" spacing="12.0">
       <VBox spacing="4.0" HBox.hgrow="ALWAYS">

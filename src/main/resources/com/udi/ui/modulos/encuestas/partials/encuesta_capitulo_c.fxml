@@ -11,7 +11,7 @@
 
 <!-- Pestaña «Características del gasto en alimentos (Cap. C)» -->
 <VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.EncuestaCapituloCController">
+      fx:controller="com.udi.controller.encuestas.EncuestaCapituloCController">
 
    <HBox styleClass="tarjeta" spacing="28.0" alignment="CENTER_LEFT">
       <VBox spacing="4.0" HBox.hgrow="ALWAYS">

@@ -10,7 +10,7 @@
 
 <!-- Roles y permisos: matriz roles × módulos (tabla rol_modulo) -->
 <VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.RolController">
+      fx:controller="com.udi.controller.roles.RolController">
 
    <!-- Título -->
    <HBox alignment="CENTER_LEFT" spacing="10.0">

@@ -8,7 +8,7 @@
 
 <!-- Modal «Nuevo rol» -->
 <VBox styleClass="modal" prefWidth="420.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.RolFormController">
+      fx:controller="com.udi.controller.roles.RolFormController">
 
    <VBox styleClass="modal-encabezado" spacing="4.0">
       <Label fx:id="lblTitulo" text="Nuevo rol" styleClass="titulo-modal" />

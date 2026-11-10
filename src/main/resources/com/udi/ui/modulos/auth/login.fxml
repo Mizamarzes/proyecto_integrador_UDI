@@ -18,7 +18,7 @@
 
 <HBox styleClass="login-root" alignment="CENTER" spacing="40.0"
       xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.LoginController">
+      fx:controller="com.udi.controller.auth.LoginController">
    <padding>
       <Insets top="40.0" right="60.0" bottom="40.0" left="40.0" />
    </padding>

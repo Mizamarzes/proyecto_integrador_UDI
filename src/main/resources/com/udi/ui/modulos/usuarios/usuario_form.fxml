@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <ScrollPane fitToWidth="true" styleClass="scroll-transparente" xmlns="http://javafx.com/javafx/11"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.udi.controller.UsuarioFormController">
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.udi.controller.usuarios.UsuarioFormController">
    <VBox spacing="18.0">
       <padding>
          <Insets right="14.0" />

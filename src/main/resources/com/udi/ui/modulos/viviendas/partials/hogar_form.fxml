@@ -9,7 +9,7 @@
 
 <!-- Modal «Agregar hogar» / «Editar hogar» (A.9, A.13 y A.14) -->
 <VBox styleClass="modal" prefWidth="480.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.HogarFormController">
+      fx:controller="com.udi.controller.viviendas.HogarFormController">
 
    <VBox styleClass="modal-encabezado" spacing="4.0">
       <Label fx:id="lblTitulo" text="Agregar hogar" styleClass="titulo-modal" />

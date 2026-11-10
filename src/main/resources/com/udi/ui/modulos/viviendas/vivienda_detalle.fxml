@@ -16,7 +16,7 @@
 
 <!-- Detalle de una vivienda: identificación (Cap. A) y sus hogares -->
 <ScrollPane fitToWidth="true" styleClass="scroll-transparente" xmlns="http://javafx.com/javafx/11"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.udi.controller.ViviendaDetalleController">
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.udi.controller.viviendas.ViviendaDetalleController">
    <VBox spacing="18.0">
       <padding>
          <Insets right="14.0" bottom="8.0" />

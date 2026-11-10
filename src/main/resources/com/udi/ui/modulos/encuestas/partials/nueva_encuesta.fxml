@@ -12,7 +12,7 @@
 
 <!-- Modal «Nueva encuesta»: crear una encuesta es seleccionar un hogar sin encuesta -->
 <VBox styleClass="modal" prefWidth="580.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.NuevaEncuestaController">
+      fx:controller="com.udi.controller.encuestas.NuevaEncuestaController">
 
    <VBox styleClass="modal-encabezado" spacing="4.0">
       <Label text="Nueva encuesta" styleClass="titulo-modal" />

@@ -14,7 +14,7 @@
 
 <!-- Pestaña «Identificación y hogar (Cap. A)» -->
 <VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.EncuestaHogarController">
+      fx:controller="com.udi.controller.encuestas.EncuestaHogarController">
 
    <!-- Datos de la encuesta: informante y periodo -->
    <VBox styleClass="tarjeta,tarjeta-acento" spacing="14.0">

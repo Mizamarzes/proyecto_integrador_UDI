@@ -4,6 +4,7 @@ import com.udi.exception.AccesoDenegadoException;
 import com.udi.model.Modulo;
 import com.udi.model.Rol;
 import com.udi.model.Usuario;
+import com.udi.service.auth.AuthService;
 
 import java.util.Collections;
 import java.util.List;

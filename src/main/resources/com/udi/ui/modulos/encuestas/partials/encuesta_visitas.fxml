@@ -10,7 +10,7 @@
 
 <!-- Pestaña «Control de visitas» (capítulo B) -->
 <VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.EncuestaVisitasController">
+      fx:controller="com.udi.controller.encuestas.EncuestaVisitasController">
 
    <VBox styleClass="tarjeta" spacing="14.0">
       <HBox alignment="CENTER_LEFT">

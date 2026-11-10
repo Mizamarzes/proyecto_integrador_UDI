@@ -78,63 +78,63 @@ proyecto_integrador_UDI/
     │       │       ├── TipoComida.java
     │       │       └── EstadoEncuesta.java
     │       │
-    │       ├── dao/                          # ── MODELO: acceso a datos (SQL con JDBC), un DAO por tabla ──
-    │       │   ├── BaseDAO.java              # buscarPorId, listar, eliminar, contar + conversión de tipos
-    │       │   ├── ModuloDAO.java
-    │       │   ├── RolDAO.java
-    │       │   ├── RolModuloDAO.java
-    │       │   ├── UsuarioDAO.java
-    │       │   ├── EncuestadorDAO.java
-    │       │   ├── RegionDAO.java
-    │       │   ├── DepartamentoDAO.java
-    │       │   ├── MunicipioDAO.java
-    │       │   ├── ViviendaDAO.java
-    │       │   ├── HogarDAO.java
-    │       │   ├── EncuestaDAO.java
-    │       │   ├── VisitaDAO.java
-    │       │   ├── GrupoAlimentoDAO.java
-    │       │   ├── CaracteristicaGastoDAO.java
-    │       │   ├── LugarCompraDAO.java
-    │       │   ├── RegistroDiarioDAO.java
-    │       │   ├── GastoDiarioDAO.java
-    │       │   └── ComidaFueraHogarDAO.java
+    │       ├── dao/                          # ── MODELO: acceso a datos (SQL con JDBC), un DAO por tabla, agrupados por módulo ──
+    │       │   ├── BaseDAO.java              # buscarPorId, listar, eliminar, contar + conversión de tipos (común)
+    │       │   ├── usuarios/                 # UsuarioDAO, EncuestadorDAO
+    │       │   ├── roles/                    # RolDAO, ModuloDAO, RolModuloDAO
+    │       │   ├── viviendas/                # ViviendaDAO, HogarDAO
+    │       │   ├── encuestas/                # EncuestaDAO, VisitaDAO, CaracteristicaGastoDAO, RegistroDiarioDAO,
+    │       │   │                             # GastoDiarioDAO, ComidaFueraHogarDAO
+    │       │   └── catalogos/                # RegionDAO, DepartamentoDAO, MunicipioDAO, GrupoAlimentoDAO, LugarCompraDAO
     │       │
-    │       ├── service/                      # ── MODELO: reglas de negocio ──
-    │       │   ├── AuthService.java          # RF-01 Login, usuario activo, ultimo_acceso
-    │       │   ├── UsuarioService.java       # RF-01 Usuarios y encuestadores (módulo «usuarios»)
-│       │   ├── RolService.java           # RF-01 Roles, módulos y matriz de permisos rol_modulo (módulo «roles»)
-    │       │   ├── UbicacionService.java     # Región, departamento y municipio
-    │       │   ├── CatalogoService.java      # Grupos de alimentos y lugares de compra
-    │       │   ├── HogarService.java         # RF-02 Vivienda y hogares
-    │       │   ├── EncuestaService.java      # RF-02, RF-06 Periodo de 14 días, cerrar y reabrir el caso
-    │       │   ├── VisitaService.java        # RF-08 Control de visitas
-    │       │   ├── CaracteristicaService.java# RF-07 Los 25 grupos del capítulo C
-    │       │   ├── GastoDiarioService.java   # RF-03, RF-04, RF-09 Días, gastos y comidas fuera del hogar
-    │       │   └── ReglasEncuesta.java       # Regla compartida: no se modifica una encuesta CERRADA
+    │       ├── service/                      # ── MODELO: reglas de negocio, agrupadas por módulo ──
+    │       │   ├── auth/
+    │       │   │   └── AuthService.java          # RF-01 Login, usuario activo, ultimo_acceso
+    │       │   ├── usuarios/
+    │       │   │   └── UsuarioService.java       # RF-01 Usuarios y encuestadores (módulo «usuarios»)
+    │       │   ├── roles/
+    │       │   │   └── RolService.java           # RF-01 Roles, módulos y matriz de permisos rol_modulo (módulo «roles»)
+    │       │   ├── viviendas/
+    │       │   │   └── HogarService.java         # RF-02 Vivienda y hogares
+    │       │   ├── encuestas/
+    │       │   │   ├── EncuestaService.java      # RF-02, RF-06 Periodo de 14 días, cerrar y reabrir el caso
+    │       │   │   ├── VisitaService.java        # RF-08 Control de visitas
+    │       │   │   ├── CaracteristicaService.java# RF-07 Los 25 grupos del capítulo C
+    │       │   │   ├── GastoDiarioService.java   # RF-03, RF-04, RF-09 Días, gastos y comidas fuera del hogar
+    │       │   │   └── ReglasEncuesta.java       # Regla compartida: no se modifica una encuesta CERRADA (la usa también HogarService)
+    │       │   └── catalogos/
+    │       │       ├── UbicacionService.java     # Región, departamento y municipio
+    │       │       └── CatalogoService.java      # Grupos de alimentos y lugares de compra
     │       │
-    │       ├── controller/                   # ── CONTROLADOR: una clase por pantalla ──
-    │       │   ├── LoginController.java      # Hecho
-    │       │   ├── NavbarController.java     # Hecho: barra lateral, encabezado y navegación (abrir, migas, marcarModulo)
-    │       │   ├── UsuarioController.java    # Hecho: listado de usuarios con búsqueda y filtros por rol y estado
-    │       │   ├── UsuarioFormController.java     # Hecho: crear, editar, contraseña, activar/desactivar y eliminar
-│       │   ├── RolController.java        # Hecho: matriz de permisos roles × módulos, crear y eliminar roles
-│       │   ├── RolFormController.java    # Hecho: modal nuevo rol
-    │       │   ├── EncuestaController.java   # Hecho: «Mis Encuestas» (encuestador) o listado global con filtros
-    │       │   ├── NuevaEncuestaController.java   # Hecho: modal, elegir un hogar sin encuesta
-    │       │   ├── EncuestaDetalleController.java # Hecho: encabezado y pestañas de la encuesta
-    │       │   ├── SeccionEncuesta.java      # Interfaz de los controladores de cada pestaña
-    │       │   ├── EncuestaVisitasController.java # Pestaña Control de visitas (RF-08)
-    │       │   ├── VisitaFormController.java      # Modal registrar/editar visita
-    │       │   ├── EncuestaHogarController.java   # Pestaña Cap. A: informante, periodo, hogar y vivienda
-    │       │   ├── EncuestaCapituloCController.java # Pestaña Cap. C: los 25 grupos (RF-07)
-    │       │   ├── EncuestaGastosController.java  # Pestaña Línea de 14 días: tablas D y D1 por día
-    │       │   ├── RenglonFormController.java     # Modal agregar gasto (D) o comida (D1)
-    │       │   ├── EncuestaCierreController.java  # Pestaña Cierre: D2, A.18 y verificación del caso
-    │       │   ├── CerrarCasoController.java      # Modal de confirmación para cerrar el caso (RF-06)
-    │       │   ├── ViviendaController.java   # Hecho: listado de viviendas
-    │       │   ├── ViviendaDetalleController.java # Hecho: vivienda y sus hogares
-    │       │   ├── ViviendaFormController.java    # Modal nueva/editar vivienda (Cap. A)
-    │       │   └── HogarFormController.java       # Modal agregar/editar hogar (A.13, A.14)
+    │       ├── controller/                   # ── CONTROLADOR: una clase por pantalla, agrupadas por módulo ──
+    │       │   ├── auth/
+    │       │   │   └── LoginController.java      # Hecho
+    │       │   ├── shared/
+    │       │   │   └── NavbarController.java     # Hecho: barra lateral, encabezado y navegación (abrir, migas, marcarModulo)
+    │       │   ├── usuarios/
+    │       │   │   ├── UsuarioController.java    # Hecho: listado de usuarios con búsqueda y filtros por rol y estado
+    │       │   │   └── UsuarioFormController.java     # Hecho: crear, editar, contraseña, activar/desactivar y eliminar
+    │       │   ├── roles/
+    │       │   │   ├── RolController.java        # Hecho: matriz de permisos roles × módulos, crear y eliminar roles
+    │       │   │   └── RolFormController.java    # Hecho: modal nuevo rol
+    │       │   ├── viviendas/
+    │       │   │   ├── ViviendaController.java   # Hecho: listado de viviendas
+    │       │   │   ├── ViviendaDetalleController.java # Hecho: vivienda y sus hogares
+    │       │   │   ├── ViviendaFormController.java    # Modal nueva/editar vivienda (Cap. A)
+    │       │   │   └── HogarFormController.java       # Modal agregar/editar hogar (A.13, A.14)
+    │       │   └── encuestas/
+    │       │       ├── EncuestaController.java   # Hecho: «Mis Encuestas» (encuestador) o listado global con filtros
+    │       │       ├── NuevaEncuestaController.java   # Hecho: modal, elegir un hogar sin encuesta
+    │       │       ├── EncuestaDetalleController.java # Hecho: encabezado y pestañas de la encuesta
+    │       │       ├── SeccionEncuesta.java      # Interfaz de los controladores de cada pestaña
+    │       │       ├── EncuestaVisitasController.java # Pestaña Control de visitas (RF-08)
+    │       │       ├── VisitaFormController.java      # Modal registrar/editar visita
+    │       │       ├── EncuestaHogarController.java   # Pestaña Cap. A: informante, periodo, hogar y vivienda
+    │       │       ├── EncuestaCapituloCController.java # Pestaña Cap. C: los 25 grupos (RF-07)
+    │       │       ├── EncuestaGastosController.java  # Pestaña Línea de 14 días: tablas D y D1 por día
+    │       │       ├── RenglonFormController.java     # Modal agregar gasto (D) o comida (D1)
+    │       │       ├── EncuestaCierreController.java  # Pestaña Cierre: D2, A.18 y verificación del caso
+    │       │       └── CerrarCasoController.java      # Modal de confirmación para cerrar el caso (RF-06)
     │       │
     │       ├── middleware/                   # ── Control de acceso a las vistas (como los middlewares de una API) ──
 │       │   ├── Middleware.java           # Interfaz: manejar(vista) o lanzar AccesoDenegadoException
@@ -213,7 +213,7 @@ Los controladores Java están todos en el paquete `controller`, pero sus vistas 
 - `ui/modulos/<modulo>/`: las pantallas de cada módulo (por ejemplo `encuestas/encuesta.fxml` y `encuestas/encuesta_detalle.fxml`). Si un módulo necesita diálogos modales o fragmentos reutilizables, van en subcarpetas `partials/` y `components/` dentro del módulo.
 - `ui/shared/`: lo común (`estilos.css`, la estructura `layout/navbar.fxml` y `layout/pendiente.fxml`).
 
-Una vista se nombra con su ruta dentro de `ui`, sin extensión: `"modulos/encuestas/encuesta"`. Para agregar un módulo se crea su carpeta en `ui/modulos/`, su controlador en `controller/` y su botón en `navbar.fxml`/`NavbarController`.
+Una vista se nombra con su ruta dentro de `ui`, sin extensión: `"modulos/encuestas/encuesta"`. Para agregar un módulo se crea su carpeta en `ui/modulos/<modulo>/`, su paquete en `controller/<modulo>/` (y, si hace falta, en `service/<modulo>/` y `dao/<modulo>/`), su `opens com.udi.controller.<modulo> to javafx.fxml;` en `module-info.java`, su ruta en `middleware/RutasModulo` y `Rutas`, y su botón en `navbar.fxml`/`NavbarController`.
 
 ## Navegación
 

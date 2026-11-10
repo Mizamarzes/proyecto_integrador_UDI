@@ -16,7 +16,7 @@
 
 <!-- Pestaña «Cierre (Cap. D)»: preguntas D2, resultado A.18, verificación y cierre del caso (RF-06) -->
 <VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.EncuestaCierreController">
+      fx:controller="com.udi.controller.encuestas.EncuestaCierreController">
 
    <fx:define>
       <ToggleGroup fx:id="grupoFiestas" />

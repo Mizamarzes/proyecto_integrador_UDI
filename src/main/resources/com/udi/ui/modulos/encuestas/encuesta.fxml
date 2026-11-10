@@ -12,7 +12,7 @@
 
 <!-- Listado de encuestas: «Mis Encuestas» para el encuestador y vista global para los demás roles -->
 <VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.EncuestaController">
+      fx:controller="com.udi.controller.encuestas.EncuestaController">
 
    <!-- Título -->
    <HBox alignment="CENTER_LEFT">

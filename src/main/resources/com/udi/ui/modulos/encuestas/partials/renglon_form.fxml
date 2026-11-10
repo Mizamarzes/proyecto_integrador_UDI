@@ -15,7 +15,7 @@
 
 <!-- Modal de un renglón del día: gasto (tabla D) o comida preparada fuera del hogar (tabla D1) -->
 <VBox styleClass="modal" prefWidth="740.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.RenglonFormController">
+      fx:controller="com.udi.controller.encuestas.RenglonFormController">
 
    <fx:define>
       <ToggleGroup fx:id="grupoComida" />

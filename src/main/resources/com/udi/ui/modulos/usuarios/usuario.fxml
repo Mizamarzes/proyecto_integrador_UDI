@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.UsuarioController">
+      fx:controller="com.udi.controller.usuarios.UsuarioController">
 
    <!-- Título -->
    <HBox alignment="CENTER_LEFT">

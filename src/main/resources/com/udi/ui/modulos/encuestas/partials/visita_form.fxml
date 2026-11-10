@@ -13,7 +13,7 @@
 
 <!-- Modal del control de visitas (capítulo B) -->
 <VBox styleClass="modal" prefWidth="620.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.VisitaFormController">
+      fx:controller="com.udi.controller.encuestas.VisitaFormController">
 
    <VBox styleClass="modal-encabezado" spacing="4.0">
       <HBox alignment="CENTER_LEFT" spacing="10.0">

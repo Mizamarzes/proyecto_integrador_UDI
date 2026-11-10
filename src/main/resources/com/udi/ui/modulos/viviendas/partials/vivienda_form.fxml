@@ -11,7 +11,7 @@
 
 <!-- Modal «Nueva vivienda» / «Editar vivienda» (capítulo A) -->
 <VBox styleClass="modal" prefWidth="760.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.ViviendaFormController">
+      fx:controller="com.udi.controller.viviendas.ViviendaFormController">
 
    <VBox styleClass="modal-encabezado" spacing="4.0">
       <Label fx:id="lblTitulo" text="Nueva vivienda" styleClass="titulo-modal" />

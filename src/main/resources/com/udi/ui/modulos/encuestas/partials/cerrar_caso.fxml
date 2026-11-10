@@ -10,7 +10,7 @@
 
 <!-- Confirmación del cierre del caso (RF-06) -->
 <VBox styleClass="modal" prefWidth="540.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.CerrarCasoController">
+      fx:controller="com.udi.controller.encuestas.CerrarCasoController">
 
    <VBox styleClass="modal-encabezado" spacing="4.0">
       <Label fx:id="lblTitulo" styleClass="titulo-modal" />
