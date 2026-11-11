@@ -19,7 +19,6 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
@@ -65,8 +64,6 @@ public class EncuestaDetalleController {
     @FXML
     private Label lblSubtitulo;
     @FXML
-    private Button btnVisita;
-    @FXML
     private ToggleButton tabVisitas;
     @FXML
     private ToggleButton tabHogar;
@@ -86,7 +83,6 @@ public class EncuestaDetalleController {
 
     private final EncuestaService encuestaService = new EncuestaService();
     private final HogarService hogarService = new HogarService();
-    private final VisitaService visitaService = new VisitaService();
     private final Map<Pestana, ToggleButton> botones = new EnumMap<>(Pestana.class);
 
     private Encuesta encuesta;
@@ -225,19 +221,11 @@ public class EncuestaDetalleController {
         texto.append(" · Periodo ").append(Formato.fecha(encuesta.getFechaDesde()))
                 .append(" – ").append(Formato.fecha(encuesta.getFechaHasta()));
         lblSubtitulo.setText(texto.toString());
-        Formato.mostrar(btnVisita, esEditable() && Rutas.puedeAbrir(VISTA_VISITA));
     }
 
     @FXML
     private void volver() {
         NavbarController.abrir("modulos/encuestas/encuesta", "Encuestas");
-    }
-
-    /** Botón del encabezado: registra la siguiente visita del hogar desde cualquier pestaña. */
-    @FXML
-    private void registrarVisita() {
-        long hogarId = encuesta.getHogarId();
-        Tareas.ejecutar(() -> visitaService.listarPorHogar(hogarId), visitas -> abrirVisita(visitas, null));
     }
 
     /** Abre el modal de la visita: nueva si {@code visita} es null, o para editarla. */

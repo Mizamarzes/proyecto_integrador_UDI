@@ -1,5 +1,6 @@
 package com.udi.controller.encuestas;
 
+import com.udi.middleware.Rutas;
 import com.udi.model.Visita;
 import com.udi.model.enums.ResultadoEntrevista;
 import com.udi.service.encuestas.EncuestaService;
@@ -9,6 +10,7 @@ import com.udi.util.Tareas;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
@@ -37,6 +39,8 @@ public class EncuestaVisitasController implements SeccionEncuesta {
     @FXML
     private Label lblDiligenciado;
     @FXML
+    private Button btnVisita;
+    @FXML
     private TableView<Visita> tabla;
     @FXML
     private TableColumn<Visita, String> colNumero;
@@ -60,6 +64,7 @@ public class EncuestaVisitasController implements SeccionEncuesta {
     public void mostrar(EncuestaDetalleController detalle) {
         this.detalle = detalle;
         configurarTabla();
+        Formato.mostrar(btnVisita, detalle.esEditable() && Rutas.puedeAbrir(EncuestaDetalleController.VISTA_VISITA));
         int dia = EncuestaController.diaActual(detalle.getEncuesta());
         barAvance.setProgress(dia / (double) EncuestaService.DIAS_PERIODO);
         lblAvance.setText(detalle.getEncuesta().estaCerrada() ? "Periodo completo" : "Día " + dia + " de " + EncuestaService.DIAS_PERIODO);
@@ -81,6 +86,12 @@ public class EncuestaVisitasController implements SeccionEncuesta {
         lblUltima.setText(ultima.getResultadoVisita().toString());
         lblUltimaFecha.setText(Formato.fecha(ultima.getFecha()) + " · " + Formato.hora(ultima.getHoraInicio()));
         lblProxima.setText(ultima.getFechaProxima() == null ? "Por concertar" : proxima(ultima));
+    }
+
+    /** Registra la siguiente visita del hogar. */
+    @FXML
+    private void registrarVisita() {
+        detalle.abrirVisita(visitas, null);
     }
 
     private static String proxima(Visita v) {

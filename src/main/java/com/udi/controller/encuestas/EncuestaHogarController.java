@@ -75,6 +75,10 @@ public class EncuestaHogarController implements SeccionEncuesta {
     @FXML
     private Label lblEdificacion;
     @FXML
+    private Label lblViviendaNumero;
+    @FXML
+    private Label lblTelefono;
+    @FXML
     private Label lblRegion;
     @FXML
     private Label lblDepartamento;
@@ -146,12 +150,12 @@ public class EncuestaHogarController implements SeccionEncuesta {
         }
         if (v != null) {
             lblCodigoVivienda.setText(Formato.codigo("V", v.getId()));
-            lblDireccion.setText(v.getDireccion());
-            String telefono = v.getTelefono() == null ? "" : " · Teléfono " + v.getTelefono();
-            lblBarrio.setText((v.getBarrio() == null ? "Sin barrio" : v.getBarrio()) + telefono);
+            lblDireccion.setText(guion(v.getDireccion()));
+            lblBarrio.setText(guion(v.getBarrio()));
+            lblTelefono.setText(guion(v.getTelefono()));
             lblTotalHogares.setText(String.valueOf(v.getTotalHogares()));
-            lblEdificacion.setText(ViviendaController.tresDigitos(v.getEdificacionNumero()) + " · "
-                    + ViviendaController.tresDigitos(v.getViviendaNumero()));
+            lblEdificacion.setText(ViviendaController.tresDigitos(v.getEdificacionNumero()));
+            lblViviendaNumero.setText(ViviendaController.tresDigitos(v.getViviendaNumero()));
             lblClase.setText(ViviendaController.textoClase(v.getClase()));
             lblSector.setText(guion(v.getSector()));
             lblSeccion.setText(guion(v.getSeccion()));

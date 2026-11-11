@@ -33,7 +33,6 @@
             <Label fx:id="lblSubtitulo" styleClass="subtitulo-pagina" wrapText="true" />
          </VBox>
          <Button text="← Volver a encuestas" onAction="#volver" styleClass="boton-secundario" minWidth="-Infinity" />
-         <Button fx:id="btnVisita" text="+ Registrar nueva visita" onAction="#registrarVisita" styleClass="boton-accion" minWidth="-Infinity" />
       </HBox>
 
       <!-- Pestañas -->

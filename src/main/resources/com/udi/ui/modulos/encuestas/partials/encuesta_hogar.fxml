@@ -92,19 +92,141 @@
       </VBox>
    </VBox>
 
-   <!-- Hogar y vivienda -->
-   <HBox spacing="18.0">
-      <VBox styleClass="tarjeta" spacing="14.0" HBox.hgrow="ALWAYS" maxWidth="Infinity">
-         <HBox alignment="CENTER_LEFT">
-            <Label text="Hogar" styleClass="titulo-seccion" />
-            <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="lblCodigoHogar" styleClass="chip" />
-         </HBox>
-         <GridPane hgap="24.0" vgap="12.0">
+   <!-- Vivienda: ubicación, edificación y dirección (A.1–A.12, A.15–A.17) -->
+   <VBox styleClass="tarjeta" spacing="14.0">
+      <HBox alignment="CENTER_LEFT">
+         <VBox spacing="2.0">
+            <Label text="Vivienda (Cap. A)" styleClass="titulo-seccion" />
+            <Label text="Dónde está la vivienda en la que vive el hogar encuestado." styleClass="texto-suave" />
+         </VBox>
+         <Region HBox.hgrow="ALWAYS" />
+         <Label fx:id="lblCodigoVivienda" styleClass="chip" />
+      </HBox>
+
+      <VBox spacing="10.0">
+         <Label text="UBICACIÓN GEOGRÁFICA" styleClass="etiqueta-seccion" />
+         <GridPane hgap="24.0" vgap="14.0">
+            <columnConstraints>
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+            </columnConstraints>
+            <VBox spacing="2.0">
+               <Label text="Región (A.1)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblRegion" styleClass="dato-valor" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.columnIndex="1">
+               <Label text="Departamento (A.2)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblDepartamento" styleClass="dato-valor" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.columnIndex="2">
+               <Label text="Municipio (A.3)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblMunicipio" styleClass="dato-valor" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.columnIndex="3">
+               <Label text="Clase (A.4)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblClase" styleClass="dato-valor" />
+            </VBox>
+         </GridPane>
+      </VBox>
+
+      <VBox spacing="10.0">
+         <Label text="UBICACIÓN CARTOGRÁFICA (MARCO DANE)" styleClass="etiqueta-seccion" />
+         <GridPane hgap="24.0" vgap="14.0">
+            <columnConstraints>
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+               <ColumnConstraints percentWidth="25.0" />
+            </columnConstraints>
+            <VBox spacing="2.0">
+               <Label text="Sector (A.5)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblSector" styleClass="dato-codigo" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.columnIndex="1">
+               <Label text="Sección (A.6)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblSeccion" styleClass="dato-codigo" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.columnIndex="2">
+               <Label text="Manzana (A.7)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblManzana" styleClass="dato-codigo" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.columnIndex="3">
+               <Label text="Segmento (A.8)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblSegmento" styleClass="dato-codigo" />
+            </VBox>
+         </GridPane>
+      </VBox>
+
+      <VBox spacing="10.0">
+         <Label text="DIRECCIÓN Y CONTACTO" styleClass="etiqueta-seccion" />
+         <GridPane hgap="24.0" vgap="14.0">
             <columnConstraints>
                <ColumnConstraints percentWidth="33.3" />
                <ColumnConstraints percentWidth="33.3" />
-               <ColumnConstraints percentWidth="33.4" />
+               <ColumnConstraints percentWidth="33.3" />
+            </columnConstraints>
+            <VBox spacing="2.0">
+               <Label text="Dirección de la vivienda (A.16)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblDireccion" styleClass="dato-valor" wrapText="true" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.columnIndex="1">
+               <Label text="Barrio, centro poblado o vereda (A.15)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblBarrio" styleClass="dato-valor" wrapText="true" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.columnIndex="2">
+               <Label text="Teléfono (A.17)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblTelefono" styleClass="dato-valor" />
+            </VBox>
+         </GridPane>
+      </VBox>
+
+      <VBox spacing="10.0">
+         <Label text="EDIFICACIÓN" styleClass="etiqueta-seccion" />
+         <GridPane hgap="24.0" vgap="14.0">
+            <columnConstraints>
+               <ColumnConstraints percentWidth="33.3" />
+               <ColumnConstraints percentWidth="33.3" />
+               <ColumnConstraints percentWidth="33.3" />
+            </columnConstraints>
+            <VBox spacing="2.0">
+               <Label text="Edificación número (A.10)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblEdificacion" styleClass="dato-codigo" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.columnIndex="1">
+               <Label text="Vivienda número (A.11)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblViviendaNumero" styleClass="dato-codigo" />
+            </VBox>
+            <VBox spacing="2.0" GridPane.columnIndex="2">
+               <Label text="Total de hogares en la vivienda (A.12)" styleClass="dato-etiqueta" />
+               <Label fx:id="lblTotalHogares" styleClass="dato-valor" />
+            </VBox>
+         </GridPane>
+      </VBox>
+
+      <TextFlow>
+         <Label text="Los datos de la vivienda y del hogar se editan en " styleClass="texto-suave" />
+         <Hyperlink text="Viviendas y hogares" onAction="#irVivienda" styleClass="enlace" />
+         <Label text=", porque son compartidos con otras encuestas de la misma vivienda." styleClass="texto-suave" />
+      </TextFlow>
+   </VBox>
+
+   <!-- Hogar encuestado (A.9, A.13, A.14) -->
+   <VBox styleClass="tarjeta" spacing="14.0">
+      <HBox alignment="CENTER_LEFT">
+         <VBox spacing="2.0">
+            <Label text="Hogar" styleClass="titulo-seccion" />
+            <Label text="El hogar de la vivienda al que corresponde esta encuesta." styleClass="texto-suave" />
+         </VBox>
+         <Region HBox.hgrow="ALWAYS" />
+         <Label fx:id="lblCodigoHogar" styleClass="chip" />
+      </HBox>
+         <GridPane hgap="24.0" vgap="14.0">
+            <columnConstraints>
+               <ColumnConstraints percentWidth="33.3" />
+               <ColumnConstraints percentWidth="33.3" />
+               <ColumnConstraints percentWidth="33.3" />
             </columnConstraints>
             <VBox spacing="2.0">
                <Label text="Hogar número (A.13)" styleClass="dato-etiqueta" />
@@ -119,82 +241,5 @@
                <Label fx:id="lblCiclo" styleClass="dato-codigo" />
             </VBox>
          </GridPane>
-      </VBox>
-
-      <VBox styleClass="tarjeta" spacing="14.0" HBox.hgrow="ALWAYS" maxWidth="Infinity">
-         <HBox alignment="CENTER_LEFT">
-            <Label text="Vivienda" styleClass="titulo-seccion" />
-            <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="lblCodigoVivienda" styleClass="chip" />
-         </HBox>
-         <VBox spacing="2.0">
-            <Label fx:id="lblDireccion" styleClass="dato-valor" />
-            <Label fx:id="lblBarrio" styleClass="texto-suave" wrapText="true" />
-         </VBox>
-         <GridPane hgap="24.0" vgap="12.0">
-            <columnConstraints>
-               <ColumnConstraints percentWidth="50.0" />
-               <ColumnConstraints percentWidth="50.0" />
-            </columnConstraints>
-            <VBox spacing="2.0">
-               <Label text="Total de hogares (A.12)" styleClass="dato-etiqueta" />
-               <Label fx:id="lblTotalHogares" styleClass="dato-valor" />
-            </VBox>
-            <VBox spacing="2.0" GridPane.columnIndex="1">
-               <Label text="Edificación / Vivienda" styleClass="dato-etiqueta" />
-               <Label fx:id="lblEdificacion" styleClass="dato-codigo" />
-            </VBox>
-         </GridPane>
-      </VBox>
-   </HBox>
-
-   <!-- Ubicación -->
-   <VBox styleClass="tarjeta" spacing="14.0">
-      <Label text="Ubicación de la vivienda (Cap. A)" styleClass="titulo-seccion" />
-      <GridPane hgap="24.0" vgap="14.0">
-         <columnConstraints>
-            <ColumnConstraints percentWidth="25.0" />
-            <ColumnConstraints percentWidth="25.0" />
-            <ColumnConstraints percentWidth="25.0" />
-            <ColumnConstraints percentWidth="25.0" />
-         </columnConstraints>
-         <VBox spacing="2.0">
-            <Label text="1. Región" styleClass="dato-etiqueta" />
-            <Label fx:id="lblRegion" styleClass="dato-valor" />
-         </VBox>
-         <VBox spacing="2.0" GridPane.columnIndex="1">
-            <Label text="2. Departamento" styleClass="dato-etiqueta" />
-            <Label fx:id="lblDepartamento" styleClass="dato-valor" />
-         </VBox>
-         <VBox spacing="2.0" GridPane.columnIndex="2">
-            <Label text="3. Municipio" styleClass="dato-etiqueta" />
-            <Label fx:id="lblMunicipio" styleClass="dato-valor" />
-         </VBox>
-         <VBox spacing="2.0" GridPane.columnIndex="3">
-            <Label text="4. Clase" styleClass="dato-etiqueta" />
-            <Label fx:id="lblClase" styleClass="dato-valor" />
-         </VBox>
-         <VBox spacing="2.0" GridPane.rowIndex="1">
-            <Label text="5. Sector" styleClass="dato-etiqueta" />
-            <Label fx:id="lblSector" styleClass="dato-codigo" />
-         </VBox>
-         <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="1">
-            <Label text="6. Sección" styleClass="dato-etiqueta" />
-            <Label fx:id="lblSeccion" styleClass="dato-codigo" />
-         </VBox>
-         <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="2">
-            <Label text="7. Manzana" styleClass="dato-etiqueta" />
-            <Label fx:id="lblManzana" styleClass="dato-codigo" />
-         </VBox>
-         <VBox spacing="2.0" GridPane.rowIndex="1" GridPane.columnIndex="3">
-            <Label text="8. Segmento" styleClass="dato-etiqueta" />
-            <Label fx:id="lblSegmento" styleClass="dato-codigo" />
-         </VBox>
-      </GridPane>
-      <TextFlow>
-         <Label text="Los datos de la vivienda y del hogar se editan en " styleClass="texto-suave" />
-         <Hyperlink text="Viviendas y hogares" onAction="#irVivienda" styleClass="enlace" />
-         <Label text=", porque son compartidos con otras encuestas de la misma vivienda." styleClass="texto-suave" />
-      </TextFlow>
    </VBox>
 </VBox>
