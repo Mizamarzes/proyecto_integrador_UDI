@@ -42,6 +42,7 @@ Resumen: **18 tablas, 8 enums y 37 llaves foráneas** (22 del modelo y 15 de aud
 | REGISTRO_DIARIO | `registro_diario` | Capítulos D y D1 |
 | GASTO_DIARIO | `gasto_diario` | Capítulo D |
 | COMIDA_FUERA_HOGAR | `comida_fuera_hogar` | Capítulo D1 |
+| AUDITORIA_ENCUESTA *(agregada)* | `auditoria_encuesta` | Verificación (RF-10) |
 
 ---
 
@@ -70,6 +71,7 @@ Resumen: **18 tablas, 8 enums y 37 llaves foráneas** (22 del modelo y 15 de aud
 | LUGAR_COMPRA – TIENE – COMIDA_FUERA_HOGAR | 1:N | `comida_fuera_hogar.lugar_compra_id` |
 | *(agregada)* ENCUESTA – CARACTERISTICA_GASTO | 1:N | `caracteristica_gasto.encuesta_id` |
 | *(agregada)* ENCUESTA – REGISTRO_DIARIO | 1:N | `registro_diario.encuesta_id` |
+| *(agregada)* ENCUESTA – AUDITORIA_ENCUESTA | 1:N | `auditoria_encuesta.encuesta_id` |
 
 Las dos últimas no están en el E-R. Se explican en la sección 6.
 
@@ -88,7 +90,8 @@ En Oracle no existe el tipo ENUM. Cada uno se crea como una columna `VARCHAR2` c
 | `forma_adquisicion` | COMPRA, PAGO_TRABAJO, REGALO, INTERCAMBIO, PRODUCCION_PROPIA, NEGOCIO_PROPIO, OTRA | `gasto_diario`, `comida_fuera_hogar` |
 | `tipo_gasto` | HOGAR, PERSONAL | `gasto_diario`, `comida_fuera_hogar` |
 | `tipo_comida` | DESAYUNO, ALMUERZO, CENA, ONCES | `comida_fuera_hogar` |
-| `estado_encuesta` | ABIERTA, CERRADA, REABIERTA | `encuesta.estado` |
+| `estado_encuesta` | ABIERTA, CERRADA, REABIERTA, EN_CORRECCION, APROBADA | `encuesta.estado` |
+| `accion_auditoria` | CIERRE, REAPERTURA, DEVOLUCION, APROBACION, EXPORTACION | `auditoria_encuesta.accion` |
 
 `grupo_alimento` y `lugar_compra` siguen siendo tablas, como en el E-R:
 - `grupo_alimento` tiene 25 valores con nombres largos, y el capítulo C necesita recorrerlos para armar el formulario.
@@ -230,7 +233,7 @@ Restricción única: `(vivienda_id, hogar_numero)`, para que no haya dos hogares
 | forma_pago | enum `forma_pago` | | D2.2 Principal forma de pago |
 | forma_pago_otra | VARCHAR2(100) | | D2.2 Cuál, si la forma de pago es OTRA |
 | observaciones | VARCHAR2(1000) | | Observaciones generales |
-| estado | enum `estado_encuesta` | NN, default 'ABIERTA' | Estado del caso (RF-06). Si está CERRADA no se admiten registros nuevos |
+| estado | enum `estado_encuesta` | NN, default 'ABIERTA' | Estado del caso (RF-06, RF-10). CERRADA y APROBADA no admiten cambios; EN_CORRECCION sí (el crítico-digitador la devolvió) |
 | fecha_cierre | TIMESTAMP | | Fecha y hora en que se cerró el caso |
 | cerrada_por | NUMBER(10) | FK → usuario | Usuario que cerró el caso |
 
@@ -250,6 +253,19 @@ Restricción única: `(vivienda_id, hogar_numero)`, para que no haya dos hogares
 | hora_proxima | TIMESTAMP | | Hora de la próxima visita |
 
 Restricción única: `(hogar_id, numero_visita)`.
+
+### Verificación
+
+**`auditoria_encuesta`**: historial de cada caso para el crítico-digitador (RF-10): quién lo cerró, reabrió, devolvió a corrección, aprobó o exportó, y cuándo.
+
+| Columna | Tipo | Restricciones | Descripción |
+|---|---|---|---|
+| id | NUMBER(10) | PK | Identificador |
+| encuesta_id | NUMBER(10) | NN, FK → encuesta (cascada) | Encuesta del registro |
+| accion | enum `accion_auditoria` | NN | Qué se hizo |
+| observacion | VARCHAR2(1000) | Obligatoria en DEVOLUCION | Motivo de la devolución o nombre del archivo exportado |
+
+`created_at` es el momento de la acción y `created_by` el usuario que la hizo.
 
 ### Capítulo C
 

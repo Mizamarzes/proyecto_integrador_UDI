@@ -40,8 +40,9 @@ public class ReporteDAO {
         Condicion w = condicion(f);
         String sql = "SELECT x.encuestador_id, u.nombre, u.apellido, COUNT(*) total,"
                 + " SUM(CASE WHEN x.estado = 'ABIERTA' THEN 1 ELSE 0 END) abiertas,"
-                + " SUM(CASE WHEN x.estado = 'CERRADA' THEN 1 ELSE 0 END) cerradas,"
-                + " SUM(CASE WHEN x.estado = 'REABIERTA' THEN 1 ELSE 0 END) reabiertas,"
+                // Aprobada cuenta como cerrada y en corrección como reabierta (vuelve a admitir cambios)
+                + " SUM(CASE WHEN x.estado IN ('CERRADA', 'APROBADA') THEN 1 ELSE 0 END) cerradas,"
+                + " SUM(CASE WHEN x.estado IN ('REABIERTA', 'EN_CORRECCION') THEN 1 ELSE 0 END) reabiertas,"
                 + " SUM(x.visitas) visitas, SUM(x.gasto) gasto"
                 + " FROM (SELECT e.encuestador_id, e.estado,"
                 + "   (SELECT COUNT(*) FROM visita vi WHERE vi.hogar_id = e.hogar_id) visitas,"

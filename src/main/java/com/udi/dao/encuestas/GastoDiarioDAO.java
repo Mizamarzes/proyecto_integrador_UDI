@@ -82,6 +82,12 @@ public class GastoDiarioDAO extends BaseDAO<GastoDiario> {
         return consultar(c, "SELECT * FROM gasto_diario WHERE registro_diario_id = ? ORDER BY numero_orden", registroDiarioId);
     }
 
+    /** Renglones del capítulo D de toda la encuesta, por día y número de orden. */
+    public List<GastoDiario> listarPorEncuesta(Connection c, long encuestaId) throws SQLException {
+        return consultar(c, "SELECT g.* FROM gasto_diario g JOIN registro_diario r ON r.id = g.registro_diario_id"
+                + " WHERE r.encuesta_id = ? ORDER BY r.numero_dia, g.numero_orden", encuestaId);
+    }
+
     public long contarPorRegistro(Connection c, long registroDiarioId) throws SQLException {
         return consultarNumero(c, "SELECT COUNT(*) FROM gasto_diario WHERE registro_diario_id = ?", registroDiarioId);
     }

@@ -23,6 +23,8 @@ public final class RutasModulo {
     /** La encuesta y su captura: visitas, capítulo C, gastos diarios (D) y comidas fuera del hogar (D1). */
     public static final String[] ENCUESTAS = {"encuestas"};
     public static final String[] REPORTES = {"reportes"};
+    /** Bandeja del crítico-digitador: validación cruzada, devolución, aprobación y exportación (RF-10). */
+    public static final String[] VERIFICACION = {"verificacion"};
 
     private static final Map<String, String[]> RUTAS = new LinkedHashMap<>();
 
@@ -32,6 +34,7 @@ public final class RutasModulo {
         ruta("modulos/viviendas/", VIVIENDAS);
         ruta("modulos/encuestas/", ENCUESTAS);
         ruta("modulos/reportes/", REPORTES);
+        ruta("modulos/verificacion/", VERIFICACION);
     }
 
     private RutasModulo() {

@@ -17,6 +17,7 @@ module com.udi {
     opens com.udi.controller.roles to javafx.fxml;
     opens com.udi.controller.shared to javafx.fxml;
     opens com.udi.controller.usuarios to javafx.fxml;
+    opens com.udi.controller.verificacion to javafx.fxml;
     opens com.udi.controller.viviendas to javafx.fxml;
     exports com.udi;
 }

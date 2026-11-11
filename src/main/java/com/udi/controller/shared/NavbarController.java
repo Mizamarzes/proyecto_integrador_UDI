@@ -27,6 +27,7 @@ public class NavbarController {
     private static final String VISTA_USUARIOS = "modulos/usuarios/usuario";
     private static final String VISTA_ROLES = "modulos/roles/rol";
     private static final String VISTA_REPORTES = "modulos/reportes/reporte";
+    private static final String VISTA_VERIFICACION = "modulos/verificacion/verificacion";
 
     /** Menú visible; lo usan las pantallas para navegar con {@link #abrir}. */
     private static NavbarController actual;
@@ -51,6 +52,8 @@ public class NavbarController {
     private Button btnRoles;
     @FXML
     private Button btnReportes;
+    @FXML
+    private Button btnVerificacion;
 
     private final AuthService authService = new AuthService();
 
@@ -65,8 +68,11 @@ public class NavbarController {
         Rutas.permitir(btnUsuarios, VISTA_USUARIOS);
         Rutas.permitir(btnRoles, VISTA_ROLES);
         Rutas.permitir(btnReportes, VISTA_REPORTES);
+        Rutas.permitir(btnVerificacion, VISTA_VERIFICACION);
         if (btnEncuestas.isVisible()) {
             irEncuestas();
+        } else if (btnVerificacion.isVisible()) {
+            irVerificacion();
         } else if (btnViviendas.isVisible()) {
             irViviendas();
         } else if (btnUsuarios.isVisible()) {
@@ -101,6 +107,11 @@ public class NavbarController {
     @FXML
     private void irEncuestas() {
         navegar(btnEncuestas, VISTA_ENCUESTAS, "Encuestas");
+    }
+
+    @FXML
+    private void irVerificacion() {
+        navegar(btnVerificacion, VISTA_VERIFICACION, "Verificación");
     }
 
     @FXML
@@ -142,12 +153,13 @@ public class NavbarController {
         Button boton = "viviendas".equals(slug) ? actual.btnViviendas
                 : "usuarios".equals(slug) ? actual.btnUsuarios
                 : "roles".equals(slug) ? actual.btnRoles
-                : "reportes".equals(slug) ? actual.btnReportes : actual.btnEncuestas;
+                : "reportes".equals(slug) ? actual.btnReportes
+                : "verificacion".equals(slug) ? actual.btnVerificacion : actual.btnEncuestas;
         actual.marcar(boton);
     }
 
     private void marcar(Button boton) {
-        for (Button b : List.of(btnEncuestas, btnViviendas, btnUsuarios, btnRoles, btnReportes)) {
+        for (Button b : List.of(btnEncuestas, btnVerificacion, btnViviendas, btnUsuarios, btnRoles, btnReportes)) {
             b.getStyleClass().remove(ACTIVO);
         }
         boton.getStyleClass().add(ACTIVO);

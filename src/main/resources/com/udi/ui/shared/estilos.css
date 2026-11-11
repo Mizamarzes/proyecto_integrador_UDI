@@ -490,6 +490,16 @@
     -fx-text-fill: #8a6519;
 }
 
+.insignia-en_correccion {
+    -fx-background-color: #f2dcd7;
+    -fx-text-fill: #9a3a28;
+}
+
+.insignia-aprobada {
+    -fx-background-color: #2f5e3d;
+    -fx-text-fill: white;
+}
+
 /* Insignias de estado del usuario */
 .insignia-activo {
     -fx-background-color: #dbe8de;
@@ -797,6 +807,34 @@
 .check-pendiente {
     -fx-background-color: #f4e3c1;
     -fx-text-fill: #7a5b16;
+}
+
+.check-error {
+    -fx-min-width: 22;
+    -fx-min-height: 22;
+    -fx-alignment: center;
+    -fx-font-weight: bold;
+    -fx-background-radius: 11;
+    -fx-background-color: #f2dcd7;
+    -fx-text-fill: #9a3a28;
+}
+
+/* Resultado de la validación cruzada (Verificación) */
+.validacion-ok, .validacion-aviso, .validacion-error {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.validacion-ok {
+    -fx-text-fill: #2f5e3d;
+}
+
+.validacion-aviso {
+    -fx-text-fill: #7a5b16;
+}
+
+.validacion-error {
+    -fx-text-fill: #9a3a28;
 }
 
 .check-fila {

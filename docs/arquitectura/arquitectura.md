@@ -72,6 +72,9 @@ proyecto_integrador_UDI/
     │       │   ├── Reporte.java              # Resultado de Reportes con sus totales (no es tabla)
     │       │   ├── ReporteEncuestador.java   # Fila de «Rendimiento por encuestador» (no es tabla)
     │       │   ├── ValorReporte.java         # Una barra de un reporte: código, nombre y valor (no es tabla)
+    │       │   ├── AuditoriaEncuesta.java    # Historial de un caso: cierre, reapertura, devolución, aprobación, exportación
+    │       │   ├── CasoVerificacion.java     # Fila de la bandeja de Verificación con su validación (no es tabla)
+    │       │   ├── ReglaVerificacion.java    # Resultado de una regla de la validación cruzada (no es tabla)
     │       │   └── enums/                    # Enums del modelo (en Oracle son VARCHAR2 + CHECK)
     │       │       ├── ResultadoEntrevista.java
     │       │       ├── FormaPago.java
@@ -80,7 +83,8 @@ proyecto_integrador_UDI/
     │       │       ├── FormaAdquisicion.java
     │       │       ├── TipoGasto.java
     │       │       ├── TipoComida.java
-    │       │       └── EstadoEncuesta.java
+    │       │       ├── EstadoEncuesta.java   # ABIERTA, CERRADA, REABIERTA, EN_CORRECCION, APROBADA
+    │       │       └── AccionAuditoria.java
     │       │
     │       ├── dao/                          # ── MODELO: acceso a datos (SQL con JDBC), un DAO por tabla, agrupados por módulo ──
     │       │   ├── BaseDAO.java              # buscarPorId, listar, eliminar, contar + conversión de tipos (común)
@@ -90,7 +94,8 @@ proyecto_integrador_UDI/
     │       │   ├── encuestas/                # EncuestaDAO, VisitaDAO, CaracteristicaGastoDAO, RegistroDiarioDAO,
     │       │   │                             # GastoDiarioDAO, ComidaFueraHogarDAO
     │       │   ├── catalogos/                # RegionDAO, DepartamentoDAO, MunicipioDAO, GrupoAlimentoDAO, LugarCompraDAO
-    │       │   └── reportes/                 # ReporteDAO: consultas agregadas (no es de una tabla ni extiende BaseDAO)
+    │       │   ├── reportes/                 # ReporteDAO: consultas agregadas (no es de una tabla ni extiende BaseDAO)
+    │       │   └── verificacion/             # AuditoriaEncuestaDAO
     │       │
     │       ├── service/                      # ── MODELO: reglas de negocio, agrupadas por módulo ──
     │       │   ├── auth/
@@ -110,8 +115,10 @@ proyecto_integrador_UDI/
     │       │   ├── catalogos/
     │       │   │   ├── UbicacionService.java     # Región, departamento y municipio
     │       │   │   └── CatalogoService.java      # Grupos de alimentos y lugares de compra
-    │       │   └── reportes/
-    │       │       └── ReporteService.java       # Tablero de reportes (módulo «reportes»); un encuestador solo ve lo suyo
+    │       │   ├── reportes/
+    │       │   │   └── ReporteService.java       # Tablero de reportes (módulo «reportes»); un encuestador solo ve lo suyo
+    │       │   └── verificacion/
+    │       │       └── VerificacionService.java  # RF-10 Validación cruzada, devolver, aprobar y exportar a Excel (módulo «verificacion»)
     │       │
     │       ├── controller/                   # ── CONTROLADOR: una clase por pantalla, agrupadas por módulo ──
     │       │   ├── auth/
@@ -131,6 +138,8 @@ proyecto_integrador_UDI/
     │       │   │   └── HogarFormController.java       # Modal agregar/editar hogar (A.13, A.14)
     │       │   ├── reportes/
     │       │   │   └── ReporteController.java    # Hecho: tablero con indicadores, gráficas, tabla por encuestador paginada y exportación a Excel
+    │       │   ├── verificacion/
+    │       │   │   └── VerificacionController.java # Hecho: bandeja del crítico-digitador, validación, historial y acciones
     │       │   └── encuestas/
     │       │       ├── EncuestaController.java   # Hecho: «Mis Encuestas» (encuestador) o listado global con filtros
     │       │       ├── NuevaEncuestaController.java   # Hecho: modal, elegir un hogar sin encuesta
@@ -200,6 +209,8 @@ proyecto_integrador_UDI/
                 │       └── hogar_form.fxml           # Modal hogar
                 ├── reportes/
                 │   └── reporte.fxml          # Hecho: tablero de reportes
+                ├── verificacion/
+                │   └── verificacion.fxml     # Hecho: bandeja de verificación (RF-10)
                 ├── usuarios/
                 │   ├── usuario.fxml          # Hecho: listado
                 │   └── usuario_form.fxml     # Hecho: formulario
@@ -236,10 +247,10 @@ Una vista se nombra con su ruta dentro de `ui`, sin extensión: `"modulos/encues
   | Ruta | Cadena |
   |---|---|
   | `modulos/auth/` | (pública) |
-  | `modulos/usuarios/`, `modulos/roles/`, `modulos/viviendas/`, `modulos/encuestas/`, `modulos/reportes/` | `AutenticacionMiddleware` → `PermisoModuloMiddleware` |
+  | `modulos/usuarios/`, `modulos/roles/`, `modulos/viviendas/`, `modulos/encuestas/`, `modulos/reportes/`, `modulos/verificacion/` | `AutenticacionMiddleware` → `PermisoModuloMiddleware` |
   | cualquier otra (`shared/layout/navbar`…) | `AutenticacionMiddleware` |
 
-  `PermisoModuloMiddleware` deja pasar al ADMIN y, para los demás roles, busca el slug de la vista en `RutasModulo` (gana el prefijo más largo) y exige que el rol lo tenga en `rol_modulo`. Hay 5 módulos y cada uno agrupa todas sus pantallas:
+  `PermisoModuloMiddleware` deja pasar al ADMIN y, para los demás roles, busca el slug de la vista en `RutasModulo` (gana el prefijo más largo) y exige que el rol lo tenga en `rol_modulo`. Hay 6 módulos y cada uno agrupa todas sus pantallas:
 
   | Vista | Módulo (slug) | Incluye |
   |---|---|---|
@@ -248,6 +259,7 @@ Una vista se nombra con su ruta dentro de `ui`, sin extensión: `"modulos/encues
   | `modulos/viviendas/` | viviendas («Viviendas y hogares») | Viviendas, detalle, modales de vivienda y hogar |
   | `modulos/encuestas/` | encuestas | Listado, nueva encuesta, detalle y sus pestañas: control de visitas, Cap. A, Cap. C, línea de 14 días (D y D1) y cierre |
   | `modulos/reportes/` | reportes | Tablero: indicadores, estado de las encuestas, gasto por tipo, forma de adquisición y lugar de compra, grupos del Cap. C y rendimiento por encuestador |
+  | `modulos/verificacion/` | verificacion | Bandeja del crítico-digitador: validación cruzada de los casos cerrados, devolución a corrección, aprobación, exportación a Excel e historial (RF-10) |
 
 - Los controladores no validan roles: muestran cada botón o pestaña con `Rutas.permitir(nodo, vista)` (los mismos middlewares de la vista que abre), por ejemplo los enlaces de la vivienda que llevan a Encuestas. Dentro de la encuesta, lo que se puede editar depende solo de que esté abierta (`EncuestaDetalleController.esEditable()`). Los servicios repiten la validación con `Sesion.exigirModulo(RutasModulo.X)`, como una API que valida aunque el frontend oculte el botón.
 - Los permisos se cargan en `Sesion` al iniciar sesión; los cambios de la pantalla Roles y permisos aplican en el siguiente inicio de sesión (salvo el rol propio, que se recarga al guardar).

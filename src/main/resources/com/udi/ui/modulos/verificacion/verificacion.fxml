@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import com.udi.componentes.Paginador?>
+<?import com.udi.componentes.SelectBuscable?>
+
+<!-- Verificación (RF-10): bandeja de casos cerrados del crítico-digitador, validación cruzada,
+     devolución a corrección, aprobación y exportación a Excel -->
+<VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.udi.controller.verificacion.VerificacionController">
+
+   <!-- Título -->
+   <VBox spacing="4.0">
+      <Label text="Verificación y consolidación" styleClass="titulo-pagina" />
+      <Label text="Revisa los casos que el encuestador ya cerró, compáralos con el cuadernillo físico y apruébalos para exportarlos a Excel. Solo se aprueban casos sin errores en la validación cruzada."
+             styleClass="subtitulo-pagina" wrapText="true" />
+   </VBox>
+
+   <Label fx:id="lblAviso" styleClass="banner-ok" wrapText="true" maxWidth="Infinity" />
+
+   <!-- Tarjetas -->
+   <HBox spacing="16.0">
+      <VBox styleClass="tarjeta" spacing="2.0" prefWidth="240.0">
+         <Label text="Por verificar" styleClass="dato-etiqueta" />
+         <Label fx:id="lblPorVerificar" text="0" styleClass="metrica-valor" />
+         <Label text="Cerradas por el encuestador" styleClass="texto-suave" />
+      </VBox>
+      <VBox styleClass="tarjeta" spacing="2.0" prefWidth="240.0">
+         <Label text="Aprobadas" styleClass="dato-etiqueta" />
+         <Label fx:id="lblAprobadas" text="0" styleClass="metrica-valor" />
+         <Label text="Listas para el sistema del DANE" styleClass="texto-suave" />
+      </VBox>
+   </HBox>
+
+   <!-- Filtros: texto y ubicación de la vivienda arriba; estado, encuestador y total abajo -->
+   <VBox styleClass="tarjeta" spacing="14.0">
+    <HBox alignment="BOTTOM_LEFT" spacing="20.0">
+      <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
+         <Label text="Buscar" styleClass="etiqueta-campo" />
+         <TextField fx:id="txtBuscar" promptText="Caso, hogar, dirección, barrio…" styleClass="campo-linea" prefWidth="240.0" minWidth="120.0" />
+      </VBox>
+      <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
+         <Label text="Región" styleClass="etiqueta-campo" />
+         <SelectBuscable fx:id="cmbRegion" prefWidth="150.0" maxWidth="Infinity" />
+      </VBox>
+      <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
+         <Label text="Departamento" styleClass="etiqueta-campo" />
+         <SelectBuscable fx:id="cmbDepartamento" prefWidth="170.0" maxWidth="Infinity" />
+      </VBox>
+      <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
+         <Label text="Municipio" styleClass="etiqueta-campo" />
+         <SelectBuscable fx:id="cmbMunicipio" prefWidth="170.0" maxWidth="Infinity" />
+      </VBox>
+    </HBox>
+    <HBox alignment="BOTTOM_LEFT" spacing="20.0">
+      <VBox spacing="4.0">
+         <Label text="Estado" styleClass="etiqueta-campo" />
+         <ComboBox fx:id="cmbEstado" styleClass="combo-linea" prefWidth="170.0" />
+      </VBox>
+      <VBox spacing="4.0">
+         <Label text="Encuestador" styleClass="etiqueta-campo" />
+         <ComboBox fx:id="cmbEncuestador" styleClass="combo-linea" prefWidth="200.0" />
+      </VBox>
+      <Button text="Limpiar" onAction="#limpiar" styleClass="boton-secundario" minWidth="-Infinity" />
+      <Region HBox.hgrow="ALWAYS" />
+      <Label fx:id="lblTotal" styleClass="texto-suave" minWidth="-Infinity" />
+    </HBox>
+   </VBox>
+
+   <!-- Bandeja y detalle del caso -->
+   <HBox spacing="18.0" VBox.vgrow="ALWAYS">
+      <VBox HBox.hgrow="ALWAYS" minWidth="420.0">
+         <TableView fx:id="tabla" styleClass="tabla" VBox.vgrow="ALWAYS">
+            <columns>
+               <TableColumn fx:id="colCaso" text="Caso" styleClass="columna-codigo" />
+               <TableColumn fx:id="colHogar" text="Hogar / Dirección" />
+               <TableColumn fx:id="colEncuestador" text="Encuestador" />
+               <TableColumn fx:id="colValidacion" text="Validación" />
+               <TableColumn fx:id="colEstado" text="Estado" />
+            </columns>
+         </TableView>
+         <Paginador fx:id="paginador" />
+      </VBox>
+
+      <ScrollPane fitToWidth="true" styleClass="scroll-transparente" prefWidth="440.0" minWidth="360.0" maxWidth="480.0">
+         <VBox styleClass="tarjeta" spacing="16.0">
+            <!-- Sin caso seleccionado -->
+            <Label fx:id="lblSinSeleccion" text="Selecciona un caso de la bandeja para ver su validación cruzada y su historial."
+                   styleClass="texto-suave" wrapText="true" />
+
+            <VBox fx:id="boxDetalle" spacing="16.0">
+               <!-- Encabezado del caso -->
+               <VBox spacing="6.0">
+                  <HBox spacing="10.0" alignment="CENTER_LEFT">
+                     <Label fx:id="lblCodigo" styleClass="chip" />
+                     <Label fx:id="lblEstado" styleClass="insignia" />
+                  </HBox>
+                  <Label fx:id="lblHogar" styleClass="titulo-seccion" wrapText="true" />
+                  <Label fx:id="lblRegion" styleClass="texto-suave" wrapText="true" />
+                  <!-- Ubicación de la vivienda (Cap. A) -->
+                  <GridPane styleClass="caja-suave" hgap="16.0" vgap="2.0">
+                     <columnConstraints>
+                        <ColumnConstraints percentWidth="50.0" />
+                        <ColumnConstraints percentWidth="50.0" />
+                     </columnConstraints>
+                     <Label text="Departamento" styleClass="dato-etiqueta" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                     <Label fx:id="lblDepartamento" styleClass="dato-valor" wrapText="true" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                     <Label text="Municipio" styleClass="dato-etiqueta" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                     <Label fx:id="lblMunicipio" styleClass="dato-valor" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                     <Label text="Dirección (A.16)" styleClass="dato-etiqueta" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                        <GridPane.margin><Insets top="8.0" /></GridPane.margin>
+                     </Label>
+                     <Label fx:id="lblDireccion" styleClass="dato-valor" wrapText="true" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                     <Label text="Barrio (A.15)" styleClass="dato-etiqueta" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                        <GridPane.margin><Insets top="8.0" /></GridPane.margin>
+                     </Label>
+                     <Label fx:id="lblBarrio" styleClass="dato-valor" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                  </GridPane>
+                  <!-- Datos del caso -->
+                  <GridPane styleClass="caja-suave" hgap="16.0" vgap="2.0">
+                     <columnConstraints>
+                        <ColumnConstraints percentWidth="50.0" />
+                        <ColumnConstraints percentWidth="50.0" />
+                     </columnConstraints>
+                     <Label text="Encuestador" styleClass="dato-etiqueta" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                     <Label fx:id="lblEncuestador" styleClass="dato-valor" wrapText="true" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                     <Label text="Periodo de 14 días" styleClass="dato-etiqueta" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                     <Label fx:id="lblPeriodo" styleClass="dato-valor" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                     <Label text="Cierre del caso" styleClass="dato-etiqueta" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                        <GridPane.margin><Insets top="8.0" /></GridPane.margin>
+                     </Label>
+                     <Label fx:id="lblCierre" styleClass="dato-valor" GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.columnSpan="2" />
+                  </GridPane>
+               </VBox>
+
+               <!-- Validación cruzada -->
+               <VBox spacing="4.0">
+                  <HBox alignment="CENTER_LEFT">
+                     <Label text="VALIDACIÓN CRUZADA" styleClass="etiqueta-seccion" />
+                     <Region HBox.hgrow="ALWAYS" />
+                     <Label fx:id="lblResumen" styleClass="texto-suave" />
+                  </HBox>
+                  <VBox fx:id="listaReglas" />
+               </VBox>
+
+               <!-- Acciones según el estado -->
+               <VBox spacing="10.0">
+                  <Label fx:id="lblEstadoCaso" wrapText="true" maxWidth="Infinity" />
+                  <VBox fx:id="boxObservacion" spacing="4.0">
+                     <Label text="Observación para el encuestador (obligatoria al devolver)" styleClass="etiqueta-campo" />
+                     <TextArea fx:id="txtObservacion" styleClass="area-texto" prefRowCount="3" wrapText="true"
+                               promptText="Ej. Falta el registro del día 9; confírmelo con el hogar y regístrelo." />
+                     <Label fx:id="lblError" styleClass="mensaje-error" wrapText="true" />
+                  </VBox>
+                  <FlowPane hgap="10.0" vgap="8.0">
+                     <Button fx:id="btnAbrir" text="Abrir encuesta" onAction="#abrirEncuesta" styleClass="boton-secundario" />
+                     <Button fx:id="btnDevolver" text="Devolver a corrección" onAction="#devolver" styleClass="boton-secundario" />
+                     <Button fx:id="btnAprobar" text="Aprobar y exportar a Excel" onAction="#aprobar" styleClass="boton-accion" />
+                     <Button fx:id="btnExportar" text="Descargar Excel de nuevo" onAction="#exportar" styleClass="boton-secundario" />
+                  </FlowPane>
+               </VBox>
+
+               <!-- Historial -->
+               <VBox spacing="8.0">
+                  <Label text="HISTORIAL DEL CASO" styleClass="etiqueta-seccion" />
+                  <VBox fx:id="listaHistorial" spacing="10.0" />
+               </VBox>
+            </VBox>
+         </VBox>
+      </ScrollPane>
+   </HBox>
+</VBox>

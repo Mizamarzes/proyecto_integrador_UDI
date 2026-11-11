@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -84,7 +85,14 @@ public class EncuestaDAO extends BaseDAO<Encuesta> {
         return consultar(c, "SELECT * FROM encuesta WHERE estado = ? ORDER BY fecha_desde DESC", estado);
     }
 
-    /** Cambia el estado del caso (cerrar o reabrir, RF-06). */
+    /** Encuestas en cualquiera de los estados, de la más reciente a la más antigua. */
+    public List<Encuesta> listarPorEstados(Connection c, EstadoEncuesta... estados) throws SQLException {
+        String marcas = String.join(", ", Collections.nCopies(estados.length, "?"));
+        return consultar(c, "SELECT * FROM encuesta WHERE estado IN (" + marcas + ") ORDER BY fecha_desde DESC",
+                (Object[]) estados);
+    }
+
+    /** Cambia el estado del caso (cerrar, reabrir, devolver o aprobar; RF-06 y RF-10). */
     public boolean actualizarEstado(Connection c, long id, EstadoEncuesta estado, LocalDateTime fechaCierre,
                                     Long cerradaPor) throws SQLException {
         return ejecutar(c, "UPDATE encuesta SET estado = ?, fecha_cierre = ?, cerrada_por = ?,"

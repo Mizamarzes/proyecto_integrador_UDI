@@ -35,6 +35,9 @@
          <Button text="← Volver a encuestas" onAction="#volver" styleClass="boton-secundario" minWidth="-Infinity" />
       </HBox>
 
+      <!-- Observación del crítico-digitador cuando la devolvió a corrección (RF-10) -->
+      <Label fx:id="lblCorreccion" styleClass="banner-alerta" wrapText="true" maxWidth="Infinity" />
+
       <!-- Pestañas -->
       <HBox styleClass="pestanas" spacing="2.0">
          <ToggleButton fx:id="tabVisitas" text="Control de visitas" toggleGroup="$grupoPestanas" styleClass="pestana" />

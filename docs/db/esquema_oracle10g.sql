@@ -150,7 +150,7 @@ CREATE TABLE encuesta (
   forma_pago             VARCHAR2(20),
   forma_pago_otra        VARCHAR2(100),
   observaciones          VARCHAR2(1000),
-  estado                 VARCHAR2(10)    DEFAULT 'ABIERTA' NOT NULL,
+  estado                 VARCHAR2(20)    DEFAULT 'ABIERTA' NOT NULL,
   fecha_cierre           TIMESTAMP,
   cerrada_por            NUMBER(10),
   created_at             TIMESTAMP       DEFAULT SYSTIMESTAMP NOT NULL,
@@ -165,9 +165,9 @@ CREATE TABLE encuesta (
   CONSTRAINT ck_encuesta_forma_pago_otra CHECK (
     (forma_pago = 'OTRA' AND forma_pago_otra IS NOT NULL)
     OR (NVL(forma_pago, '-') <> 'OTRA' AND forma_pago_otra IS NULL)),
-  CONSTRAINT ck_encuesta_estado CHECK (estado IN ('ABIERTA', 'CERRADA', 'REABIERTA')),
+  CONSTRAINT ck_encuesta_estado CHECK (estado IN ('ABIERTA', 'CERRADA', 'REABIERTA', 'EN_CORRECCION', 'APROBADA')),
   CONSTRAINT ck_encuesta_cierre CHECK (
-    estado <> 'CERRADA' OR (fecha_cierre IS NOT NULL AND cerrada_por IS NOT NULL))
+    estado NOT IN ('CERRADA', 'APROBADA') OR (fecha_cierre IS NOT NULL AND cerrada_por IS NOT NULL))
 );
 
 CREATE TABLE visita (
@@ -342,6 +342,23 @@ CREATE TABLE comida_fuera_hogar (
   CONSTRAINT ck_cfh_a_domicilio CHECK (a_domicilio IN ('S', 'N'))
 );
 
+-- ---------------------------------------------------------------------
+-- Verificación (RF-10): historial de cada caso
+-- ---------------------------------------------------------------------
+
+CREATE TABLE auditoria_encuesta (
+  id           NUMBER(10)      NOT NULL,
+  encuesta_id  NUMBER(10)      NOT NULL,
+  accion       VARCHAR2(20)    NOT NULL,
+  observacion  VARCHAR2(1000),
+  created_at   TIMESTAMP       DEFAULT SYSTIMESTAMP NOT NULL,
+  updated_at   TIMESTAMP,
+  created_by   NUMBER(10),
+  CONSTRAINT pk_auditoria_encuesta PRIMARY KEY (id),
+  CONSTRAINT ck_auditoria_accion CHECK (accion IN ('CIERRE', 'REAPERTURA', 'DEVOLUCION', 'APROBACION', 'EXPORTACION')),
+  CONSTRAINT ck_auditoria_devolucion CHECK (accion <> 'DEVOLUCION' OR observacion IS NOT NULL)
+);
+
 -- =====================================================================
 -- 2. LLAVES FORÁNEAS
 -- =====================================================================
@@ -378,6 +395,9 @@ ALTER TABLE comida_fuera_hogar ADD CONSTRAINT fk_cfh_registro          FOREIGN K
 ALTER TABLE comida_fuera_hogar ADD CONSTRAINT fk_cfh_encuestador       FOREIGN KEY (encuestador_id)     REFERENCES encuestador (id);
 ALTER TABLE comida_fuera_hogar ADD CONSTRAINT fk_cfh_lugar             FOREIGN KEY (lugar_compra_id)    REFERENCES lugar_compra (id);
 
+-- Verificación
+ALTER TABLE auditoria_encuesta ADD CONSTRAINT fk_auditoria_encuesta FOREIGN KEY (encuesta_id) REFERENCES encuesta (id) ON DELETE CASCADE;
+
 -- Auditoría (created_by -> usuario)
 ALTER TABLE modulo               ADD CONSTRAINT fk_modulo_created_by       FOREIGN KEY (created_by) REFERENCES usuario (id);
 ALTER TABLE rol                  ADD CONSTRAINT fk_rol_created_by          FOREIGN KEY (created_by) REFERENCES usuario (id);
@@ -394,6 +414,7 @@ ALTER TABLE lugar_compra         ADD CONSTRAINT fk_lugar_compra_created_by FOREI
 ALTER TABLE registro_diario      ADD CONSTRAINT fk_reg_diario_created_by   FOREIGN KEY (created_by) REFERENCES usuario (id);
 ALTER TABLE gasto_diario         ADD CONSTRAINT fk_gasto_diario_created_by FOREIGN KEY (created_by) REFERENCES usuario (id);
 ALTER TABLE comida_fuera_hogar   ADD CONSTRAINT fk_cfh_created_by          FOREIGN KEY (created_by) REFERENCES usuario (id);
+ALTER TABLE auditoria_encuesta   ADD CONSTRAINT fk_auditoria_created_by    FOREIGN KEY (created_by) REFERENCES usuario (id);
 
 -- =====================================================================
 -- 3. ÍNDICES
@@ -408,6 +429,7 @@ CREATE INDEX ix_encuesta_encuestador     ON encuesta (encuestador_id);
 CREATE INDEX ix_carac_gasto_grupo        ON caracteristica_gasto (grupo_alimento_id);
 CREATE INDEX ix_gasto_diario_lugar       ON gasto_diario (lugar_compra_id);
 CREATE INDEX ix_cfh_lugar                ON comida_fuera_hogar (lugar_compra_id);
+CREATE INDEX ix_auditoria_encuesta       ON auditoria_encuesta (encuesta_id);
 
 -- =====================================================================
 -- 4. SECUENCIAS
@@ -431,6 +453,7 @@ CREATE SEQUENCE seq_lugar_compra         START WITH 26 INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE seq_registro_diario      START WITH 1  INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE seq_gasto_diario         START WITH 1  INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE seq_comida_fuera_hogar   START WITH 1  INCREMENT BY 1 NOCACHE;
+CREATE SEQUENCE seq_auditoria_encuesta   START WITH 1  INCREMENT BY 1 NOCACHE;
 
 -- =====================================================================
 -- 5. CATÁLOGOS DEL CUADERNILLO
@@ -534,7 +557,7 @@ INSERT INTO encuestador (id, usuario_id, created_by) VALUES (seq_encuestador.NEX
 INSERT INTO encuestador (id, usuario_id, created_by) VALUES (seq_encuestador.NEXTVAL, 12, 1);
 
 -- ---------------------------------------------------------------------
--- Módulos (5) y permisos por rol (6)
+-- Módulos (6) y permisos por rol (7)
 -- Cada módulo agrupa sus pantallas: «viviendas» incluye los hogares y
 -- «encuestas» incluye control de visitas, capítulo C, gastos y comidas.
 -- ---------------------------------------------------------------------
@@ -543,12 +566,14 @@ INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'R
 INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Viviendas y hogares', 'viviendas', 1);
 INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Encuestas', 'encuestas', 1);
 INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Reportes', 'reportes', 1);
+INSERT INTO modulo (id, nombre, slug, created_by) VALUES (seq_modulo.NEXTVAL, 'Verificación', 'verificacion', 1);
 
--- ADMIN: usuarios y roles | CRITICO_DIGITADOR: encuestas y reportes | ENCUESTADOR: viviendas y encuestas
+-- ADMIN: usuarios y roles | CRITICO_DIGITADOR: encuestas, reportes y verificación | ENCUESTADOR: viviendas y encuestas
 INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 1, 1, 1);
 INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 1, 2, 1);
 INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 2, 4, 1);
 INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 2, 5, 1);
+INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 2, 6, 1);
 INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 3, 3, 1);
 INSERT INTO rol_modulo (id, rol_id, modulo_id, created_by) VALUES (seq_rol_modulo.NEXTVAL, 3, 4, 1);
 
@@ -726,5 +751,12 @@ INSERT INTO comida_fuera_hogar (id, registro_diario_id, encuestador_id, lugar_co
   VALUES (seq_comida_fuera_hogar.NEXTVAL, 4, 1, 25, 2, 'Jugo natural de mora', 'ONCES', 1, 'COMPRA', NULL, 5000, 'SEMANAL', 'PERSONAL', 'N', 3);
 INSERT INTO comida_fuera_hogar (id, registro_diario_id, encuestador_id, lugar_compra_id, numero_orden, descripcion, tipo_comida, cantidad, forma_adquisicion, forma_adquisicion_otra, valor, frecuencia_compra, tipo_gasto, a_domicilio, created_by)
   VALUES (seq_comida_fuera_hogar.NEXTVAL, 4, 1, NULL, 3, 'Lechona', 'ALMUERZO', 1, 'REGALO', NULL, 15000, NULL, 'HOGAR', 'N', 3);
+
+-- ---------------------------------------------------------------------
+-- Historial de verificación: el cierre de cada encuesta que tiene fecha de cierre
+-- ---------------------------------------------------------------------
+INSERT INTO auditoria_encuesta (id, encuesta_id, accion, observacion, created_at, created_by)
+  SELECT seq_auditoria_encuesta.NEXTVAL, id, 'CIERRE', NULL, fecha_cierre, cerrada_por
+    FROM encuesta WHERE fecha_cierre IS NOT NULL;
 
 COMMIT;

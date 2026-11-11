@@ -4,6 +4,7 @@ import com.udi.App;
 import com.udi.controller.shared.NavbarController;
 import com.udi.exception.ReglaNegocioException;
 import com.udi.middleware.Rutas;
+import com.udi.model.AuditoriaEncuesta;
 import com.udi.model.Encuesta;
 import com.udi.model.Hogar;
 import com.udi.model.Visita;
@@ -76,6 +77,8 @@ public class EncuestaDetalleController {
     @FXML
     private Label lblAviso;
     @FXML
+    private Label lblCorreccion;
+    @FXML
     private StackPane contenido;
 
     /** Formulario de visitas (módulo «encuestas», middleware/RutasModulo). */
@@ -121,6 +124,7 @@ public class EncuestaDetalleController {
         });
         Formato.mostrar(lblAviso, false);
         Formato.mostrar(lblEstado, false);
+        Formato.mostrar(lblCorreccion, false);
     }
 
     /** Carga la encuesta con su hogar y vivienda y muestra la pestaña indicada. */
@@ -131,12 +135,14 @@ public class EncuestaDetalleController {
                     .orElseThrow(() -> new ReglaNegocioException("No existe la encuesta " + id + "."));
             datos.hogar = hogarService.buscarHogar(datos.encuesta.getHogarId()).orElse(null);
             datos.vivienda = datos.hogar == null ? null : hogarService.buscarVivienda(datos.hogar.getViviendaId()).orElse(null);
+            datos.devolucion = encuestaService.ultimaDevolucion(id).orElse(null);
             return datos;
         }, datos -> {
             encuesta = datos.encuesta;
             hogar = datos.hogar;
             vivienda = datos.vivienda;
             pintarEncabezado();
+            pintarCorreccion(datos.devolucion);
             ir(pestana);
         });
     }
@@ -223,6 +229,16 @@ public class EncuestaDetalleController {
         lblSubtitulo.setText(texto.toString());
     }
 
+    /** Qué pidió corregir el crítico-digitador; se oculta si la encuesta no está en corrección. */
+    private void pintarCorreccion(AuditoriaEncuesta devolucion) {
+        if (devolucion != null) {
+            lblCorreccion.setText("Devuelta a corrección por " + devolucion.getUsuarioNombre() + " el "
+                    + Formato.fechaHora(devolucion.getCreatedAt()) + ": «" + devolucion.getObservacion()
+                    + "». Corrija y vuelva a cerrar el caso en la pestaña Cierre.");
+        }
+        Formato.mostrar(lblCorreccion, devolucion != null);
+    }
+
     @FXML
     private void volver() {
         NavbarController.abrir("modulos/encuestas/encuesta", "Encuestas");
@@ -257,5 +273,6 @@ public class EncuestaDetalleController {
         private Encuesta encuesta;
         private Hogar hogar;
         private Vivienda vivienda;
+        private AuditoriaEncuesta devolucion;
     }
 }

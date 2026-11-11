@@ -78,6 +78,16 @@ Enum estado_encuesta {
   ABIERTA    [note: 'Dentro de los 14 días, admite registros']
   CERRADA    [note: 'Caso completo, bloquea inserciones y cambios (RF-06)']
   REABIERTA  [note: 'Un administrador autorizó cambios después del cierre']
+  EN_CORRECCION  [note: 'El crítico-digitador la devolvió para corregir (RF-10)']
+  APROBADA   [note: 'Verificada y exportada a Excel por el crítico-digitador (RF-10)']
+}
+
+Enum accion_auditoria {
+  CIERRE       [note: 'El caso se cerró']
+  REAPERTURA   [note: 'Un administrador reabrió el caso']
+  DEVOLUCION   [note: 'El crítico-digitador lo devolvió a corrección, con observación']
+  APROBACION   [note: 'El crítico-digitador lo aprobó']
+  EXPORTACION  [note: 'Se generó el archivo de Excel para el DANE']
 }
 
 Enum tipo_comida {
@@ -222,7 +232,7 @@ Table encuesta [headercolor: #2980B9] {
   forma_pago forma_pago [note: 'D2.2']
   forma_pago_otra varchar2(100) [note: 'D2.2 f. Otra, ¿cuál?']
   observaciones varchar2(1000)
-  estado estado_encuesta [not null, default: 'ABIERTA', note: 'RF-06']
+  estado estado_encuesta [not null, default: 'ABIERTA', note: 'RF-06, RF-10']
   fecha_cierre timestamp [note: 'Cuándo se cerró el caso']
   cerrada_por number(10) [note: 'Usuario que cerró el caso']
   created_at timestamp [not null, default: `SYSTIMESTAMP`]
@@ -358,6 +368,16 @@ Table comida_fuera_hogar [headercolor: #E74C3C] {
   }
 }
 
+Table auditoria_encuesta [headercolor: #16A085] {
+  id number(10) [pk, increment]
+  encuesta_id number(10) [not null]
+  accion accion_auditoria [not null]
+  observacion varchar2(1000) [note: 'Obligatoria en DEVOLUCION; nombre del archivo en EXPORTACION']
+  created_at timestamp [not null, default: `SYSTIMESTAMP`, note: 'Cuándo ocurrió']
+  updated_at timestamp
+  created_by number(10) [note: 'Usuario que hizo la acción']
+}
+
 // =====================================================================
 // Agrupaciones
 // =====================================================================
@@ -386,6 +406,10 @@ TableGroup hogar_encuesta [color: #2980B9] {
 TableGroup capitulo_c [color: #8E44AD] {
   grupo_alimento
   caracteristica_gasto
+}
+
+TableGroup verificacion [color: #16A085] {
+  auditoria_encuesta
 }
 
 TableGroup capitulo_d [color: #E74C3C] {
@@ -431,6 +455,9 @@ Ref: comida_fuera_hogar.registro_diario_id > registro_diario.id [delete: cascade
 Ref: comida_fuera_hogar.encuestador_id > encuestador.id [color: #E74C3C]
 Ref: comida_fuera_hogar.lugar_compra_id > lugar_compra.id [color: #E67E22]
 
+// Verificación
+Ref: auditoria_encuesta.encuesta_id > encuesta.id [delete: cascade, color: #16A085]
+
 // Auditoría (created_by)
 Ref: modulo.created_by > usuario.id [color: #BDC3C7]
 Ref: rol.created_by > usuario.id [color: #BDC3C7]
@@ -447,3 +474,4 @@ Ref: lugar_compra.created_by > usuario.id [color: #BDC3C7]
 Ref: registro_diario.created_by > usuario.id [color: #BDC3C7]
 Ref: gasto_diario.created_by > usuario.id [color: #BDC3C7]
 Ref: comida_fuera_hogar.created_by > usuario.id [color: #BDC3C7]
+Ref: auditoria_encuesta.created_by > usuario.id [color: #BDC3C7]

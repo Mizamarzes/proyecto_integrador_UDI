@@ -5,11 +5,13 @@ import com.udi.dao.encuestas.EncuestaDAO;
 import com.udi.dao.encuestas.RegistroDiarioDAO;
 import com.udi.dao.usuarios.EncuestadorDAO;
 import com.udi.dao.usuarios.UsuarioDAO;
+import com.udi.dao.verificacion.AuditoriaEncuestaDAO;
 import com.udi.dao.viviendas.HogarDAO;
 import com.udi.dao.viviendas.ViviendaDAO;
 import com.udi.exception.ReglaNegocioException;
 import com.udi.middleware.RutasModulo;
 import com.udi.model.Encuesta;
+import com.udi.model.AuditoriaEncuesta;
 import com.udi.model.EncuestaResumen;
 import com.udi.model.Encuestador;
 import com.udi.model.Hogar;
@@ -17,6 +19,7 @@ import com.udi.model.Opcion;
 import com.udi.model.Rol;
 import com.udi.model.Usuario;
 import com.udi.model.Vivienda;
+import com.udi.model.enums.AccionAuditoria;
 import com.udi.model.enums.EstadoEncuesta;
 import com.udi.model.enums.FormaPago;
 import com.udi.util.Formato;
@@ -51,6 +54,7 @@ public class EncuestaService {
     private final RegistroDiarioDAO registroDiarioDao = new RegistroDiarioDAO();
     private final UsuarioDAO usuarioDao = new UsuarioDAO();
     private final ViviendaDAO viviendaDao = new ViviendaDAO();
+    private final AuditoriaEncuestaDAO auditoriaDao = new AuditoriaEncuestaDAO();
 
     public List<Encuesta> listar() {
         return ConexionBD.consultar(encuestaDao::listar);
@@ -203,26 +207,54 @@ public class EncuestaService {
         });
     }
 
-    /** Marca el caso como completo (RF-06). Desde ese momento no admite cambios. */
+    /**
+     * Marca el caso como completo (RF-06). Desde ese momento no admite cambios
+     * y pasa a la bandeja de verificación (también si estaba en corrección).
+     */
     public void cerrar(long encuestaId) {
         Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Usuario usuario = Sesion.exigirSesion();
         ConexionBD.enTransaccion(c -> {
             ReglasEncuesta.exigirEditable(c, encuestaId);
-            return encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.CERRADA, LocalDateTime.now(), usuario.getId());
+            encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.CERRADA, LocalDateTime.now(), usuario.getId());
+            return registrar(c, encuestaId, AccionAuditoria.CIERRE, null);
         });
     }
 
-    /** Solo un administrador puede reabrir un caso cerrado (RF-06). */
+    /** Solo un administrador puede reabrir un caso cerrado o aprobado (RF-06). */
     public void reabrir(long encuestaId) {
         Sesion.exigirAdmin();
         ConexionBD.enTransaccion(c -> {
             Encuesta encuesta = Validar.encontrado(encuestaDao.buscarPorId(c, encuestaId),
                     "No existe la encuesta " + encuestaId + ".");
             Validar.condicion(encuesta.estaCerrada(), "La encuesta " + encuestaId + " no está cerrada.");
-            return encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.REABIERTA,
+            encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.REABIERTA,
                     encuesta.getFechaCierre(), encuesta.getCerradaPor());
+            return registrar(c, encuestaId, AccionAuditoria.REAPERTURA, null);
         });
+    }
+
+    /**
+     * Última devolución del crítico-digitador, para mostrarle al encuestador
+     * qué debe corregir. Vacío si la encuesta no está en corrección.
+     */
+    public Optional<AuditoriaEncuesta> ultimaDevolucion(long encuestaId) {
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
+        return ConexionBD.consultar(c -> {
+            Optional<Encuesta> encuesta = encuestaDao.buscarPorId(c, encuestaId);
+            if (!encuesta.isPresent() || encuesta.get().getEstado() != EstadoEncuesta.EN_CORRECCION) {
+                return Optional.<AuditoriaEncuesta>empty();
+            }
+            return auditoriaDao.ultimaPorAccion(c, encuestaId, AccionAuditoria.DEVOLUCION);
+        });
+    }
+
+    /** Agrega un registro al historial de la encuesta (tabla auditoria_encuesta). */
+    private AuditoriaEncuesta registrar(Connection c, long encuestaId, AccionAuditoria accion, String observacion)
+            throws SQLException {
+        AuditoriaEncuesta registro = new AuditoriaEncuesta(encuestaId, accion, observacion);
+        registro.setCreatedBy(Sesion.idUsuario());
+        return auditoriaDao.insertar(c, registro);
     }
 
     /** Elimina la encuesta con su capítulo C y sus días (en cascada). No aplica a encuestas cerradas. */

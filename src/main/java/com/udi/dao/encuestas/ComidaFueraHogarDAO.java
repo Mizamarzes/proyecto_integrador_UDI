@@ -76,6 +76,12 @@ public class ComidaFueraHogarDAO extends BaseDAO<ComidaFueraHogar> {
                 registroDiarioId);
     }
 
+    /** Renglones del capítulo D1 de toda la encuesta, por día y número de orden. */
+    public List<ComidaFueraHogar> listarPorEncuesta(Connection c, long encuestaId) throws SQLException {
+        return consultar(c, "SELECT cf.* FROM comida_fuera_hogar cf JOIN registro_diario r ON r.id = cf.registro_diario_id"
+                + " WHERE r.encuesta_id = ? ORDER BY r.numero_dia, cf.numero_orden", encuestaId);
+    }
+
     public long contarPorRegistro(Connection c, long registroDiarioId) throws SQLException {
         return consultarNumero(c, "SELECT COUNT(*) FROM comida_fuera_hogar WHERE registro_diario_id = ?", registroDiarioId);
     }

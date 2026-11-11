@@ -33,6 +33,7 @@ public final class Rutas {
         ruta("modulos/viviendas/", AUTENTICACION, PERMISO_MODULO);
         ruta("modulos/encuestas/", AUTENTICACION, PERMISO_MODULO);
         ruta("modulos/reportes/", AUTENTICACION, PERMISO_MODULO);
+        ruta("modulos/verificacion/", AUTENTICACION, PERMISO_MODULO);
         // Cualquier otra vista (navbar, pendiente…) solo pide sesión iniciada
         ruta("", AUTENTICACION);
     }
