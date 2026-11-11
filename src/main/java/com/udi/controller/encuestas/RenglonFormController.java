@@ -107,6 +107,9 @@ public class RenglonFormController {
 
     private RegistroDiario registro;
     private boolean esGasto;
+    /** Renglón que se edita; null si es uno nuevo. */
+    private GastoDiario gastoEditado;
+    private ComidaFueraHogar comidaEditada;
     private Consumer<String> alGuardar;
 
     @FXML
@@ -162,6 +165,51 @@ public class RenglonFormController {
         lblSubtitulo.setText("D1. Comidas preparadas fuera del hogar · Día " + registro.getNumeroDia() + ", "
                 + Formato.fechaLarga(registro.getFecha()) + ".");
         btnGuardar.setText("Guardar comida");
+    }
+
+    /** Edita un gasto existente de la tabla D del día. */
+    public void editarGasto(RegistroDiario registro, GastoDiario gasto, List<LugarCompra> lugares, Consumer<String> alGuardar) {
+        gasto(registro, gasto.getNumeroOrden(), lugares, alGuardar);
+        gastoEditado = gasto;
+        lblTitulo.setText("Editar gasto (tabla D)");
+        btnGuardar.setText("Guardar cambios");
+        txtArticulo.setText(gasto.getNombreArticulo());
+        txtCantidad.setText(Formato.numero(gasto.getCantidad()));
+        // Primero la unidad: al cambiarla se limpian la otra unidad y las equivalencias
+        cmbUnidad.setValue(gasto.getUnidadMedida());
+        txtUnidadOtra.setText(gasto.getUnidadMedidaOtra());
+        txtEqGr.setText(Formato.numero(gasto.getEquivalenciaGr()));
+        txtEqCm3.setText(Formato.numero(gasto.getEquivalenciaCm3()));
+        txtMesada.setText(gasto.getBeneficiarioMesada());
+        llenarComunes(gasto.getFormaAdquisicion(), gasto.getFormaAdquisicionOtra(), gasto.getLugarCompraId(),
+                gasto.getFrecuenciaCompra(), gasto.getValor(), gasto.getTipoGasto(), lugares);
+    }
+
+    /** Edita una comida existente de la tabla D1 del día. */
+    public void editarComida(RegistroDiario registro, ComidaFueraHogar comida, List<LugarCompra> lugares, Consumer<String> alGuardar) {
+        comida(registro, comida.getNumeroOrden(), lugares, alGuardar);
+        comidaEditada = comida;
+        lblTitulo.setText("Editar comida (tabla D1)");
+        btnGuardar.setText("Guardar cambios");
+        txtDescripcion.setText(comida.getDescripcion());
+        txtCantidadComida.setText(Formato.numero(comida.getCantidad()));
+        chkDomicilio.setSelected(comida.isADomicilio());
+        grupoComida.getToggles().stream().filter(t -> t.getUserData() == comida.getTipoComida())
+                .findFirst().ifPresent(grupoComida::selectToggle);
+        llenarComunes(comida.getFormaAdquisicion(), comida.getFormaAdquisicionOtra(), comida.getLugarCompraId(),
+                comida.getFrecuenciaCompra(), comida.getValor(), comida.getTipoGasto(), lugares);
+    }
+
+    /** Columnas (6) a (10), comunes a D y D1. */
+    private void llenarComunes(FormaAdquisicion forma, String formaOtra, Long lugarId, FrecuenciaCompra frecuencia,
+                               BigDecimal valor, TipoGasto tipo, List<LugarCompra> lugares) {
+        // Primero la forma: al cambiarla se limpian la otra forma, el lugar y la frecuencia
+        cmbForma.setValue(forma);
+        txtFormaOtra.setText(formaOtra);
+        cmbLugar.setValue(lugares.stream().filter(l -> l.getId().equals(lugarId)).findFirst().orElse(null));
+        cmbFrecuencia.setValue(frecuencia);
+        txtValor.setText(Formato.numero(valor));
+        grupoTipo.selectToggle(tipo == TipoGasto.PERSONAL ? rbPersonal : rbHogar);
     }
 
     private void preparar(RegistroDiario registro, int numero, List<LugarCompra> lugares, Consumer<String> alGuardar, boolean esGasto) {
@@ -220,12 +268,28 @@ public class RenglonFormController {
         Formato.mostrar(lblError, false);
         if (esGasto) {
             GastoDiario gasto = leerGasto();
-            Tareas.ejecutar(() -> gastoService.crearGasto(gasto), guardado -> terminar(
-                    "Gasto " + guardado.getNumeroOrden() + " agregado a la tabla D del día " + registro.getNumeroDia() + "."));
+            if (gastoEditado != null) {
+                gasto.setId(gastoEditado.getId());
+                gasto.setNumeroOrden(gastoEditado.getNumeroOrden());
+                gasto.setEncuestadorId(gastoEditado.getEncuestadorId());
+                Tareas.ejecutar(() -> gastoService.actualizarGasto(gasto), guardado -> terminar(
+                        "Gasto " + guardado.getNumeroOrden() + " de la tabla D del día " + registro.getNumeroDia() + " actualizado."));
+            } else {
+                Tareas.ejecutar(() -> gastoService.crearGasto(gasto), guardado -> terminar(
+                        "Gasto " + guardado.getNumeroOrden() + " agregado a la tabla D del día " + registro.getNumeroDia() + "."));
+            }
         } else {
             ComidaFueraHogar comida = leerComida();
-            Tareas.ejecutar(() -> gastoService.crearComida(comida), guardada -> terminar(
-                    "Comida " + guardada.getNumeroOrden() + " agregada a la tabla D1 del día " + registro.getNumeroDia() + "."));
+            if (comidaEditada != null) {
+                comida.setId(comidaEditada.getId());
+                comida.setNumeroOrden(comidaEditada.getNumeroOrden());
+                comida.setEncuestadorId(comidaEditada.getEncuestadorId());
+                Tareas.ejecutar(() -> gastoService.actualizarComida(comida), guardada -> terminar(
+                        "Comida " + guardada.getNumeroOrden() + " de la tabla D1 del día " + registro.getNumeroDia() + " actualizada."));
+            } else {
+                Tareas.ejecutar(() -> gastoService.crearComida(comida), guardada -> terminar(
+                        "Comida " + guardada.getNumeroOrden() + " agregada a la tabla D1 del día " + registro.getNumeroDia() + "."));
+            }
         }
     }
 

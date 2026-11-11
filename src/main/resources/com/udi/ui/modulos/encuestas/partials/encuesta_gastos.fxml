@@ -75,7 +75,7 @@
                <TableColumn fx:id="dValor" text="(8) Valor" prefWidth="90.0" />
                <TableColumn fx:id="dFrecuencia" text="(9) Frecuencia" prefWidth="90.0" />
                <TableColumn fx:id="dTipo" text="(10) Tipo" prefWidth="70.0" />
-               <TableColumn fx:id="dAcciones" text="Acciones" prefWidth="70.0" sortable="false" />
+               <TableColumn fx:id="dAcciones" text="Acciones" prefWidth="120.0" minWidth="120.0" sortable="false" />
             </columns>
          </TableView>
       </VBox>
@@ -101,7 +101,7 @@
                <TableColumn fx:id="mFrecuencia" text="(9) Frecuencia" prefWidth="90.0" />
                <TableColumn fx:id="mTipo" text="(10) Tipo" prefWidth="70.0" />
                <TableColumn fx:id="mDomicilio" text="(11) Domicilio" prefWidth="70.0" />
-               <TableColumn fx:id="mAcciones" text="Acciones" prefWidth="70.0" sortable="false" />
+               <TableColumn fx:id="mAcciones" text="Acciones" prefWidth="120.0" minWidth="120.0" sortable="false" />
             </columns>
          </TableView>
       </VBox>

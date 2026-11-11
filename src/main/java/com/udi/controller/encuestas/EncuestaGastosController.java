@@ -46,7 +46,7 @@ import java.util.function.Function;
 /**
  * Pestaña «Línea de 14 días». Muestra los 14 días del periodo; al elegir un
  * día se ven sus renglones de la tabla D (gastos diarios) y D1 (comidas
- * preparadas fuera del hogar). Los renglones se agregan con un modal.
+ * preparadas fuera del hogar). Los renglones se agregan y editan con un modal.
  */
 public class EncuestaGastosController implements SeccionEncuesta {
 
@@ -348,17 +348,27 @@ public class EncuestaGastosController implements SeccionEncuesta {
     }
 
     private void abrirRenglon(boolean esGasto) {
+        abrirRenglon(esGasto, null, null);
+    }
+
+    /** Abre el modal del renglón: nuevo si {@code gasto} y {@code comida} son null, o para editar uno de ellos. */
+    private void abrirRenglon(boolean esGasto, GastoDiario gasto, ComidaFueraHogar comida) {
         RegistroDiario registro = registros.get(dia);
+        boolean editando = gasto != null || comida != null;
         int siguiente = esGasto
                 ? tablaD.getItems().stream().mapToInt(GastoDiario::getNumeroOrden).max().orElse(0) + 1
                 : tablaD1.getItems().stream().mapToInt(ComidaFueraHogar::getNumeroOrden).max().orElse(0) + 1;
         Modal<RenglonFormController> modal = Modal.cargar("modulos/encuestas/partials/renglon_form",
-                esGasto ? "Agregar gasto" : "Agregar comida");
+                (editando ? "Editar " : "Agregar ") + (esGasto ? "gasto" : "comida"));
         Consumer<String> alGuardar = mensaje -> {
             detalle.avisar(mensaje);
             cargar();
         };
-        if (esGasto) {
+        if (gasto != null) {
+            modal.controlador().editarGasto(registro, gasto, lugares, alGuardar);
+        } else if (comida != null) {
+            modal.controlador().editarComida(registro, comida, lugares, alGuardar);
+        } else if (esGasto) {
             modal.controlador().gasto(registro, siguiente, lugares, alGuardar);
         } else {
             modal.controlador().comida(registro, siguiente, lugares, alGuardar);
@@ -414,16 +424,13 @@ public class EncuestaGastosController implements SeccionEncuesta {
         texto(dTipo, g -> tipo(g.getTipoGasto()));
         dAcciones.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue()));
         dAcciones.setCellFactory(col -> new TableCell<>() {
-            private final Hyperlink enlace = enlaceEliminar();
-
-            {
-                enlace.setOnAction(e -> eliminarGasto(getItem()));
-            }
+            private final HBox acciones = acciones(
+                    () -> abrirRenglon(true, getItem(), null), () -> eliminarGasto(getItem()));
 
             @Override
             protected void updateItem(GastoDiario gasto, boolean vacia) {
                 super.updateItem(gasto, vacia);
-                setGraphic(vacia || gasto == null || !detalle.esEditable() ? null : enlace);
+                setGraphic(vacia || gasto == null || !detalle.esEditable() ? null : acciones);
             }
         });
     }
@@ -443,16 +450,13 @@ public class EncuestaGastosController implements SeccionEncuesta {
         texto(mDomicilio, m -> m.isADomicilio() ? "Sí" : "No");
         mAcciones.setCellValueFactory(d -> new ReadOnlyObjectWrapper<>(d.getValue()));
         mAcciones.setCellFactory(col -> new TableCell<>() {
-            private final Hyperlink enlace = enlaceEliminar();
-
-            {
-                enlace.setOnAction(e -> eliminarComida(getItem()));
-            }
+            private final HBox acciones = acciones(
+                    () -> abrirRenglon(false, null, getItem()), () -> eliminarComida(getItem()));
 
             @Override
             protected void updateItem(ComidaFueraHogar comida, boolean vacia) {
                 super.updateItem(comida, vacia);
-                setGraphic(vacia || comida == null || !detalle.esEditable() ? null : enlace);
+                setGraphic(vacia || comida == null || !detalle.esEditable() ? null : acciones);
             }
         });
     }
@@ -461,9 +465,17 @@ public class EncuestaGastosController implements SeccionEncuesta {
         columna.setCellValueFactory(d -> new ReadOnlyStringWrapper(valor.apply(d.getValue())));
     }
 
-    private static Hyperlink enlaceEliminar() {
-        Hyperlink enlace = new Hyperlink("Eliminar");
+    /** Enlaces «Editar» y «Eliminar» de un renglón. */
+    private static HBox acciones(Runnable editar, Runnable eliminar) {
+        HBox caja = new HBox(4, enlace("Editar", editar), enlace("Eliminar", eliminar));
+        caja.setAlignment(Pos.CENTER_LEFT);
+        return caja;
+    }
+
+    private static Hyperlink enlace(String texto, Runnable accion) {
+        Hyperlink enlace = new Hyperlink(texto);
         enlace.getStyleClass().add("enlace");
+        enlace.setOnAction(e -> accion.run());
         return enlace;
     }
 

@@ -15,7 +15,7 @@ import javafx.stage.Window;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
-/**
+/**encu
  * Punto de entrada de la aplicación. Mantiene una única escena y cambia la
  * pantalla con {@link #setRoot(String)}.
  *
