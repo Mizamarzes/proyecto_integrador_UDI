@@ -1,5 +1,6 @@
 package com.udi.controller.encuestas;
 
+import com.udi.componentes.Paginador;
 import com.udi.componentes.SelectBuscable;
 import com.udi.controller.viviendas.SelectoresUbicacion;
 import com.udi.middleware.Rutas;
@@ -137,6 +138,8 @@ public class EncuestaController {
     @FXML
     private Label lblTotal;
     @FXML
+    private Paginador<EncuestaResumen> paginador;
+    @FXML
     private Button btnNueva;
 
     public static final String VISTA_NUEVA = "modulos/encuestas/partials/nueva_encuesta";
@@ -229,7 +232,7 @@ public class EncuestaController {
     }
 
     private void configurarTabla() {
-        tabla.setItems(filtradas);
+        paginador.vincular(tabla, filtradas, "encuesta", "encuestas");
         tabla.setPlaceholder(new Label("Ninguna encuesta coincide con los filtros."));
         tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 

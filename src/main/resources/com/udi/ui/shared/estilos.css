@@ -1134,15 +1134,15 @@
     -fx-font-weight: bold;
 }
 
-/* Pie de la tabla paginada de Reportes */
-.reporte-paginacion {
+/* Pie de las tablas paginadas (componente Paginador) */
+.paginacion {
     -fx-background-color: -color-tarjeta;
     -fx-border-color: transparent #ddd5c6 #ddd5c6 #ddd5c6;
     -fx-border-width: 0 1 1 1;
     -fx-padding: 10 14 10 14;
 }
 
-.reporte-pagina {
+.paginacion-pagina {
     -fx-font-size: 12px;
     -fx-text-fill: -color-tinta;
     -fx-padding: 0 6 0 6;

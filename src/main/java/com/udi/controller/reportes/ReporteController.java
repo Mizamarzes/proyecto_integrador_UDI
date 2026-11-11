@@ -1,5 +1,6 @@
 package com.udi.controller.reportes;
 
+import com.udi.componentes.Paginador;
 import com.udi.componentes.SelectBuscable;
 import com.udi.controller.viviendas.SelectoresUbicacion;
 import com.udi.model.Departamento;
@@ -16,6 +17,8 @@ import com.udi.util.LibroExcel;
 import com.udi.util.RangoFechas;
 import com.udi.util.Tareas;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -56,8 +59,6 @@ public class ReporteController {
     private static final int MAX_GRUPOS = 8;
     private static final int MAX_LUGARES = 6;
     private static final double ALTO_FILA = 40;
-    /** Encuestadores por página en «Rendimiento por encuestador». */
-    private static final int FILAS_POR_PAGINA = 10;
 
     @FXML
     private ScrollPane scroll;
@@ -144,17 +145,7 @@ public class ReporteController {
     @FXML
     private TableColumn<ReporteEncuestador, String> colGasto;
     @FXML
-    private Label lblEncuestadores;
-    @FXML
-    private Label lblPagina;
-    @FXML
-    private Button btnPrimera;
-    @FXML
-    private Button btnAnterior;
-    @FXML
-    private Button btnSiguiente;
-    @FXML
-    private Button btnUltima;
+    private Paginador<ReporteEncuestador> paginador;
 
     private final ReporteService reporteService = new ReporteService();
 
@@ -162,8 +153,8 @@ public class ReporteController {
     /** Inicio de la encuesta (A.21 fecha desde) entre estas fechas. */
     private RangoFechas fechas;
     private Reporte reporte;
-    /** Página visible de la tabla de encuestadores, desde 0. */
-    private int paginaActual;
+    /** Filas de «Rendimiento por encuestador» (todas; el paginador muestra 10 por página). */
+    private final ObservableList<ReporteEncuestador> encuestadores = FXCollections.observableArrayList();
 
     @FXML
     private void initialize() {
@@ -231,44 +222,7 @@ public class ReporteController {
         barras(barrasFormas, r.getFormas(), r.getGasto(), Formato::pesos, "Aún no hay gastos registrados.");
         barras(barrasLugares, lugares(r.getLugares()), suma(r.getLugares()), Formato::pesos,
                 "Aún no hay compras registradas.");
-        paginaActual = 0;
-        mostrarPagina();
-    }
-
-    // ------------------------------------------------------------------
-    // Paginación de «Rendimiento por encuestador» (en memoria: la consulta ya
-    // trae una fila por encuestador). La fila Total suma a todos y se repite
-    // al final de cada página.
-    // ------------------------------------------------------------------
-
-    private void mostrarPagina() {
-        List<ReporteEncuestador> todos = reporte.getEncuestadores();
-        int paginas = totalPaginas();
-        paginaActual = Math.max(0, Math.min(paginaActual, paginas - 1));
-        int desde = paginaActual * FILAS_POR_PAGINA;
-        int hasta = Math.min(desde + FILAS_POR_PAGINA, todos.size());
-
-        List<ReporteEncuestador> filas = new ArrayList<>(todos.subList(desde, hasta));
-        filas.add(totalEncuestadores(reporte));
-        tabla.getItems().setAll(filas);
-        // Con varias páginas la tabla mantiene el alto de una página llena para que los botones no se muevan
-        int visibles = paginas > 1 ? FILAS_POR_PAGINA : todos.size();
-        tabla.setPrefHeight(ALTO_FILA * (visibles + 2) + 4);
-
-        String sufijo = todos.size() == 1 ? " encuestador" : " encuestadores";
-        lblEncuestadores.setText(paginas > 1
-                ? "Mostrando " + (desde + 1) + "–" + hasta + " de " + todos.size() + sufijo
-                : todos.size() + sufijo);
-        lblPagina.setText("Página " + (paginaActual + 1) + " de " + paginas);
-        btnPrimera.setDisable(paginaActual == 0);
-        btnAnterior.setDisable(paginaActual == 0);
-        btnSiguiente.setDisable(paginaActual >= paginas - 1);
-        btnUltima.setDisable(paginaActual >= paginas - 1);
-    }
-
-    private int totalPaginas() {
-        int n = reporte.getEncuestadores().size();
-        return Math.max(1, (n + FILAS_POR_PAGINA - 1) / FILAS_POR_PAGINA);
+        encuestadores.setAll(r.getEncuestadores());
     }
 
     private static ReporteEncuestador totalEncuestadores(Reporte r) {
@@ -276,32 +230,6 @@ public class ReporteController {
                 r.getReabiertas(), r.getVisitas(), r.getGasto());
     }
 
-    @FXML
-    private void primeraPagina() {
-        irAPagina(0);
-    }
-
-    @FXML
-    private void paginaAnterior() {
-        irAPagina(paginaActual - 1);
-    }
-
-    @FXML
-    private void paginaSiguiente() {
-        irAPagina(paginaActual + 1);
-    }
-
-    @FXML
-    private void ultimaPagina() {
-        irAPagina(totalPaginas() - 1);
-    }
-
-    private void irAPagina(int nueva) {
-        if (reporte != null) {
-            paginaActual = nueva;
-            mostrarPagina();
-        }
-    }
 
     private void mostrarIndicadores(Reporte r) {
         long total = r.getTotal();
@@ -483,7 +411,10 @@ public class ReporteController {
 
     private void configurarTabla() {
         tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        tabla.setFixedCellSize(ALTO_FILA);
+        // Paginación en memoria: la fila Total suma a todos y se repite al final de cada página
+        paginador.vincular(tabla, encuestadores, "encuestador", "encuestadores");
+        paginador.setFilaFinal(() -> reporte == null ? null : totalEncuestadores(reporte));
+        paginador.ajustarAlto(ALTO_FILA);
         tabla.setPlaceholder(new Label("Sin encuestas."));
         colNombre.setCellValueFactory(d -> new ReadOnlyStringWrapper(d.getValue().getNombre()));
         numero(colTotal, ReporteEncuestador::getTotal);

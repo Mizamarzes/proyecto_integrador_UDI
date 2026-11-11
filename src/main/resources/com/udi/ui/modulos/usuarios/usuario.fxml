@@ -9,6 +9,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
+<?import com.udi.componentes.Paginador?>
 
 <VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.udi.controller.usuarios.UsuarioController">
@@ -42,14 +43,17 @@
       <Label fx:id="lblTotal" styleClass="texto-suave" minWidth="-Infinity" />
    </HBox>
 
-   <!-- Tabla -->
-   <TableView fx:id="tabla" styleClass="tabla" VBox.vgrow="ALWAYS">
-      <columns>
-         <TableColumn fx:id="colNombre" text="Nombre" />
-         <TableColumn fx:id="colCorreo" text="Correo" styleClass="columna-codigo" />
-         <TableColumn fx:id="colRol" text="Rol" />
-         <TableColumn fx:id="colEstado" text="Estado" />
-         <TableColumn fx:id="colAcciones" text="Acciones" sortable="false" />
-      </columns>
-   </TableView>
+   <!-- Tabla paginada: el pie es el mismo de «Rendimiento por encuestador» en Reportes -->
+   <VBox VBox.vgrow="ALWAYS">
+      <TableView fx:id="tabla" styleClass="tabla" VBox.vgrow="ALWAYS">
+         <columns>
+            <TableColumn fx:id="colNombre" text="Nombre" />
+            <TableColumn fx:id="colCorreo" text="Correo" styleClass="columna-codigo" />
+            <TableColumn fx:id="colRol" text="Rol" />
+            <TableColumn fx:id="colEstado" text="Estado" />
+            <TableColumn fx:id="colAcciones" text="Acciones" sortable="false" />
+         </columns>
+      </TableView>
+      <Paginador fx:id="paginador" />
+   </VBox>
 </VBox>

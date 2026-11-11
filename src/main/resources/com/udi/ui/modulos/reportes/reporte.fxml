@@ -13,6 +13,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
+<?import com.udi.componentes.Paginador?>
 <?import com.udi.componentes.SelectBuscable?>
 
 <!-- Reportes: indicadores del operativo y del gasto registrado en el Cuadernillo 2 -->
@@ -187,15 +188,7 @@
                </columns>
             </TableView>
             <!-- Paginación: total de encuestadores a la izquierda, navegación a la derecha -->
-            <HBox styleClass="reporte-paginacion" alignment="CENTER_LEFT" spacing="8.0">
-               <Label fx:id="lblEncuestadores" styleClass="texto-suave" minWidth="-Infinity" />
-               <Region HBox.hgrow="ALWAYS" />
-               <Button fx:id="btnPrimera" text="«" onAction="#primeraPagina" styleClass="boton-secundario" minWidth="-Infinity" />
-               <Button fx:id="btnAnterior" text="‹ Anterior" onAction="#paginaAnterior" styleClass="boton-secundario" minWidth="-Infinity" />
-               <Label fx:id="lblPagina" styleClass="reporte-pagina" minWidth="-Infinity" />
-               <Button fx:id="btnSiguiente" text="Siguiente ›" onAction="#paginaSiguiente" styleClass="boton-secundario" minWidth="-Infinity" />
-               <Button fx:id="btnUltima" text="»" onAction="#ultimaPagina" styleClass="boton-secundario" minWidth="-Infinity" />
-            </HBox>
+            <Paginador fx:id="paginador" />
             </VBox>
          </VBox>
       </VBox>

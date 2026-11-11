@@ -10,6 +10,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
+<?import com.udi.componentes.Paginador?>
 <?import com.udi.componentes.SelectBuscable?>
 
 <!-- Listado de encuestas: «Mis Encuestas» para el encuestador y vista global para los demás roles -->
@@ -69,20 +70,23 @@
       </HBox>
    </VBox>
 
-   <!-- Tabla -->
-   <TableView fx:id="tabla" styleClass="tabla" VBox.vgrow="ALWAYS">
-      <columns>
-         <TableColumn fx:id="colId" text="ID encuesta" styleClass="columna-codigo" />
-         <TableColumn fx:id="colHogar" text="Hogar / Dirección" />
-         <TableColumn fx:id="colRegion" text="Región" />
-         <TableColumn fx:id="colDepartamento" text="Departamento" />
-         <TableColumn fx:id="colMunicipio" text="Municipio" />
-         <TableColumn fx:id="colEncuestador" text="Encuestador" />
-         <TableColumn fx:id="colEstado" text="Estado" />
-         <TableColumn fx:id="colFecha" text="Fecha de inicio" />
-         <TableColumn fx:id="colCreacion" text="Fecha de creación" />
-         <TableColumn fx:id="colAvance" text="Avance (14 días)" sortable="false" />
-         <TableColumn fx:id="colAcciones" text="Acciones" sortable="false" />
-      </columns>
-   </TableView>
+   <!-- Tabla paginada: el pie es el mismo de «Rendimiento por encuestador» en Reportes -->
+   <VBox VBox.vgrow="ALWAYS">
+      <TableView fx:id="tabla" styleClass="tabla" VBox.vgrow="ALWAYS">
+         <columns>
+            <TableColumn fx:id="colId" text="ID encuesta" styleClass="columna-codigo" />
+            <TableColumn fx:id="colHogar" text="Hogar / Dirección" />
+            <TableColumn fx:id="colRegion" text="Región" />
+            <TableColumn fx:id="colDepartamento" text="Departamento" />
+            <TableColumn fx:id="colMunicipio" text="Municipio" />
+            <TableColumn fx:id="colEncuestador" text="Encuestador" />
+            <TableColumn fx:id="colEstado" text="Estado" />
+            <TableColumn fx:id="colFecha" text="Fecha de inicio" />
+            <TableColumn fx:id="colCreacion" text="Fecha de creación" />
+            <TableColumn fx:id="colAvance" text="Avance (14 días)" sortable="false" />
+            <TableColumn fx:id="colAcciones" text="Acciones" sortable="false" />
+         </columns>
+      </TableView>
+      <Paginador fx:id="paginador" />
+   </VBox>
 </VBox>

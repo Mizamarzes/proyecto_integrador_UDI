@@ -1,5 +1,6 @@
 package com.udi.controller.usuarios;
 
+import com.udi.componentes.Paginador;
 import com.udi.controller.shared.NavbarController;
 import com.udi.model.Rol;
 import com.udi.model.Usuario;
@@ -53,6 +54,8 @@ public class UsuarioController {
     private TableColumn<Usuario, Usuario> colAcciones;
     @FXML
     private Label lblTotal;
+    @FXML
+    private Paginador<Usuario> paginador;
 
     private final UsuarioService usuarioService = new UsuarioService();
     private final RolService rolService = new RolService();
@@ -120,7 +123,7 @@ public class UsuarioController {
     }
 
     private void configurarTabla() {
-        tabla.setItems(filtrados);
+        paginador.vincular(tabla, filtrados, "usuario", "usuarios");
         tabla.setPlaceholder(new Label("No hay usuarios que coincidan con la búsqueda."));
         // Ancho de cada columna como porcentaje de la tabla (el correo necesita más espacio)
         anchoRelativo(colNombre, 0.24);

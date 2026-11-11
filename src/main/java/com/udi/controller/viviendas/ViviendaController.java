@@ -1,5 +1,6 @@
 package com.udi.controller.viviendas;
 
+import com.udi.componentes.Paginador;
 import com.udi.componentes.SelectBuscable;
 import com.udi.controller.shared.NavbarController;
 import com.udi.middleware.Rutas;
@@ -82,6 +83,8 @@ public class ViviendaController {
     private DatePicker dtpHasta;
     @FXML
     private Label lblTotal;
+    @FXML
+    private Paginador<Fila> paginador;
     @FXML
     private TableView<Fila> tabla;
     @FXML
@@ -205,7 +208,7 @@ public class ViviendaController {
     }
 
     private void configurarTabla() {
-        tabla.setItems(filtradas);
+        paginador.vincular(tabla, filtradas, "vivienda", "viviendas");
         tabla.setPlaceholder(new Label("Ninguna vivienda coincide con los filtros. Puedes registrar una nueva vivienda."));
         tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 

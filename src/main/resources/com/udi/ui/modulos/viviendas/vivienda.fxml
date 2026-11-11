@@ -11,6 +11,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
+<?import com.udi.componentes.Paginador?>
 <?import com.udi.componentes.SelectBuscable?>
 
 <!-- Listado de viviendas con el avance de sus hogares (capítulo A) -->
@@ -70,20 +71,24 @@
       </HBox>
    </VBox>
 
-   <TableView fx:id="tabla" styleClass="tabla" VBox.vgrow="ALWAYS">
-      <columns>
-         <TableColumn fx:id="colCodigo" text="Vivienda" styleClass="columna-codigo" prefWidth="90.0" />
-         <TableColumn fx:id="colDireccion" text="Dirección / Barrio" prefWidth="200.0" />
-         <TableColumn fx:id="colRegion" text="Región" prefWidth="100.0" />
-         <TableColumn fx:id="colDepartamento" text="Departamento" prefWidth="120.0" />
-         <TableColumn fx:id="colMunicipio" text="Municipio" prefWidth="120.0" />
-         <TableColumn fx:id="colCartografia" text="Ubicación cartográfica" prefWidth="140.0" />
-         <TableColumn fx:id="colHogares" text="Hogares (A.12)" prefWidth="100.0" />
-         <TableColumn fx:id="colEncuestas" text="Encuestas" prefWidth="150.0" />
-         <TableColumn fx:id="colCreacion" text="Fecha de creación" prefWidth="110.0" />
-         <TableColumn fx:id="colAcciones" text="Acciones" prefWidth="110.0" sortable="false" />
-      </columns>
-   </TableView>
+   <!-- Tabla paginada: el pie es el mismo de «Rendimiento por encuestador» en Reportes -->
+   <VBox VBox.vgrow="ALWAYS">
+      <TableView fx:id="tabla" styleClass="tabla" VBox.vgrow="ALWAYS">
+         <columns>
+            <TableColumn fx:id="colCodigo" text="Vivienda" styleClass="columna-codigo" prefWidth="90.0" />
+            <TableColumn fx:id="colDireccion" text="Dirección / Barrio" prefWidth="200.0" />
+            <TableColumn fx:id="colRegion" text="Región" prefWidth="100.0" />
+            <TableColumn fx:id="colDepartamento" text="Departamento" prefWidth="120.0" />
+            <TableColumn fx:id="colMunicipio" text="Municipio" prefWidth="120.0" />
+            <TableColumn fx:id="colCartografia" text="Ubicación cartográfica" prefWidth="140.0" />
+            <TableColumn fx:id="colHogares" text="Hogares (A.12)" prefWidth="100.0" />
+            <TableColumn fx:id="colEncuestas" text="Encuestas" prefWidth="150.0" />
+            <TableColumn fx:id="colCreacion" text="Fecha de creación" prefWidth="110.0" />
+            <TableColumn fx:id="colAcciones" text="Acciones" prefWidth="110.0" sortable="false" />
+         </columns>
+      </TableView>
+      <Paginador fx:id="paginador" />
+   </VBox>
 
    <Label text="Un hogar solo puede tener una encuesta. Los hogares sin encuesta aparecen al crear una nueva encuesta." styleClass="texto-suave" wrapText="true" />
 </VBox>
