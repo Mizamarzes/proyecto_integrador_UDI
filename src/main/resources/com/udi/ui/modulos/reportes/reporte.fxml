@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import com.udi.componentes.SelectBuscable?>
+
+<!-- Reportes: indicadores del operativo y del gasto registrado en el Cuadernillo 2 -->
+<ScrollPane fx:id="scroll" fitToWidth="true" styleClass="scroll-transparente" xmlns="http://javafx.com/javafx/11"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.udi.controller.reportes.ReporteController">
+   <VBox fx:id="pagina" spacing="18.0">
+      <padding>
+         <Insets right="14.0" bottom="8.0" />
+      </padding>
+
+      <HBox alignment="CENTER_LEFT" spacing="12.0">
+         <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+            <Label text="Reportes" styleClass="titulo-pagina" />
+            <Label text="Avance del operativo de campo y gasto registrado en el Cuadernillo 2."
+                   styleClass="subtitulo-pagina" wrapText="true" />
+         </VBox>
+         <Label fx:id="lblAviso" styleClass="texto-suave" />
+         <Button fx:id="btnExportar" text="Exportar a Excel" onAction="#exportar" styleClass="boton-accion" minWidth="-Infinity" />
+      </HBox>
+
+      <!-- Filtros: ubicación arriba; fechas de inicio de la encuesta abajo. Se aplican con «Filtrar» -->
+      <VBox styleClass="tarjeta" spacing="14.0">
+         <HBox alignment="BOTTOM_LEFT" spacing="20.0">
+            <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
+               <Label text="Región" styleClass="etiqueta-campo" />
+               <SelectBuscable fx:id="cmbRegion" prefWidth="150.0" maxWidth="Infinity" />
+            </VBox>
+            <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
+               <Label text="Departamento" styleClass="etiqueta-campo" />
+               <SelectBuscable fx:id="cmbDepartamento" prefWidth="190.0" maxWidth="Infinity" />
+            </VBox>
+            <VBox spacing="4.0" HBox.hgrow="SOMETIMES">
+               <Label text="Municipio" styleClass="etiqueta-campo" />
+               <SelectBuscable fx:id="cmbMunicipio" prefWidth="190.0" maxWidth="Infinity" />
+            </VBox>
+         </HBox>
+         <HBox alignment="BOTTOM_LEFT" spacing="20.0">
+            <VBox spacing="4.0">
+               <Label text="Inicio desde" styleClass="etiqueta-campo" minWidth="-Infinity" />
+               <DatePicker fx:id="dtpDesde" promptText="dd/mm/aaaa" styleClass="campo-fecha" prefWidth="160.0" />
+            </VBox>
+            <VBox spacing="4.0">
+               <Label text="Inicio hasta" styleClass="etiqueta-campo" minWidth="-Infinity" />
+               <DatePicker fx:id="dtpHasta" promptText="dd/mm/aaaa" styleClass="campo-fecha" prefWidth="160.0" />
+            </VBox>
+            <Button fx:id="btnFiltrar" text="Filtrar" onAction="#filtrar" styleClass="boton-primario" style="-fx-padding: 7 18 7 18; -fx-font-size: 12px;" minWidth="-Infinity" />
+            <Button text="Limpiar" onAction="#limpiar" styleClass="boton-secundario" minWidth="-Infinity" />
+            <Label fx:id="lblPendiente" text="Hay filtros sin aplicar" styleClass="texto-alerta" minWidth="-Infinity" visible="false" managed="false" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="lblActualizado" styleClass="texto-suave" minWidth="-Infinity" />
+         </HBox>
+      </VBox>
+
+      <VBox fx:id="boxVacio" styleClass="tarjeta" alignment="CENTER" spacing="6.0">
+         <padding>
+            <Insets top="48.0" right="24.0" bottom="48.0" left="24.0" />
+         </padding>
+         <Label text="No hay encuestas para estos filtros." styleClass="dato-valor" />
+         <Label text="Cambie las fechas o la ubicación y vuelva a filtrar." styleClass="texto-suave" />
+      </VBox>
+
+      <VBox fx:id="boxDatos" spacing="18.0">
+         <!-- Indicadores generales -->
+         <HBox spacing="14.0">
+            <VBox styleClass="tarjeta" spacing="4.0" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefWidth="100.0">
+               <Label text="Encuestas" styleClass="etiqueta-campo" />
+               <Label fx:id="lblEncuestas" styleClass="metrica-valor" />
+               <Label fx:id="lblEncuestasNota" styleClass="texto-suave" wrapText="true" />
+            </VBox>
+            <VBox styleClass="tarjeta" spacing="4.0" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefWidth="100.0">
+               <Label text="En curso" styleClass="etiqueta-campo" />
+               <Label fx:id="lblEnCurso" styleClass="metrica-valor" />
+               <Label fx:id="lblEnCursoNota" styleClass="texto-suave" wrapText="true" />
+            </VBox>
+            <VBox styleClass="tarjeta" spacing="4.0" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefWidth="100.0">
+               <Label text="Casos cerrados" styleClass="etiqueta-campo" />
+               <Label fx:id="lblCerradas" styleClass="metrica-valor" />
+               <Label fx:id="lblCerradasNota" styleClass="texto-suave" wrapText="true" />
+            </VBox>
+            <VBox styleClass="tarjeta" spacing="4.0" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefWidth="100.0">
+               <Label text="Visitas realizadas" styleClass="etiqueta-campo" />
+               <Label fx:id="lblVisitas" styleClass="metrica-valor" />
+               <Label fx:id="lblVisitasNota" styleClass="texto-suave" wrapText="true" />
+            </VBox>
+            <VBox styleClass="tarjeta" spacing="4.0" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefWidth="140.0">
+               <Label text="Gasto registrado" styleClass="etiqueta-campo" />
+               <Label fx:id="lblGasto" styleClass="metrica-valor" />
+               <Label fx:id="lblGastoNota" styleClass="texto-suave" wrapText="true" />
+            </VBox>
+         </HBox>
+
+         <!-- Estado de las encuestas | Gasto del hogar y gasto personal -->
+         <GridPane hgap="18.0">
+            <columnConstraints>
+               <ColumnConstraints percentWidth="50.0" />
+               <ColumnConstraints percentWidth="50.0" />
+            </columnConstraints>
+            <VBox styleClass="tarjeta" spacing="14.0" maxHeight="Infinity" GridPane.columnIndex="0">
+               <VBox spacing="2.0">
+                  <Label text="Estado de las encuestas" styleClass="titulo-seccion" />
+                  <Label fx:id="lblEstadoTotal" styleClass="texto-suave" />
+               </VBox>
+               <HBox fx:id="barraEstado" spacing="2.0" prefHeight="20.0" minHeight="20.0" maxHeight="20.0" />
+               <VBox fx:id="leyendaEstado" />
+               <Label text="Una encuesta cerrada no admite más registros; solo el administrador puede reabrirla."
+                      styleClass="texto-suave" wrapText="true" />
+            </VBox>
+            <VBox styleClass="tarjeta" spacing="14.0" maxHeight="Infinity" GridPane.columnIndex="1">
+               <VBox spacing="2.0">
+                  <Label text="Gasto del hogar y gasto personal" styleClass="titulo-seccion" />
+                  <Label text="Columna (10) tipo de gasto" styleClass="texto-suave" />
+               </VBox>
+               <HBox fx:id="boxTipos" spacing="16.0" />
+               <HBox fx:id="barraTipos" spacing="2.0" prefHeight="20.0" minHeight="20.0" maxHeight="20.0" />
+               <VBox spacing="6.0" styleClass="reporte-pie">
+                  <Label text="Renglones registrados" styleClass="etiqueta-campo" />
+                  <FlowPane hgap="24.0" vgap="2.0">
+                     <Label fx:id="lblArticulos" styleClass="valor-calculado" minWidth="-Infinity" />
+                     <Label fx:id="lblComidas" styleClass="valor-calculado" minWidth="-Infinity" />
+                     <Label fx:id="lblDomicilios" styleClass="valor-calculado" minWidth="-Infinity" />
+                  </FlowPane>
+               </VBox>
+            </VBox>
+         </GridPane>
+
+         <!-- Grupos de alimento (Cap. C) | Formas de adquisición -->
+         <GridPane hgap="18.0">
+            <columnConstraints>
+               <ColumnConstraints percentWidth="50.0" />
+               <ColumnConstraints percentWidth="50.0" />
+            </columnConstraints>
+            <VBox styleClass="tarjeta" spacing="14.0" maxHeight="Infinity" GridPane.columnIndex="0">
+               <VBox spacing="2.0">
+                  <Label text="Grupos de alimento más comprados" styleClass="titulo-seccion" />
+                  <Label text="Capítulo C · hogares que compran cada grupo (frecuencia distinta de «Nunca»)"
+                         styleClass="texto-suave" wrapText="true" />
+               </VBox>
+               <VBox fx:id="barrasGrupos" spacing="12.0" />
+            </VBox>
+            <VBox styleClass="tarjeta" spacing="14.0" maxHeight="Infinity" GridPane.columnIndex="1">
+               <VBox spacing="2.0">
+                  <Label text="Gasto por forma de adquisición" styleClass="titulo-seccion" />
+                  <Label text="Columna (6) de los capítulos D y D1 · valor pagado o estimado (COP)"
+                         styleClass="texto-suave" wrapText="true" />
+               </VBox>
+               <VBox fx:id="barrasFormas" spacing="12.0" />
+               <Label text="Lo que no se compró se valora a precio estimado por el informante."
+                      styleClass="texto-suave" wrapText="true" />
+            </VBox>
+         </GridPane>
+
+         <VBox styleClass="tarjeta" spacing="14.0">
+            <VBox spacing="2.0">
+               <Label text="Compras por lugar de compra" styleClass="titulo-seccion" />
+               <Label text="Columna (7) · solo lo adquirido por compra" styleClass="texto-suave" />
+            </VBox>
+            <VBox fx:id="barrasLugares" spacing="12.0" />
+         </VBox>
+
+         <VBox spacing="10.0">
+            <Label text="Rendimiento por encuestador" styleClass="titulo-seccion" />
+            <VBox>
+            <TableView fx:id="tabla" styleClass="tabla">
+               <columns>
+                  <TableColumn fx:id="colNombre" text="Encuestador" prefWidth="280.0" minWidth="200.0" sortable="false" />
+                  <TableColumn fx:id="colTotal" text="Encuestas" prefWidth="90.0" minWidth="90.0" sortable="false" />
+                  <TableColumn fx:id="colAbiertas" text="Abiertas" prefWidth="90.0" minWidth="90.0" sortable="false" />
+                  <TableColumn fx:id="colCerradas" text="Cerradas" prefWidth="90.0" minWidth="90.0" sortable="false" />
+                  <TableColumn fx:id="colReabiertas" text="Reabiertas" prefWidth="90.0" minWidth="90.0" sortable="false" />
+                  <TableColumn fx:id="colVisitas" text="Visitas" prefWidth="90.0" minWidth="90.0" sortable="false" />
+                  <TableColumn fx:id="colGasto" text="Gasto registrado" prefWidth="140.0" minWidth="130.0" sortable="false" />
+               </columns>
+            </TableView>
+            <!-- Paginación: total de encuestadores a la izquierda, navegación a la derecha -->
+            <HBox styleClass="reporte-paginacion" alignment="CENTER_LEFT" spacing="8.0">
+               <Label fx:id="lblEncuestadores" styleClass="texto-suave" minWidth="-Infinity" />
+               <Region HBox.hgrow="ALWAYS" />
+               <Button fx:id="btnPrimera" text="«" onAction="#primeraPagina" styleClass="boton-secundario" minWidth="-Infinity" />
+               <Button fx:id="btnAnterior" text="‹ Anterior" onAction="#paginaAnterior" styleClass="boton-secundario" minWidth="-Infinity" />
+               <Label fx:id="lblPagina" styleClass="reporte-pagina" minWidth="-Infinity" />
+               <Button fx:id="btnSiguiente" text="Siguiente ›" onAction="#paginaSiguiente" styleClass="boton-secundario" minWidth="-Infinity" />
+               <Button fx:id="btnUltima" text="»" onAction="#ultimaPagina" styleClass="boton-secundario" minWidth="-Infinity" />
+            </HBox>
+            </VBox>
+         </VBox>
+      </VBox>
+   </VBox>
+</ScrollPane>

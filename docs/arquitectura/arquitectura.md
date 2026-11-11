@@ -68,6 +68,10 @@ proyecto_integrador_UDI/
     │       │   ├── ComidaFueraHogar.java
     │       │   ├── EncuestaResumen.java      # Fila del listado de encuestas (no es tabla)
     │       │   ├── Opcion.java               # Id + texto para listas desplegables (no es tabla)
+    │       │   ├── FiltroReporte.java        # Filtros de Reportes: fechas de inicio, región, departamento, municipio (no es tabla)
+    │       │   ├── Reporte.java              # Resultado de Reportes con sus totales (no es tabla)
+    │       │   ├── ReporteEncuestador.java   # Fila de «Rendimiento por encuestador» (no es tabla)
+    │       │   ├── ValorReporte.java         # Una barra de un reporte: código, nombre y valor (no es tabla)
     │       │   └── enums/                    # Enums del modelo (en Oracle son VARCHAR2 + CHECK)
     │       │       ├── ResultadoEntrevista.java
     │       │       ├── FormaPago.java
@@ -85,7 +89,8 @@ proyecto_integrador_UDI/
     │       │   ├── viviendas/                # ViviendaDAO, HogarDAO
     │       │   ├── encuestas/                # EncuestaDAO, VisitaDAO, CaracteristicaGastoDAO, RegistroDiarioDAO,
     │       │   │                             # GastoDiarioDAO, ComidaFueraHogarDAO
-    │       │   └── catalogos/                # RegionDAO, DepartamentoDAO, MunicipioDAO, GrupoAlimentoDAO, LugarCompraDAO
+    │       │   ├── catalogos/                # RegionDAO, DepartamentoDAO, MunicipioDAO, GrupoAlimentoDAO, LugarCompraDAO
+    │       │   └── reportes/                 # ReporteDAO: consultas agregadas (no es de una tabla ni extiende BaseDAO)
     │       │
     │       ├── service/                      # ── MODELO: reglas de negocio, agrupadas por módulo ──
     │       │   ├── auth/
@@ -102,9 +107,11 @@ proyecto_integrador_UDI/
     │       │   │   ├── CaracteristicaService.java# RF-07 Los 25 grupos del capítulo C
     │       │   │   ├── GastoDiarioService.java   # RF-03, RF-04, RF-09 Días, gastos y comidas fuera del hogar
     │       │   │   └── ReglasEncuesta.java       # Regla compartida: no se modifica una encuesta CERRADA (la usa también HogarService)
-    │       │   └── catalogos/
-    │       │       ├── UbicacionService.java     # Región, departamento y municipio
-    │       │       └── CatalogoService.java      # Grupos de alimentos y lugares de compra
+    │       │   ├── catalogos/
+    │       │   │   ├── UbicacionService.java     # Región, departamento y municipio
+    │       │   │   └── CatalogoService.java      # Grupos de alimentos y lugares de compra
+    │       │   └── reportes/
+    │       │       └── ReporteService.java       # Tablero de reportes (módulo «reportes»); un encuestador solo ve lo suyo
     │       │
     │       ├── controller/                   # ── CONTROLADOR: una clase por pantalla, agrupadas por módulo ──
     │       │   ├── auth/
@@ -122,6 +129,8 @@ proyecto_integrador_UDI/
     │       │   │   ├── ViviendaDetalleController.java # Hecho: vivienda y sus hogares
     │       │   │   ├── ViviendaFormController.java    # Modal nueva/editar vivienda (Cap. A)
     │       │   │   └── HogarFormController.java       # Modal agregar/editar hogar (A.13, A.14)
+    │       │   ├── reportes/
+    │       │   │   └── ReporteController.java    # Hecho: tablero con indicadores, gráficas, tabla por encuestador paginada y exportación a Excel
     │       │   └── encuestas/
     │       │       ├── EncuestaController.java   # Hecho: «Mis Encuestas» (encuestador) o listado global con filtros
     │       │       ├── NuevaEncuestaController.java   # Hecho: modal, elegir un hogar sin encuesta
@@ -154,6 +163,7 @@ proyecto_integrador_UDI/
     │           ├── Validar.java              # Validaciones comunes de los servicios
     │           ├── Alertas.java              # Diálogos de información, error y confirmación
     │           ├── Formato.java              # Fechas, horas, pesos, códigos E-000001 y filtros de los campos
+    │           ├── LibroExcel.java           # Escribe libros .xlsx (varias hojas, pesos y porcentajes) sin librerías externas
     │           ├── Modal.java                # Ventanas modales (partials) con la hoja de estilos
     │           └── Tareas.java               # Llamadas a servicios en segundo plano (una a la vez)
     │
@@ -188,6 +198,8 @@ proyecto_integrador_UDI/
                 │   └── partials/
                 │       ├── vivienda_form.fxml        # Modal vivienda
                 │       └── hogar_form.fxml           # Modal hogar
+                ├── reportes/
+                │   └── reporte.fxml          # Hecho: tablero de reportes
                 ├── usuarios/
                 │   ├── usuario.fxml          # Hecho: listado
                 │   └── usuario_form.fxml     # Hecho: formulario
@@ -235,7 +247,7 @@ Una vista se nombra con su ruta dentro de `ui`, sin extensión: `"modulos/encues
   | `modulos/roles/` | roles | Matriz de permisos y modal de rol |
   | `modulos/viviendas/` | viviendas («Viviendas y hogares») | Viviendas, detalle, modales de vivienda y hogar |
   | `modulos/encuestas/` | encuestas | Listado, nueva encuesta, detalle y sus pestañas: control de visitas, Cap. A, Cap. C, línea de 14 días (D y D1) y cierre |
-  | `modulos/reportes/` | reportes | (pendiente) |
+  | `modulos/reportes/` | reportes | Tablero: indicadores, estado de las encuestas, gasto por tipo, forma de adquisición y lugar de compra, grupos del Cap. C y rendimiento por encuestador |
 
 - Los controladores no validan roles: muestran cada botón o pestaña con `Rutas.permitir(nodo, vista)` (los mismos middlewares de la vista que abre), por ejemplo los enlaces de la vivienda que llevan a Encuestas. Dentro de la encuesta, lo que se puede editar depende solo de que esté abierta (`EncuestaDetalleController.esEditable()`). Los servicios repiten la validación con `Sesion.exigirModulo(RutasModulo.X)`, como una API que valida aunque el frontend oculte el botón.
 - Los permisos se cargan en `Sesion` al iniciar sesión; los cambios de la pantalla Roles y permisos aplican en el siguiente inicio de sesión (salvo el rol propio, que se recarga al guardar).

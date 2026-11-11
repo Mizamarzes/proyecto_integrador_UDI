@@ -3,9 +3,12 @@
 06/11/2026
 
 - Cuadrar modulo gestion de usuarios X
-- Cuadrar modulo Gestion de viviendas  
+- Cuadrar modulo Gestion de viviendas X
 - Cuadrar vistas por rol y demas X
-- Cuadrar modulo de encuestas
+- Cuadrar modulo de encuestas X
 
 - Crear seccion para exportar datos o syncronizar con Dane
-- Crear modulo de roles y permisos modulos
+- Crear modulo de roles y permisos modulos X
+- Crear modulo de reportes 
+- Crea modulo de critica y consolidacion para cierre de casos
+- Crear modulo de catalogos 

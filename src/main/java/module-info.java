@@ -13,6 +13,7 @@ module com.udi {
     // Controladores de las vistas FXML, uno por módulo
     opens com.udi.controller.auth to javafx.fxml;
     opens com.udi.controller.encuestas to javafx.fxml;
+    opens com.udi.controller.reportes to javafx.fxml;
     opens com.udi.controller.roles to javafx.fxml;
     opens com.udi.controller.shared to javafx.fxml;
     opens com.udi.controller.usuarios to javafx.fxml;

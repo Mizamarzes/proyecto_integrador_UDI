@@ -153,7 +153,12 @@ public abstract class BaseDAO<T extends Entidad> {
         }
     }
 
-    private static void asignarParametros(PreparedStatement ps, Object... parametros) throws SQLException {
+    /**
+     * Asigna los parámetros convirtiendo cada tipo de Java al de Oracle.
+     * Es pública porque también la usan las consultas agregadas de
+     * {@code ReporteDAO}, que no corresponden a una sola tabla.
+     */
+    public static void asignarParametros(PreparedStatement ps, Object... parametros) throws SQLException {
         for (int i = 0; i < parametros.length; i++) {
             int indice = i + 1;
             Object valor = parametros[i];

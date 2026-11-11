@@ -26,6 +26,7 @@ public class NavbarController {
     private static final String VISTA_VIVIENDAS = "modulos/viviendas/vivienda";
     private static final String VISTA_USUARIOS = "modulos/usuarios/usuario";
     private static final String VISTA_ROLES = "modulos/roles/rol";
+    private static final String VISTA_REPORTES = "modulos/reportes/reporte";
 
     /** Menú visible; lo usan las pantallas para navegar con {@link #abrir}. */
     private static NavbarController actual;
@@ -48,6 +49,8 @@ public class NavbarController {
     private Button btnUsuarios;
     @FXML
     private Button btnRoles;
+    @FXML
+    private Button btnReportes;
 
     private final AuthService authService = new AuthService();
 
@@ -61,6 +64,7 @@ public class NavbarController {
         Rutas.permitir(btnViviendas, VISTA_VIVIENDAS);
         Rutas.permitir(btnUsuarios, VISTA_USUARIOS);
         Rutas.permitir(btnRoles, VISTA_ROLES);
+        Rutas.permitir(btnReportes, VISTA_REPORTES);
         if (btnEncuestas.isVisible()) {
             irEncuestas();
         } else if (btnViviendas.isVisible()) {
@@ -69,6 +73,8 @@ public class NavbarController {
             irUsuarios();
         } else if (btnRoles.isVisible()) {
             irRoles();
+        } else if (btnReportes.isVisible()) {
+            irReportes();
         } else {
             sinModulos();
         }
@@ -113,6 +119,11 @@ public class NavbarController {
     }
 
     @FXML
+    private void irReportes() {
+        navegar(btnReportes, VISTA_REPORTES, "Reportes");
+    }
+
+    @FXML
     private void cerrarSesion() {
         if (Alertas.confirmar("Cerrar sesión", "¿Desea cerrar la sesión?")) {
             authService.cerrarSesion();
@@ -130,12 +141,13 @@ public class NavbarController {
     public static void marcarModulo(String slug) {
         Button boton = "viviendas".equals(slug) ? actual.btnViviendas
                 : "usuarios".equals(slug) ? actual.btnUsuarios
-                : "roles".equals(slug) ? actual.btnRoles : actual.btnEncuestas;
+                : "roles".equals(slug) ? actual.btnRoles
+                : "reportes".equals(slug) ? actual.btnReportes : actual.btnEncuestas;
         actual.marcar(boton);
     }
 
     private void marcar(Button boton) {
-        for (Button b : List.of(btnEncuestas, btnViviendas, btnUsuarios, btnRoles)) {
+        for (Button b : List.of(btnEncuestas, btnViviendas, btnUsuarios, btnRoles, btnReportes)) {
             b.getStyleClass().remove(ACTIVO);
         }
         boton.getStyleClass().add(ACTIVO);
