@@ -252,6 +252,16 @@ public class EncuestaService {
         });
     }
 
+    /**
+     * Revisiones del crítico-digitador sobre la encuesta (rechazos con su
+     * observación y aprobaciones), de la más reciente a la más antigua, para la
+     * pestaña Correcciones del detalle.
+     */
+    public List<AuditoriaEncuesta> revisiones(long encuestaId) {
+        Sesion.exigirModulo(RutasModulo.ENCUESTAS);
+        return ConexionBD.consultar(c -> auditoriaDao.listarPorEncuesta(c, encuestaId));
+    }
+
     /** Elimina la encuesta con su capítulo C y sus días (en cascada). No aplica a encuestas cerradas. */
     public boolean eliminar(long encuestaId) {
         Sesion.exigirModulo(RutasModulo.ENCUESTAS);

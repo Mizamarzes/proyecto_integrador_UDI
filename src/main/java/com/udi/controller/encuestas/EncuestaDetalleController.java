@@ -43,7 +43,8 @@ public class EncuestaDetalleController {
         HOGAR("encuesta_hogar", "Cap. A"),
         CAPITULO_C("encuesta_capitulo_c", "Cap. C"),
         GASTOS("encuesta_gastos", "Línea de 14 días"),
-        CIERRE("encuesta_cierre", "Cierre");
+        CIERRE("encuesta_cierre", "Cierre"),
+        CORRECCIONES("encuesta_correcciones", "Correcciones");
 
         private final String vista;
         private final String miga;
@@ -74,6 +75,8 @@ public class EncuestaDetalleController {
     private ToggleButton tabGastos;
     @FXML
     private ToggleButton tabCierre;
+    @FXML
+    private ToggleButton tabCorrecciones;
     @FXML
     private Label lblAviso;
     @FXML
@@ -109,6 +112,7 @@ public class EncuestaDetalleController {
         botones.put(Pestana.CAPITULO_C, tabCapituloC);
         botones.put(Pestana.GASTOS, tabGastos);
         botones.put(Pestana.CIERRE, tabCierre);
+        botones.put(Pestana.CORRECCIONES, tabCorrecciones);
         botones.forEach((pestana, boton) -> {
             boton.setUserData(pestana);
             // Cada pestaña se muestra con los mismos middlewares que protegen su vista
@@ -234,7 +238,7 @@ public class EncuestaDetalleController {
         if (devolucion != null) {
             lblCorreccion.setText("Rechazada por " + devolucion.getUsuarioNombre() + " el "
                     + Formato.fechaHora(devolucion.getCreatedAt()) + ": «" + devolucion.getObservacion()
-                    + "». Corrija y vuelva a cerrar el caso en la pestaña Cierre.");
+                    + "». Revise el historial en la pestaña Correcciones, corrija y vuelva a cerrar el caso en la pestaña Cierre.");
         }
         Formato.mostrar(lblCorreccion, devolucion != null);
     }

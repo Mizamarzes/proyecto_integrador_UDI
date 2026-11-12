@@ -45,6 +45,7 @@
          <ToggleButton fx:id="tabCapituloC" text="Características del gasto (Cap. C)" toggleGroup="$grupoPestanas" styleClass="pestana" />
          <ToggleButton fx:id="tabGastos" text="Línea de 14 días (gastos)" toggleGroup="$grupoPestanas" styleClass="pestana" />
          <ToggleButton fx:id="tabCierre" text="Cierre (Cap. D)" toggleGroup="$grupoPestanas" styleClass="pestana" />
+         <ToggleButton fx:id="tabCorrecciones" text="Correcciones" toggleGroup="$grupoPestanas" styleClass="pestana" />
          <Region HBox.hgrow="ALWAYS" />
       </HBox>
 

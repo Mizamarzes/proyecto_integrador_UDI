@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Pestaña «Correcciones»: observaciones del crítico-digitador sobre la encuesta (RF-10) -->
+<VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.udi.controller.encuestas.EncuestaCorreccionesController">
+
+   <VBox styleClass="tarjeta" spacing="14.0">
+      <HBox alignment="CENTER_LEFT">
+         <VBox spacing="2.0">
+            <Label text="Correcciones y comentarios" styleClass="titulo-seccion" />
+            <Label text="Observaciones registradas por el crítico-digitador al revisar el caso." styleClass="texto-suave" />
+         </VBox>
+         <Region HBox.hgrow="ALWAYS" />
+         <Label text="VERIFICACIÓN" styleClass="chip" />
+      </HBox>
+      <HBox spacing="14.0">
+         <VBox styleClass="tarjeta-interna" spacing="4.0" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label text="RECHAZOS" styleClass="etiqueta-seccion" />
+            <Label fx:id="lblRechazos" text="0" styleClass="metrica-valor" />
+            <Label text="veces devuelta para corregir" styleClass="texto-suave" />
+         </VBox>
+         <VBox styleClass="tarjeta-interna" spacing="4.0" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label text="ESTADO DE LA CORRECCIÓN" styleClass="etiqueta-seccion" />
+            <Label fx:id="lblEstado" styleClass="dato-valor" wrapText="true" />
+            <Label fx:id="lblEstadoDetalle" styleClass="texto-suave" wrapText="true" />
+         </VBox>
+         <VBox styleClass="tarjeta-interna" spacing="4.0" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+            <Label text="ÚLTIMA REVISIÓN" styleClass="etiqueta-seccion" />
+            <Label fx:id="lblUltima" styleClass="dato-valor" wrapText="true" />
+            <Label fx:id="lblUltimaFecha" styleClass="texto-suave" />
+         </VBox>
+      </HBox>
+   </VBox>
+
+   <VBox styleClass="tarjeta" spacing="12.0">
+      <VBox spacing="2.0">
+         <Label text="Historial de revisiones" styleClass="titulo-seccion" />
+         <Label text="De la más reciente a la más antigua." styleClass="texto-suave" />
+      </VBox>
+      <VBox fx:id="lista" spacing="10.0" />
+   </VBox>
+</VBox>
