@@ -29,6 +29,7 @@ import javafx.scene.layout.StackPane;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Detalle de una encuesta. Muestra el encabezado (código, estado, hogar,
@@ -204,6 +205,25 @@ public class EncuestaDetalleController {
     public String descripcionHogar() {
         String codigo = "Hogar " + Formato.codigo("H", encuesta.getHogarId());
         return vivienda == null ? codigo : codigo + " · " + vivienda.getDireccion();
+    }
+
+    /**
+     * Hogar H-000001 · Carrera 27 # 45-12 · Barrio San Alonso · Bucaramanga,
+     * Santander. Omite los datos de la vivienda que no estén registrados.
+     */
+    public String descripcionHogarConUbicacion() {
+        StringBuilder texto = new StringBuilder(descripcionHogar());
+        if (vivienda != null) {
+            if (Formato.texto(vivienda.getBarrio()) != null) {
+                texto.append(" · Barrio ").append(vivienda.getBarrio().trim());
+            }
+            String ubicacion = String.join(", ", Stream.of(vivienda.getMunicipioNombre(), vivienda.getDepartamentoNombre())
+                    .filter(s -> Formato.texto(s) != null).map(String::trim).toArray(String[]::new));
+            if (!ubicacion.isEmpty()) {
+                texto.append(" · ").append(ubicacion);
+            }
+        }
+        return texto.toString();
     }
 
     private void mostrarPestana(Pestana pestana) {

@@ -14,7 +14,7 @@
 
    <VBox styleClass="modal-encabezado" spacing="4.0">
       <Label fx:id="lblTitulo" styleClass="titulo-modal" />
-      <Label fx:id="lblSubtitulo" styleClass="subtitulo-pagina" />
+      <Label fx:id="lblSubtitulo" styleClass="subtitulo-pagina" wrapText="true" />
    </VBox>
 
    <VBox styleClass="modal-cuerpo" spacing="16.0">

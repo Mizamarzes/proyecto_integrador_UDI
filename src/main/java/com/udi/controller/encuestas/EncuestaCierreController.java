@@ -319,7 +319,7 @@ public class EncuestaCierreController implements SeccionEncuesta {
     @FXML
     private void cerrarCaso() {
         Modal<CerrarCasoController> modal = Modal.cargar("modulos/encuestas/partials/cerrar_caso", "Cerrar caso");
-        modal.controlador().preparar(detalle.getEncuesta(), detalle.descripcionHogar(), datos.diasConInformacion,
+        modal.controlador().preparar(detalle.getEncuesta(), detalle.descripcionHogarConUbicacion(), datos.diasConInformacion,
                 datos.visitas.size(), () -> {
                     detalle.recargar();
                     detalle.avisar("Caso cerrado. Quedó pendiente de aprobación y en solo lectura.");
