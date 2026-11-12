@@ -1,0 +1,88 @@
+/* Estilos del módulo Roles y permisos: matriz roles × módulos */
+
+.matriz-scroll {
+    -fx-background-color: -color-tarjeta;
+    -fx-background: -color-tarjeta;
+    -fx-border-color: #ddd5c6;
+    -fx-padding: 0;
+}
+
+.matriz {
+    -fx-background-color: -color-tarjeta;
+}
+
+.matriz-encabezado {
+    -fx-background-color: #efe8db;
+    -fx-border-color: transparent transparent #ddd5c6 transparent;
+    -fx-padding: 14 8 14 8;
+}
+
+.matriz-encabezado .label {
+    -fx-font-size: 12px;
+    -fx-text-fill: -color-tinta;
+    -fx-text-alignment: center;
+}
+
+.matriz-encabezado-rol .label {
+    -fx-font-weight: bold;
+}
+
+.matriz-celda {
+    -fx-border-color: transparent transparent #e6dfd2 transparent;
+    -fx-padding: 14 8 14 8;
+}
+
+.matriz-fila-par {
+    -fx-background-color: #f8f5ee;
+}
+
+.matriz-rol-nombre {
+    -fx-font-size: 13px;
+    -fx-text-fill: -color-texto;
+}
+
+.matriz-rol-detalle {
+    -fx-font-size: 11px;
+    -fx-text-fill: -color-suave;
+}
+
+.matriz .check-box > .box {
+    -fx-background-color: white;
+    -fx-border-color: #b7ae9e;
+    -fx-background-radius: 2;
+    -fx-border-radius: 2;
+}
+
+.matriz .check-box:selected > .box,
+.matriz .check-box:indeterminate > .box {
+    -fx-background-color: #16895a;
+    -fx-border-color: #16895a;
+}
+
+.matriz .check-box:selected > .box > .mark,
+.matriz .check-box:indeterminate > .box > .mark {
+    -fx-background-color: white;
+}
+
+.matriz .check-box:disabled {
+    -fx-opacity: 0.75;
+}
+
+.matriz .hyperlink {
+    -fx-font-size: 11px;
+    -fx-padding: 0;
+}
+
+.matriz-estado {
+    -fx-font-size: 12px;
+    -fx-text-fill: -color-suave;
+}
+
+.matriz-estado.pendiente {
+    -fx-text-fill: #7a420a;
+    -fx-font-weight: bold;
+}
+
+.matriz-estado.guardado {
+    -fx-text-fill: #1f6b3a;
+}

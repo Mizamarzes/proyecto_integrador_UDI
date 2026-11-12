@@ -1,0 +1,19 @@
+/* Estilos del módulo Verificación */
+
+/* Resultado de la validación cruzada (Verificación) */
+.validacion-ok, .validacion-aviso, .validacion-error {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.validacion-ok {
+    -fx-text-fill: #2f5e3d;
+}
+
+.validacion-aviso {
+    -fx-text-fill: #7a5b16;
+}
+
+.validacion-error {
+    -fx-text-fill: #9a3a28;
+}

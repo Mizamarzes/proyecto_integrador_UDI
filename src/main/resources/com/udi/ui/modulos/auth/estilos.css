@@ -1,0 +1,53 @@
+/* Estilos del módulo de autenticación (login) */
+
+.login-root {
+    -fx-background-color: -color-fondo;
+}
+
+.logo-circulo {
+    -fx-fill: transparent;
+    -fx-stroke: -color-tinta;
+    -fx-stroke-width: 1.6;
+}
+
+.logo-texto {
+    -fx-font-family: "Serif";
+    -fx-font-weight: bold;
+    -fx-font-size: 10px;
+    -fx-text-fill: -color-tinta;
+}
+
+.titulo-portada {
+    -fx-font-family: "Serif";
+    -fx-font-size: 32px;
+    -fx-text-fill: -color-tinta;
+}
+
+.subtitulo-portada {
+    -fx-font-size: 14px;
+    -fx-text-fill: -color-suave;
+}
+
+.icono-hoja {
+    -fx-fill: transparent;
+    -fx-stroke: #8a8478;
+    -fx-stroke-width: 1;
+}
+
+.nota-portada {
+    -fx-font-size: 11px;
+    -fx-text-fill: -color-suave;
+}
+
+.tarjeta-login {
+    -fx-background-color: -color-tarjeta;
+    -fx-padding: 34 34 30 34;
+    -fx-effect: dropshadow(gaussian, rgba(60, 45, 20, 0.18), 6, 0.3, 4, 4);
+}
+
+.titulo-tarjeta {
+    -fx-font-family: "Serif";
+    -fx-font-weight: bold;
+    -fx-font-size: 20px;
+    -fx-text-fill: -color-tinta;
+}

@@ -153,10 +153,10 @@ proyecto_integrador_UDI/
         ├── config/db.properties.example  # Plantilla de conexión (copiar como db.properties)
         └── ui/
             ├── shared/
-            │   ├── estilos.css
-            │   └── layout/               # navbar.fxml (estructura principal), pendiente.fxml
+            │   ├── estilos.css           # Estilos compartidos
+            │   └── layout/               # navbar.fxml (estructura principal), pendiente.fxml, estilos.css
             └── modulos/
-                ├── auth/                 # login.fxml
+                ├── auth/                 # login.fxml, estilos.css (cada módulo tiene su hoja)
                 ├── encuestas/            # encuesta.fxml (listado), encuesta_form.fxml
                 └── usuarios/             # usuario.fxml (listado), usuario_form.fxml
 ```

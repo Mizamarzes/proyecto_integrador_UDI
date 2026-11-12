@@ -1,0 +1,12 @@
+/* Estilos del módulo Usuarios */
+
+/* Insignias de estado del usuario */
+.insignia-activo {
+    -fx-background-color: #dbe8de;
+    -fx-text-fill: #3c6a4a;
+}
+
+.insignia-inactivo {
+    -fx-background-color: #f2dcd7;
+    -fx-text-fill: #9a3a28;
+}

@@ -1,0 +1,134 @@
+/* Estilos del módulo Encuestas (detalle y sus pestañas) */
+
+/* Pestañas del detalle de encuesta */
+.pestanas {
+    -fx-border-color: transparent transparent #d6cdbd transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.pestana {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-text-fill: #5f5a50;
+    -fx-font-size: 12px;
+    -fx-padding: 10 14 10 14;
+    -fx-cursor: hand;
+}
+
+.pestana:hover {
+    -fx-text-fill: -color-tinta;
+}
+
+.pestana:selected {
+    -fx-border-color: transparent transparent #a8402c transparent;
+    -fx-text-fill: -color-tinta;
+    -fx-font-weight: bold;
+}
+
+/* Resultado de la entrevista (visitas y A.18) */
+.insignia-ec {
+    -fx-background-color: #dbe8de;
+    -fx-text-fill: #2f5e3d;
+}
+
+.insignia-ei {
+    -fx-background-color: #dfe6ef;
+    -fx-text-fill: #2d4a6b;
+}
+
+.insignia-nh, .insignia-at, .insignia-oc {
+    -fx-background-color: #f4e3c1;
+    -fx-text-fill: #7a5b16;
+}
+
+.insignia-r {
+    -fx-background-color: #f2dcd7;
+    -fx-text-fill: #9a3a28;
+}
+
+.insignia-v, .insignia-o, .insignia-neutra {
+    -fx-background-color: #e6e3dd;
+    -fx-text-fill: #4b4f57;
+}
+
+/* Capítulo C: filas de la grilla */
+.grilla-encabezado {
+    -fx-background-color: -color-tinta;
+    -fx-padding: 10 12 10 12;
+}
+
+.grilla-encabezado .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+}
+
+.grilla-fila {
+    -fx-background-color: white;
+    -fx-padding: 6 12 6 12;
+    -fx-border-color: transparent transparent #e6dfd2 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.grilla-fila.fila-pendiente {
+    -fx-background-color: #faf7f1;
+}
+
+.grilla-fila.fila-error {
+    -fx-background-color: #fdf3ef;
+    -fx-border-color: transparent transparent #e6dfd2 #a8402c;
+    -fx-border-width: 0 0 1 3;
+}
+
+/* Línea de 14 días */
+.dia {
+    -fx-background-color: white;
+    -fx-background-radius: 0;
+    -fx-border-color: #cfc6b5;
+    -fx-padding: 8 6 8 6;
+    -fx-cursor: hand;
+    -fx-alignment: center;
+}
+
+.dia .label {
+    -fx-text-fill: -color-tinta;
+}
+
+.dia-numero {
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+.dia-fecha, .dia-estado {
+    -fx-font-size: 10px;
+}
+
+.dia.dia-registrado {
+    -fx-background-color: #dbe8de;
+    -fx-border-color: #9fc2a9;
+}
+
+.dia.dia-hoy {
+    -fx-border-color: #a8402c;
+    -fx-border-width: 2;
+}
+
+.dia:disabled {
+    -fx-opacity: 0.55;
+}
+
+.dia:selected {
+    -fx-background-color: -color-tinta;
+    -fx-border-color: -color-tinta;
+}
+
+.dia:selected .label {
+    -fx-text-fill: white;
+}
+
+.codigos .label {
+    -fx-font-size: 11px;
+    -fx-text-fill: -color-texto;
+}

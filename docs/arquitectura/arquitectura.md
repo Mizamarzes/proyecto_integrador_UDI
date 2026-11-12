@@ -181,12 +181,14 @@ proyecto_integrador_UDI/
         │   └── db.properties.example         # Plantilla: copiar como db.properties (ignorado por git)
         └── ui/                               # ── VISTA: pantallas FXML organizadas por módulo ──
             ├── shared/                       # Lo común a todos los módulos
-            │   ├── estilos.css               # Hoja de estilos única
+            │   ├── estilos.css               # Estilos compartidos: colores, botones, campos, tablas, modales…
             │   └── layout/
+            │       ├── estilos.css           # Barra lateral y encabezado
             │       ├── navbar.fxml           # Hecho: estructura con barra lateral y encabezado
             │       └── pendiente.fxml        # Aviso de módulo en construcción
             └── modulos/
                 ├── auth/
+                │   ├── estilos.css           # Estilos propios del módulo (cada módulo tiene el suyo)
                 │   └── login.fxml            # Hecho
                 ├── encuestas/
                 │   ├── encuesta.fxml         # Hecho: listado (Mis Encuestas / global)
@@ -235,6 +237,8 @@ Los controladores Java están todos en el paquete `controller`, pero sus vistas 
 
 - `ui/modulos/<modulo>/`: las pantallas de cada módulo (por ejemplo `encuestas/encuesta.fxml` y `encuestas/encuesta_detalle.fxml`). Si un módulo necesita diálogos modales o fragmentos reutilizables, van en subcarpetas `partials/` y `components/` dentro del módulo.
 - `ui/shared/`: lo común (`estilos.css`, la estructura `layout/navbar.fxml` y `layout/pendiente.fxml`).
+
+Los estilos se dividen igual. `ui/shared/estilos.css` tiene los colores (`-color-tinta`, `-color-suave`…) y los componentes que usan varios módulos (botones, campos, tablas, tarjetas, insignias de estado, avisos, modales, `SelectBuscable`, `Paginador`) y se adjunta a la escena y a cada modal. Lo propio de un módulo va en `ui/modulos/<modulo>/estilos.css` (la matriz de Roles, las gráficas de Reportes, las pestañas, la grilla del Cap. C y la línea de 14 días de Encuestas…), y lo de la estructura en `ui/shared/layout/estilos.css`. `App.cargar` adjunta esa hoja a la raíz de cada vista de la carpeta, así que no hay que declararla en el FXML. Si una clase pasa a usarse en otro módulo, se mueve a `ui/shared/estilos.css`: la hoja de un módulo solo aplica dentro de sus vistas. Los popups (el de `SelectBuscable`) copian solo las hojas de la escena, así que sus estilos van en la compartida.
 
 Una vista se nombra con su ruta dentro de `ui`, sin extensión: `"modulos/encuestas/encuesta"`. Para agregar un módulo se crea su carpeta en `ui/modulos/<modulo>/`, su paquete en `controller/<modulo>/` (y, si hace falta, en `service/<modulo>/` y `dao/<modulo>/`), su `opens com.udi.controller.<modulo> to javafx.fxml;` en `module-info.java`, su ruta en `middleware/RutasModulo` y `Rutas`, y su botón en `navbar.fxml`/`NavbarController`.
 

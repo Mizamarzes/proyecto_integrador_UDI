@@ -1,0 +1,136 @@
+/* Estructura principal (navbar.fxml): sidebar y encabezado */
+
+.shell {
+    -fx-background-color: -color-fondo;
+}
+
+.sidebar {
+    -fx-background-color: -color-tinta;
+}
+
+.sidebar-marca {
+    -fx-padding: 22 16 18 16;
+    -fx-border-color: transparent transparent #2e3d50 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.sidebar-logo-circulo {
+    -fx-fill: transparent;
+    -fx-stroke: #e8e2d6;
+    -fx-stroke-width: 1.4;
+}
+
+.sidebar-logo-texto {
+    -fx-font-family: "Serif";
+    -fx-font-weight: bold;
+    -fx-font-size: 7px;
+    -fx-text-fill: #e8e2d6;
+}
+
+.sidebar-titulo {
+    -fx-font-family: "Serif";
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+    -fx-text-fill: white;
+}
+
+.sidebar-subtitulo {
+    -fx-font-size: 10px;
+    -fx-text-fill: #8f9bab;
+}
+
+.sidebar-nav {
+    -fx-padding: 22 8 0 0;
+}
+
+.nav-item {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-text-fill: #c9d1db;
+    -fx-font-size: 13px;
+    -fx-alignment: center-left;
+    -fx-graphic-text-gap: 10;
+    -fx-padding: 8 12 8 13;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 0 3;
+    -fx-cursor: hand;
+}
+
+.nav-item:hover {
+    -fx-background-color: #24344a;
+}
+
+.nav-item.activo {
+    -fx-background-color: #2a3a50;
+    -fx-text-fill: white;
+    -fx-border-color: #b5452f;
+}
+
+.nav-icono {
+    -fx-fill: transparent;
+    -fx-stroke: #c9d1db;
+    -fx-stroke-width: 1.2;
+}
+
+.nav-item.activo .nav-icono {
+    -fx-stroke: white;
+}
+
+.sidebar-pie {
+    -fx-padding: 12 16 14 16;
+    -fx-border-color: #2e3d50 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.sidebar-pie .label {
+    -fx-font-size: 10px;
+    -fx-text-fill: #7d8a9b;
+}
+
+.encabezado {
+    -fx-background-color: -color-tarjeta;
+    -fx-padding: 12 28 12 28;
+    -fx-border-color: transparent transparent #ddd5c6 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.encabezado-titulo {
+    -fx-font-family: "Serif";
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: -color-tinta;
+}
+
+.encabezado-migas, .encabezado-rol {
+    -fx-font-size: 10px;
+    -fx-text-fill: -color-suave;
+}
+
+.encabezado-usuario {
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-text-fill: -color-tinta;
+}
+
+.punto-conectado {
+    -fx-fill: #3d7a55;
+}
+
+.boton-icono {
+    -fx-background-color: transparent;
+    -fx-background-radius: 20;
+    -fx-border-color: #cfc6b5;
+    -fx-border-radius: 20;
+    -fx-padding: 7;
+    -fx-cursor: hand;
+}
+
+.boton-icono:hover {
+    -fx-background-color: #f1ebe0;
+}
+
+.icono-salir {
+    -fx-fill: transparent;
+    -fx-stroke: -color-tinta;
+    -fx-stroke-width: 1.2;
+}

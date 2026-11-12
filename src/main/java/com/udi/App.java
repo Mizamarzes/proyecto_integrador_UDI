@@ -14,6 +14,7 @@ import javafx.stage.Window;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URL;
 
 /**encu
  * Punto de entrada de la aplicación. Mantiene una única escena y cambia la
@@ -59,7 +60,7 @@ public class App extends Application {
         ConexionBD.cerrar();
     }
 
-    /** Hoja de estilos común; la usan también las ventanas modales. */
+    /** Hoja de estilos compartida; la usan también las ventanas modales. */
     public static String estilos() {
         return App.class.getResource("ui/shared/estilos.css").toExternalForm();
     }
@@ -88,10 +89,30 @@ public class App extends Application {
         FXMLLoader loader = new FXMLLoader(App.class.getResource("ui/" + vista + ".fxml"));
         try {
             loader.load();
-            return loader;
         } catch (IOException e) {
             throw new UncheckedIOException("No se pudo cargar la vista " + vista, e);
         }
+        String hoja = estilosDe(vista);
+        Parent raiz = loader.getRoot();
+        if (hoja != null && !raiz.getStylesheets().contains(hoja)) {
+            raiz.getStylesheets().add(hoja);
+        }
+        return loader;
+    }
+
+    /**
+     * Hoja propia de la carpeta de la vista ("modulos/encuestas/partials/x" →
+     * ui/modulos/encuestas/estilos.css, "shared/layout/navbar" →
+     * ui/shared/layout/estilos.css), o null si esa carpeta no tiene una. Se
+     * suma a {@link #estilos()}, que sigue en la escena.
+     */
+    private static String estilosDe(String vista) {
+        String[] partes = vista.split("/");
+        if (partes.length < 3) {
+            return null;
+        }
+        URL hoja = App.class.getResource("ui/" + partes[0] + "/" + partes[1] + "/estilos.css");
+        return hoja == null ? null : hoja.toExternalForm();
     }
 
     public static void main(String[] args) {

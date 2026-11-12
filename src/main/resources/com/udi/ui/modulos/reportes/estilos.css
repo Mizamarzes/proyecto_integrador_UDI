@@ -1,0 +1,71 @@
+/* Estilos del módulo Reportes */
+
+/* Colores de las gráficas: validados para daltonismo y distinguibles entre sí */
+.reporte-azul {
+    -fx-background-color: #2f6db5;
+}
+
+.reporte-verde {
+    -fx-background-color: #16895a;
+}
+
+.reporte-naranja {
+    -fx-background-color: #c25a1c;
+}
+
+.reporte-rojo {
+    -fx-background-color: #b23a48;
+}
+
+.reporte-gris {
+    -fx-background-color: #8c8577;
+}
+
+/* Línea base de las barras horizontales */
+.reporte-pista {
+    -fx-border-color: transparent transparent transparent #8c8577;
+    -fx-border-width: 0 0 0 1;
+}
+
+.reporte-barra {
+    -fx-background-radius: 0 4 4 0;
+}
+
+.reporte-segmento {
+    -fx-background-radius: 4;
+}
+
+.reporte-muestra {
+    -fx-background-radius: 3;
+}
+
+.reporte-codigo {
+    -fx-font-family: "Monospaced";
+}
+
+.reporte-valor {
+    -fx-font-family: "Monospaced";
+    -fx-font-size: 12px;
+    -fx-text-fill: -color-tinta;
+}
+
+.reporte-leyenda-fila {
+    -fx-padding: 8 0 8 0;
+    -fx-border-color: transparent transparent #e4ded3 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.reporte-pie {
+    -fx-padding: 12 0 0 0;
+    -fx-border-color: #e4ded3 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.tabla .reporte-fila-total,
+.tabla .reporte-fila-total:hover {
+    -fx-background-color: #efeae1;
+}
+
+.tabla .reporte-fila-total .table-cell {
+    -fx-font-weight: bold;
+}
