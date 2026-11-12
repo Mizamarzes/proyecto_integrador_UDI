@@ -757,3 +757,10 @@ INSERT INTO comida_fuera_hogar (id, registro_diario_id, encuestador_id, lugar_co
 -- aprobado ni rechazado todavía.
 
 COMMIT;
+
+-- =====================================================================
+-- 7. AUDITORÍA: tabla, secuencia, procedimiento y triggers trg_cud_<tabla>.
+-- Va después de los datos de prueba para que la semilla no quede auditada.
+-- El usuario necesita: GRANT CREATE PROCEDURE, CREATE TRIGGER TO <usuario>;
+-- =====================================================================
+@@migraciones/migracion_auditoria.sql

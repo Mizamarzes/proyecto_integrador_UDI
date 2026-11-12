@@ -1,0 +1,402 @@
+I. Realizar los siguientes bloques anónimos con procedimientos y/o funciones según sea el caso:
+
+1. Para desplegar el nombre del equipo, nombre completo de los jugadores y la edad de los jugadores y la antigüedad de los equipos.
+
+CREATE OR REPLACE FUNCTION bus_equipoJugador
+RETURN VARCHAR
+IS
+v_equipoJugador VARCHAR(3000);
+CURSOR c_equipoJugador IS
+SELECT e.nombre AS equipo, j.nombre||' '||j.apellido AS jugador,
+TRUNC(MONTHS_BETWEEN(SYSDATE,j.fecha_nac)/12) AS edad,
+TRUNC(MONTHS_BETWEEN(SYSDATE,e.fecha_creacion)/12) AS antiguedad
+FROM equipo e JOIN equ_juga ej USING(cod_equipo) JOIN jugador j
+USING(pase_jugador)
+ORDER BY e.nombre;
+
+BEGIN
+FOR r_equipoJugador IN c_equipoJugador LOOP
+   v_equipoJugador:=v_equipoJugador||'- '||   r_equipoJugador.equipo||','||r_equipoJugador.jugador||','||   r_equipoJugador.edad||','||r_equipoJugador.antiguedad||CHR(10);
+END LOOP;
+RETURN v_equipoJugador;
+END;
+/
+
+BLOQUE
+
+BEGIN
+:mensaje:=bus_equipoJugador;
+END;
+/
+
+2. Para realizar el registro de los resultados de un equipo donde se da el nombre del equipo, si ya existe el registro del equipo, se debe modificar el último registro según lo que sucedió en el partido jugado (Ejemplo: Aumentar el número de partidos jugados, el número de partidos empatados o perdidos según sea el caso, la cantidad de goles a favor o en contra según el caso).
+
+CREATE OR REPLACE FUNCTION bus_codEquipo 
+(v_nomEquipo equipo.nombre%TYPE)
+RETURN VARCHAR
+IS
+v_codEquipo equipo.cod_equipo%TYPE;
+BEGIN
+SELECT cod_equipo INTO v_codEquipo
+FROM equipo
+WHERE UPPER(nombre) LIKE v_nomEquipo;
+RETURN v_codEquipo;
+END;
+/
+
+CREATE OR REPLACE FUNCTION bus_cantResultado
+(v_codEquipo equipo.cod_equipo%TYPE)
+RETURN NUMBER
+IS
+v_cantResultado NUMBER;
+
+BEGIN
+SELECT COUNT(*) INTO v_cantResultado
+FROM resultado
+WHERE cod_equipo=v_codEquipo;
+RETURN v_cantResultado;
+END;
+/
+
+CREATE OR REPLACE PROCEDURE inc_resultado
+(r_resultado resultado%ROWTYPE)
+IS
+BEGIN
+INSERT INTO resultado
+VALUES r_resultado;
+END;
+/
+
+CREATE OR REPLACE PROCEDURE inc_resultado
+(r_resultado resultado%ROWTYPE)
+IS
+BEGIN
+INSERT INTO resultado
+VALUES (seq_resultado.NEXTVAL,r_resultado.partido_jugado,
+r_resultado.partido_empat,r_resultado.partido_perdid,r_resultado.gol_favor,r_resultado.gol_encontra,r_resultado.cod_equipo) ;
+END;
+/
+
+CREATE OR 0REPLACE PROCEDURE mod_resultado
+(r_resultado resultado%ROWTYPE)
+IS
+BEGIN
+UPDATE resultado
+SET partido_jugado=partido_jugado+1,partido_empat=partido_empat+r_resultado.partido_empat, partido_perdid=partido_perdid+r_resultado.partido_perdid, gol_favor=gol_favor+r_resultado.gol_favor, gol_encontra=gol_encontra+r_resultado.gol_encontra
+WHERE cod_equipo=r_resultado.cod_equipo;
+END;
+/
+
+
+BLOQUE
+
+DECLARE
+v_nomEquipo equipo.nombre%TYPE:=UPPER('&nombreEquipo');
+r_resultado resultado%ROWTYPE;
+v_cantResultado NUMBER;
+
+BEGIN
+r_resultado.cod_Equipo:=bus_codEquipo(v_nomEquipo);
+v_cantResultado:=bus_cantResultado(r_resultado.cod_equipo);
+
+r_resultado.PARTIDO_EMPAT:=&PartidoEmpatado;
+r_resultado.PARTIDO_PERDID:=&partidoPerdido;
+r_resultado.GOL_FAVOR:=&golesAFavor;
+r_resultado.GOL_ENCONTRA:=&golesEnContra;
+
+IF v_cantResultado=0 THEN
+   SELECT MAX(NUMBER(id))+1 INTO r_resultado.id
+   FROM resultado;
+   r_resultado.partido_jugado=1;
+   inc_resultado(r_resultado);
+ELSE
+   mod_resultado(r_resultado);
+END IF;
+
+COMMIT;
+END;
+/
+
+
+II. Realizar los procedimientos y/o funciones necesarias para cada uno de los enunciados, además, del bloque que los invoque.
+1. Incluir un nuevo técnico al torneo (Se da el nombre del equipo).
+
+
+CREATE OR REPLACE PROCEDURE inc_tecnico
+(r_tecnico tecnico%ROWTYPE)
+IS
+BEGIN
+INSERT INTO tecnico
+VALUES r_tecnico;
+END;
+/
+
+DECLARE
+r_tecnico tecnico%ROWTYPE;
+v_nomEquipo equipo.nombre%TYPE:=UPPER('&nombreEquipo');
+
+BEGIN
+r_tecnico.cod_equipo:=bus_codEquipo(v_nomEquipo);
+
+r_tecnico.CEDULA_TECNICO:='&cedulaTecnico';
+r_tecnico.NOMBRE:='&nombreTecnico';
+r_tecnico.APELLIDO:='&apellidoTecnico';
+r_tecnico.FECHA_NAC:=TO_DATE('&fechanacimiento','DD-MM-YYYY');
+r_tecnico.FECHA_ING:=TO_DATE('&fechaIngreso','DD-MM-YYYY');
+r_tecnico.GENERO:='&generoTecnico';
+r_tecnico.ESTADO_CIVIL:='&estadoCivil';
+r_tecnico.TIPO:='&tipoTecnico';
+
+inc_tecnico(r_tecnico);
+
+COMMIT;
+END;
+/
+
+2. Modificar la categoría de un jugador cuando se da el nombre completo del jugador y el nombre de la categoría
+
+CREATE OR REPLACE FUNCTION bus_codCategoria
+(v_nomCategoria categoria.nombre%TYPE)
+RETURN VARCHAR
+IS
+v_codCategoria categoria.cod_categoria%TYPE;
+BEGIN
+SELECT cod_categoria INTO v_codCategoria
+FROM categoria
+WHERE UPPER(nombre) LIKE v_nomCategoria;
+RETURN v_codCategoria;
+END;
+/
+
+CREATE OR REPLACE FUNCTION bus_paseJugador
+(v_nomJugador jugador.nombre%TYPE,
+v_apeJugador jugador.apellido%TYPE)
+RETURN VARCHAR
+IS
+v_paseJugador jugador.pase_jugador%TYPE;
+BEGIN
+SELECT pase_jugador INTO v_pasejugador
+FROM jugador
+WHERE UPPER(nombre) LIKE v_nomJugador
+AND UPPER(apellido) LIKE v_apeJugador;
+RETURN v_paseJugador;
+END;
+/
+
+CREATE OR REPLACE PROCEDURE mod_categoriaJugador
+(v_paseJugador jugador.pase_jugador%TYPE,
+v_codCategoria categoria.cod_categoria%TYPE)
+IS
+BEGIN
+UPDATE jugador
+SET cod_categoria=v_codCategoria
+WHERE pase_jugador=v_paseJugador;
+END;
+/
+
+CREATE OR REPLACE PROCEDURE mod_categoriaJugadorNombre
+(v_nomJugador jugador.nombre%TYPE,
+v_apeJugador jugador.apellido%TYPE,
+v_codCategoria categoria.cod_categoria%TYPE)
+IS
+BEGIN
+UPDATE jugador
+SET cod_categoria=v_codCategoria
+WHERE UPPER(nombre) LIKE v_nomJugador
+AND UPPER(apellido) LIKE v_apeJugador;
+END;
+/
+
+BLOQUE
+
+DECLARE
+v_nomJugador jugador.nombre%TYPE:=UPPER('&nombreJugador');
+v_apeJugador jugador.apellido%TYPE:=UPPER('&apellidoJugador');
+v_nomCategoria categoria.nombre%TYPE:=UPPER('&nombreCategoria');
+v_paseJugador jugador.pase_jugador%TYPE;
+v_codCategoria categoria.cod_categoria%TYPE;
+
+BEGIN
+v_paseJugador:=bus_paseJugador(v_nomJugador,v_apeJugador);
+v_codCategoria:=bus_codCategoria(v_nomCategoria);
+
+mod_categoriaJugador(v_paseJugador,v_codCategoria);
+
+COMMIT;
+END;
+/
+
+DECLARE
+v_nomJugador jugador.nombre%TYPE:=UPPER('&nombreJugador');
+v_apeJugador jugador.apellido%TYPE:=UPPER('&apellidoJugador');
+v_nomCategoria categoria.nombre%TYPE:=UPPER('&nombreCategoria');
+
+v_codCategoria categoria.cod_categoria%TYPE;
+
+BEGIN
+
+v_codCategoria:=bus_codCategoria(v_nomCategoria);
+
+mod_categoriaJugadorNombre (v_nomJugador,v_apeJugador,
+v_codCategoria)
+
+COMMIT;
+END;
+/
+
+3. Para mostrar los jugadores de los equipos que tienen jugadores de un rango de edades.
+
+CREATE OR REPLACE FUNCTION bus_jugadorPorEdad
+(v_edadMinima NUMBER,
+v_edadMaxima NUMBER)
+RETURN VARCHAR
+IS
+v_mensaje VARCHAR(3000);
+
+CURSOR c_jugadorRango IS
+SELECT * 
+FROM jugador
+WHERE TRUNC(MONTHS_BETWEEN(SYSDATE,fecha_nac)/12) BETWEEN
+v_edadMinima AND v_edadMaxima;
+
+BEGIN
+FOR r_jugador IN c_jugadorRango LOOP
+   v_mensaje:=v_mensaje||'-'||r_jugador.PASE_JUGADOR||','||r_jugador.NOMBRE||','||r_jugador.APELLIDO||','||
+r_jugador.FECHA_NAC||','||r_jugador.CEDULA||','||r_jugador.GENERO||','||r_jugador.ESTADO_CIVIL||','||r_jugador.COD_CATEGORIA||CHR(10);
+END LOOP;
+RETURN v_mensaje;
+END;
+/
+
+BLOQUE
+DECLARE
+v_edadMinima NUMBER:=&edadMinima;
+v_edadMaxima NUMBER:=&edadMaxima;
+BEGIN
+:mensaje:=bus_jugadorPorEdad(v_edadMinima,v_edadMaxima);
+END;
+/
+
+DISPARADORES
+III. Realizar los siguientes disparadores:
+
+1. Para auditar la modificación, inclusión y eliminación de un resultado.
+
+CREATE TABLE auditoria
+(id VARCHAR(3) CONSTRAINT aud_id_pk PRIMARY KEY,
+descripcion VARCHAR(100) CONSTRAINT aud_des_nn NOT NULL,
+fechaRealizado DATE CONSTRAINT aud_fecrea_nn NOT NULL)
+/
+
+CREATE SEQUENCE seq_idauditoria;
+
+CREATE OR REPLACE PROCEDURE inc_auditoria
+(r_auditoria auditoria%ROWTYPE)
+IS
+BEGIN
+INSERT INTO auditoria
+VALUES(seq_idauditoria.nextval,r_auditoria.descripcion,r_auditoria.fecharealizado);
+END;
+/
+
+CREATE OR REPLACE TRIGGER trg_ActualizarResultado
+AFTER INSERT OR UPDATE OR DELETE ON resultado
+FOR EACH ROW
+DECLARE
+r_auditoria auditoria%ROWTYPE;
+
+BEGIN
+IF INSERTING THEN
+   r_auditoria.descripcion:='Se incluyo un resultado para el equipo '||:new.cod_equipo;
+   r_auditoria.fecharealizado:=SYSDATE;
+ELSIF DELETING THEN
+   r_auditoria.descripcion:='Se elimino el resultado para el equipo '||:old.cod_equipo;
+   r_auditoria.fecharealizado:=SYSDATE;
+ELSE
+   r_auditoria.descripcion:='Se modifico un resultado para el equipo '||:new.cod_equipo;
+   r_auditoria.fecharealizado:=SYSDATE;
+END IF;
+inc_auditoria(r_auditoria);
+END;
+/
+ 
+2. Para validar que no se modifique la fecha de nacimiento del técnico y sea de una persona mayor de edad.
+
+
+CREATE OR REPLACE TRIGGER trg_actualizarFechaNacTecnico
+BEFORE UPDATE OR INSERT OF fecha_nac ON tecnico
+FOR EACH ROW
+BEGIN
+IF TRUNC(MONTHS_BETWEEN(SYSDATE,:NEW.FECHA_NAC)/12)<18 THEN
+   DBMS_OUTPUT.PUT_LINE('No se puede incluir un tecnico menor de edad');
+   RAISE_APPLICATION_ERROR(-1,'Tecnico menor de edad');
+END IF;
+END;
+/
+
+3. Para validar que no se modifique la fecha de nacimiento del jugador la cual no puede ser menor a la tenía.
+
+CREATE OR REPLACE TRIGGER trg_actualizarFechaNacJugador
+BEFORE UPDATE OF fecha_nac ON jugador
+FOR EACH ROW
+BEGIN
+IF :NEW.fecha_nac<:OLD.fecha_nac THEN
+   DBMS_OUTPUT.PUT_LINE('No se puede modificar la fecha de nacimiento por una menor');
+   RAISE_APPLICATION_ERROR(-2,'Fecha nacimiento menor a la actual');
+END IF;
+END;
+/
+
+4. Para auditar la modificación, inclusión y eliminación de recibos
+
+CREATE OR REPLACE TRIGGER trg_ActualizarRecibos
+AFTER INSERT OR UPDATE OR DELETE ON recibo
+FOR EACH ROW
+DECLARE
+r_auditoria auditoria%ROWTYPE;
+
+BEGIN
+IF INSERTING THEN
+   r_auditoria.descripcion:='Se incluyo un recibo para el jugador con pase '||:new.pase_jugador;
+   r_auditoria.fecharealizado:=SYSDATE;
+ELSIF DELETING THEN
+   r_auditoria.descripcion:='Se elimino un recibo para el jugador '||:old.pase_jugador||' cuyo numero es '||:old.numero_recibo;
+   r_auditoria.fecharealizado:=SYSDATE;
+ELSE
+   r_auditoria.descripcion:='Se modifico un recibo para el jugador '||:new.pase_jugador||' cuyo numero es '||:old.numero_recibo;
+   r_auditoria.fecharealizado:=SYSDATE;
+END IF;
+inc_auditoria(r_auditoria);
+END;
+/
+
+5. Para validar que la fecha de creación del equipo sea menor o igual a la actual.
+
+CREATE OR REPLACE TRIGGER trg_actualizarFechaCreacEquipo
+BEFORE UPDATE OR INSERT OF fecha_creacion ON equipo
+FOR EACH ROW
+BEGIN
+IF :NEW.fecha_creacion>SYSDATE THEN
+   DBMS_OUTPUT.PUT_LINE('No se puede modificar o incluir la fecha de creación del equipo mayor a la actual');
+   RAISE_APPLICATION_ERROR(-2,'Fecha de creacion mayor a la actual');
+END IF;
+END;
+/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

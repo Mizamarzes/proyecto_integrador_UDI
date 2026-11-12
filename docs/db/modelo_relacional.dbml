@@ -86,6 +86,12 @@ Enum accion_auditoria {
   RECHAZADA  [note: 'El crítico-digitador rechazó el caso, con observación']
 }
 
+Enum operacion_auditoria {
+  INSERCION
+  MODIFICACION
+  ELIMINACION
+}
+
 Enum tipo_comida {
   DESAYUNO
   ALMUERZO
@@ -374,6 +380,21 @@ Table auditoria_encuesta [headercolor: #16A085] {
   created_by number(10) [note: 'Usuario que hizo la acción']
 }
 
+Table auditoria [headercolor: #16A085, note: 'Auditoría general: la llenan los triggers trg_cud_<tabla> con el procedimiento incluir_auditoria (migraciones/migracion_auditoria.sql)'] {
+  id number(10) [pk, increment]
+  tabla varchar2(30) [not null, note: 'Tabla afectada, en mayúsculas']
+  operacion operacion_auditoria [not null]
+  registro_id number(10) [note: 'id de la fila afectada']
+  descripcion varchar2(500) [not null]
+  usuario_id number(10) [note: 'Usuario de la aplicación (CLIENT_IDENTIFIER de la sesión o created_by). Sin FK: el rastro queda aunque se elimine el usuario']
+  usuario_bd varchar2(30) [not null, default: `USER`, note: 'Usuario de Oracle de la conexión']
+  fecha timestamp [not null, default: `SYSTIMESTAMP`]
+
+  indexes {
+    (tabla, registro_id)
+  }
+}
+
 // =====================================================================
 // Agrupaciones
 // =====================================================================
@@ -406,6 +427,7 @@ TableGroup capitulo_c [color: #8E44AD] {
 
 TableGroup verificacion [color: #16A085] {
   auditoria_encuesta
+  auditoria
 }
 
 TableGroup capitulo_d [color: #E74C3C] {

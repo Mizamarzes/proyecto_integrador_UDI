@@ -43,6 +43,7 @@ Resumen: **18 tablas, 8 enums y 37 llaves foráneas** (22 del modelo y 15 de aud
 | GASTO_DIARIO | `gasto_diario` | Capítulo D |
 | COMIDA_FUERA_HOGAR | `comida_fuera_hogar` | Capítulo D1 |
 | AUDITORIA_ENCUESTA *(agregada)* | `auditoria_encuesta` | Verificación (RF-10) |
+| AUDITORIA *(agregada)* | `auditoria` | Auditoría general (triggers) |
 
 ---
 
@@ -92,6 +93,7 @@ En Oracle no existe el tipo ENUM. Cada uno se crea como una columna `VARCHAR2` c
 | `tipo_comida` | DESAYUNO, ALMUERZO, CENA, ONCES | `comida_fuera_hogar` |
 | `estado_encuesta` | EN_CURSO, PENDIENTE_APROBACION, APROBADA, RECHAZADA | `encuesta.estado` |
 | `accion_auditoria` | APROBADA, RECHAZADA | `auditoria_encuesta.accion` |
+| `operacion_auditoria` | INSERCION, MODIFICACION, ELIMINACION | `auditoria.operacion` |
 
 `grupo_alimento` y `lugar_compra` siguen siendo tablas, como en el E-R:
 - `grupo_alimento` tiene 25 valores con nombres largos, y el capítulo C necesita recorrerlos para armar el formulario.
@@ -266,6 +268,23 @@ Restricción única: `(hogar_id, numero_visita)`.
 | observacion | VARCHAR2(1000) | Obligatoria en RECHAZADA | Motivo del rechazo |
 
 `created_at` es el momento de la acción y `created_by` el usuario que la hizo.
+
+### Auditoría general
+
+**`auditoria`**: una fila por cada inserción, modificación o eliminación en cualquier tabla del esquema. No la escribe la aplicación: la llenan los triggers `trg_cud_<tabla>` (uno por tabla, `AFTER INSERT OR UPDATE OR DELETE ... FOR EACH ROW`) a través del procedimiento `incluir_auditoria`. Se crea con `migraciones/migracion_auditoria.sql`.
+
+| Columna | Tipo | Restricciones | Descripción |
+|---|---|---|---|
+| id | NUMBER(10) | PK (`seq_auditoria`) | Identificador |
+| tabla | VARCHAR2(30) | NN | Tabla afectada, en mayúsculas |
+| operacion | enum `operacion_auditoria` | NN | Qué se hizo |
+| registro_id | NUMBER(10) | | `id` de la fila afectada |
+| descripcion | VARCHAR2(500) | NN | Texto legible, p. ej. «Se cambió el estado de la encuesta 3: PENDIENTE_APROBACION -> APROBADA» |
+| usuario_id | NUMBER(10) | Sin FK | Usuario de la aplicación: el `CLIENT_IDENTIFIER` de la sesión (función `fn_usuario_sesion`) o, si no hay, el `created_by` de la fila insertada |
+| usuario_bd | VARCHAR2(30) | NN | Usuario de Oracle de la conexión |
+| fecha | TIMESTAMP | NN | Momento del cambio |
+
+`usuario_id` no tiene llave foránea para que el rastro quede aunque se elimine el usuario. Los triggers solo usan `:NEW`/`:OLD` (no consultan otras tablas) para evitar ORA-04091 en los `ON DELETE CASCADE`, y nunca guardan la clave del usuario.
 
 ### Capítulo C
 
