@@ -322,14 +322,14 @@ public class EncuestaCierreController implements SeccionEncuesta {
         modal.controlador().preparar(detalle.getEncuesta(), detalle.descripcionHogar(), datos.diasConInformacion,
                 datos.visitas.size(), () -> {
                     detalle.recargar();
-                    detalle.avisar("Caso cerrado. La encuesta quedó en solo lectura.");
+                    detalle.avisar("Caso cerrado. Quedó pendiente de aprobación y en solo lectura.");
                 });
         modal.mostrar();
     }
 
     @FXML
     private void reabrir() {
-        if (Alertas.confirmar("Reabrir caso", "La encuesta pasará a «Reabierta» y se podrán hacer cambios. ¿Desea reabrirla?")) {
+        if (Alertas.confirmar("Reabrir caso", "La encuesta volverá a «En curso» y se podrán hacer cambios. ¿Desea reabrirla?")) {
             long id = detalle.getEncuesta().getId();
             Tareas.accion(() -> encuestaService.reabrir(id), () -> {
                 detalle.recargar();

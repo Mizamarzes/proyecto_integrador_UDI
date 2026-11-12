@@ -72,7 +72,7 @@ proyecto_integrador_UDI/
     │       │   ├── Reporte.java              # Resultado de Reportes con sus totales (no es tabla)
     │       │   ├── ReporteEncuestador.java   # Fila de «Rendimiento por encuestador» (no es tabla)
     │       │   ├── ValorReporte.java         # Una barra de un reporte: código, nombre y valor (no es tabla)
-    │       │   ├── AuditoriaEncuesta.java    # Historial de un caso: cierre, reapertura, devolución, aprobación, exportación
+    │       │   ├── AuditoriaEncuesta.java    # Historial de un caso: aprobación y rechazo
     │       │   ├── CasoVerificacion.java     # Fila de la bandeja de Verificación con su validación (no es tabla)
     │       │   ├── ReglaVerificacion.java    # Resultado de una regla de la validación cruzada (no es tabla)
     │       │   └── enums/                    # Enums del modelo (en Oracle son VARCHAR2 + CHECK)
@@ -83,7 +83,7 @@ proyecto_integrador_UDI/
     │       │       ├── FormaAdquisicion.java
     │       │       ├── TipoGasto.java
     │       │       ├── TipoComida.java
-    │       │       ├── EstadoEncuesta.java   # ABIERTA, CERRADA, REABIERTA, EN_CORRECCION, APROBADA
+    │       │       ├── EstadoEncuesta.java   # EN_CURSO, PENDIENTE_APROBACION, APROBADA, RECHAZADA
     │       │       └── AccionAuditoria.java
     │       │
     │       ├── dao/                          # ── MODELO: acceso a datos (SQL con JDBC), un DAO por tabla, agrupados por módulo ──
@@ -111,7 +111,7 @@ proyecto_integrador_UDI/
     │       │   │   ├── VisitaService.java        # RF-08 Control de visitas
     │       │   │   ├── CaracteristicaService.java# RF-07 Los 25 grupos del capítulo C
     │       │   │   ├── GastoDiarioService.java   # RF-03, RF-04, RF-09 Días, gastos y comidas fuera del hogar
-    │       │   │   └── ReglasEncuesta.java       # Regla compartida: no se modifica una encuesta CERRADA (la usa también HogarService)
+    │       │   │   └── ReglasEncuesta.java       # Regla compartida: no se modifica una encuesta PENDIENTE_APROBACION o APROBADA (la usa también HogarService)
     │       │   ├── catalogos/
     │       │   │   ├── UbicacionService.java     # Región, departamento y municipio
     │       │   │   └── CatalogoService.java      # Grupos de alimentos y lugares de compra
@@ -259,7 +259,7 @@ Una vista se nombra con su ruta dentro de `ui`, sin extensión: `"modulos/encues
   | `modulos/viviendas/` | viviendas («Viviendas y hogares») | Viviendas, detalle, modales de vivienda y hogar |
   | `modulos/encuestas/` | encuestas | Listado, nueva encuesta, detalle y sus pestañas: control de visitas, Cap. A, Cap. C, línea de 14 días (D y D1) y cierre |
   | `modulos/reportes/` | reportes | Tablero: indicadores, estado de las encuestas, gasto por tipo, forma de adquisición y lugar de compra, grupos del Cap. C y rendimiento por encuestador |
-  | `modulos/verificacion/` | verificacion | Bandeja del crítico-digitador: validación cruzada de los casos cerrados, devolución a corrección, aprobación, exportación a Excel e historial (RF-10) |
+  | `modulos/verificacion/` | verificacion | Bandeja del crítico-digitador: validación cruzada de los casos pendientes de aprobación, rechazo, aprobación, exportación a Excel e historial (RF-10) |
 
 - Los controladores no validan roles: muestran cada botón o pestaña con `Rutas.permitir(nodo, vista)` (los mismos middlewares de la vista que abre), por ejemplo los enlaces de la vivienda que llevan a Encuestas. Dentro de la encuesta, lo que se puede editar depende solo de que esté abierta (`EncuestaDetalleController.esEditable()`). Los servicios repiten la validación con `Sesion.exigirModulo(RutasModulo.X)`, como una API que valida aunque el frontend oculte el botón.
 - Los permisos se cargan en `Sesion` al iniciar sesión; los cambios de la pantalla Roles y permisos aplican en el siguiente inicio de sesión (salvo el rol propio, que se recarga al guardar).
@@ -282,7 +282,7 @@ El esquema de base de datos no usa triggers, así que estas reglas son responsab
 | Regla | Servicio |
 |---|---|
 | Un usuario inactivo (`activo = 'N'`) no puede iniciar sesión, y en cada login exitoso se actualiza `ultimo_acceso` | `AuthService` |
-| No se registran visitas, capítulo C, días, gastos ni comidas si la encuesta está `CERRADA` (RF-06) | `VisitaService`, `CaracteristicaService`, `GastoDiarioService` |
+| No se registran visitas, capítulo C, días, gastos ni comidas si la encuesta está `PENDIENTE_APROBACION` o `APROBADA` (RF-06) | `VisitaService`, `CaracteristicaService`, `GastoDiarioService` |
 | Al cerrar un caso se llenan `fecha_cierre` y `cerrada_por`; solo un administrador puede reabrirlo | `EncuestaService` |
 | `fecha_hasta = fecha_desde + 13` | `EncuestaService` |
 | La fecha de cada día es `fecha_desde + numero_dia - 1` | `GastoDiarioService` |

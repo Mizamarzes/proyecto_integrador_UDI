@@ -340,7 +340,7 @@ public class EncuestaController {
         filtradas.addListener((ListChangeListener<EncuestaResumen>) c -> actualizarTotal());
     }
 
-    /** Insignia de color con el estado de la encuesta (Abierta, Cerrada, Reabierta). */
+    /** Insignia de color con el estado de la encuesta (En curso, Pendiente de aprobación, Aprobada, Rechazada). */
     public static Label insigniaEstado(EstadoEncuesta estado) {
         Label etiqueta = new Label(estado.getDescripcion());
         etiqueta.getStyleClass().addAll("insignia", "insignia-" + estado.name().toLowerCase());

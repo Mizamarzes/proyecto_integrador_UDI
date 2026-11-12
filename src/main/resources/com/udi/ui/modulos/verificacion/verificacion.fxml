@@ -19,7 +19,7 @@
 <?import com.udi.componentes.SelectBuscable?>
 
 <!-- Verificación (RF-10): bandeja de casos cerrados del crítico-digitador, validación cruzada,
-     devolución a corrección, aprobación y exportación a Excel -->
+     rechazo, aprobación y exportación a Excel -->
 <VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.udi.controller.verificacion.VerificacionController">
 
@@ -35,7 +35,7 @@
    <!-- Tarjetas -->
    <HBox spacing="16.0">
       <VBox styleClass="tarjeta" spacing="2.0" prefWidth="240.0">
-         <Label text="Por verificar" styleClass="dato-etiqueta" />
+         <Label text="Pendientes de aprobación" styleClass="dato-etiqueta" />
          <Label fx:id="lblPorVerificar" text="0" styleClass="metrica-valor" />
          <Label text="Cerradas por el encuestador" styleClass="texto-suave" />
       </VBox>
@@ -161,14 +161,14 @@
                <VBox spacing="10.0">
                   <Label fx:id="lblEstadoCaso" wrapText="true" maxWidth="Infinity" />
                   <VBox fx:id="boxObservacion" spacing="4.0">
-                     <Label text="Observación para el encuestador (obligatoria al devolver)" styleClass="etiqueta-campo" />
+                     <Label text="Observación para el encuestador (obligatoria al rechazar)" styleClass="etiqueta-campo" />
                      <TextArea fx:id="txtObservacion" styleClass="area-texto" prefRowCount="3" wrapText="true"
                                promptText="Ej. Falta el registro del día 9; confírmelo con el hogar y regístrelo." />
                      <Label fx:id="lblError" styleClass="mensaje-error" wrapText="true" />
                   </VBox>
                   <FlowPane hgap="10.0" vgap="8.0">
                      <Button fx:id="btnAbrir" text="Abrir encuesta" onAction="#abrirEncuesta" styleClass="boton-secundario" />
-                     <Button fx:id="btnDevolver" text="Devolver a corrección" onAction="#devolver" styleClass="boton-secundario" />
+                     <Button fx:id="btnRechazar" text="Rechazar" onAction="#rechazar" styleClass="boton-secundario" />
                      <Button fx:id="btnAprobar" text="Aprobar y exportar a Excel" onAction="#aprobar" styleClass="boton-accion" />
                      <Button fx:id="btnExportar" text="Descargar Excel de nuevo" onAction="#exportar" styleClass="boton-secundario" />
                   </FlowPane>

@@ -92,7 +92,7 @@ public class EncuestaDAO extends BaseDAO<Encuesta> {
                 (Object[]) estados);
     }
 
-    /** Cambia el estado del caso (cerrar, reabrir, devolver o aprobar; RF-06 y RF-10). */
+    /** Cambia el estado del caso (cerrar, reabrir, rechazar o aprobar; RF-06 y RF-10). */
     public boolean actualizarEstado(Connection c, long id, EstadoEncuesta estado, LocalDateTime fechaCierre,
                                     Long cerradaPor) throws SQLException {
         return ejecutar(c, "UPDATE encuesta SET estado = ?, fecha_cierre = ?, cerrada_por = ?,"

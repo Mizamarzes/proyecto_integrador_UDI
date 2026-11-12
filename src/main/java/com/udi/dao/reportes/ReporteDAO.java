@@ -39,10 +39,10 @@ public class ReporteDAO {
     public List<ReporteEncuestador> porEncuestador(Connection c, FiltroReporte f) throws SQLException {
         Condicion w = condicion(f);
         String sql = "SELECT x.encuestador_id, u.nombre, u.apellido, COUNT(*) total,"
-                + " SUM(CASE WHEN x.estado = 'ABIERTA' THEN 1 ELSE 0 END) abiertas,"
-                // Aprobada cuenta como cerrada y en corrección como reabierta (vuelve a admitir cambios)
-                + " SUM(CASE WHEN x.estado IN ('CERRADA', 'APROBADA') THEN 1 ELSE 0 END) cerradas,"
-                + " SUM(CASE WHEN x.estado IN ('REABIERTA', 'EN_CORRECCION') THEN 1 ELSE 0 END) reabiertas,"
+                + " SUM(CASE WHEN x.estado = 'EN_CURSO' THEN 1 ELSE 0 END) en_curso,"
+                + " SUM(CASE WHEN x.estado = 'PENDIENTE_APROBACION' THEN 1 ELSE 0 END) pendientes,"
+                + " SUM(CASE WHEN x.estado = 'APROBADA' THEN 1 ELSE 0 END) aprobadas,"
+                + " SUM(CASE WHEN x.estado = 'RECHAZADA' THEN 1 ELSE 0 END) rechazadas,"
                 + " SUM(x.visitas) visitas, SUM(x.gasto) gasto"
                 + " FROM (SELECT e.encuestador_id, e.estado,"
                 + "   (SELECT COUNT(*) FROM visita vi WHERE vi.hogar_id = e.hogar_id) visitas,"
@@ -58,7 +58,8 @@ public class ReporteDAO {
         return consultar(c, sql, w.parametros, rs -> new ReporteEncuestador(
                 rs.getLong("encuestador_id"),
                 rs.getString("nombre") + " " + rs.getString("apellido"),
-                rs.getLong("total"), rs.getLong("abiertas"), rs.getLong("cerradas"), rs.getLong("reabiertas"),
+                rs.getLong("total"), rs.getLong("en_curso"), rs.getLong("pendientes"), rs.getLong("aprobadas"),
+                rs.getLong("rechazadas"),
                 rs.getLong("visitas"), rs.getBigDecimal("gasto")));
     }
 

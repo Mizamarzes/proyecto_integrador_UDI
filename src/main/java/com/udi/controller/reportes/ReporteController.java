@@ -135,11 +135,13 @@ public class ReporteController {
     @FXML
     private TableColumn<ReporteEncuestador, String> colTotal;
     @FXML
-    private TableColumn<ReporteEncuestador, String> colAbiertas;
+    private TableColumn<ReporteEncuestador, String> colEnCurso;
     @FXML
-    private TableColumn<ReporteEncuestador, String> colCerradas;
+    private TableColumn<ReporteEncuestador, String> colPendientes;
     @FXML
-    private TableColumn<ReporteEncuestador, String> colReabiertas;
+    private TableColumn<ReporteEncuestador, String> colAprobadas;
+    @FXML
+    private TableColumn<ReporteEncuestador, String> colRechazadas;
     @FXML
     private TableColumn<ReporteEncuestador, String> colVisitas;
     @FXML
@@ -226,8 +228,8 @@ public class ReporteController {
     }
 
     private static ReporteEncuestador totalEncuestadores(Reporte r) {
-        return new ReporteEncuestador(null, "Total", r.getTotal(), r.getAbiertas(), r.getCerradas(),
-                r.getReabiertas(), r.getVisitas(), r.getGasto());
+        return new ReporteEncuestador(null, "Total", r.getTotal(), r.getEnCurso(), r.getPendientes(),
+                r.getAprobadas(), r.getRechazadas(), r.getVisitas(), r.getGasto());
     }
 
 
@@ -236,10 +238,12 @@ public class ReporteController {
         int encuestadores = r.getEncuestadores().size();
         lblEncuestas.setText(String.valueOf(total));
         lblEncuestasNota.setText(encuestadores == 1 ? "De 1 encuestador" : "De " + encuestadores + " encuestadores");
-        lblEnCurso.setText(String.valueOf(r.getAbiertas() + r.getReabiertas()));
-        lblEnCursoNota.setText(r.getAbiertas() + " abiertas · " + r.getReabiertas() + " reabiertas");
-        lblCerradas.setText(String.valueOf(r.getCerradas()));
-        lblCerradasNota.setText(porcentaje(r.getCerradas(), total) + " del total");
+        lblEnCurso.setText(String.valueOf(r.getEnCurso() + r.getRechazadas()));
+        lblEnCursoNota.setText(r.getEnCurso() + " en curso · " + r.getRechazadas()
+                + (r.getRechazadas() == 1 ? " rechazada" : " rechazadas"));
+        lblCerradas.setText(String.valueOf(r.getPendientes() + r.getAprobadas()));
+        lblCerradasNota.setText(r.getPendientes() + " por aprobar · " + r.getAprobadas()
+                + (r.getAprobadas() == 1 ? " aprobada" : " aprobadas"));
         lblVisitas.setText(String.valueOf(r.getVisitas()));
         lblVisitasNota.setText(String.format(Locale.forLanguageTag("es-CO"), "%.1f por encuesta",
                 (double) r.getVisitas() / total));
@@ -252,9 +256,10 @@ public class ReporteController {
         long total = r.getTotal();
         lblEstadoTotal.setText(total == 1 ? "1 encuesta en el filtro" : total + " encuestas en el filtro");
         List<Segmento> segmentos = List.of(
-                new Segmento("Abierta", r.getAbiertas(), "reporte-azul"),
-                new Segmento("Cerrada", r.getCerradas(), "reporte-verde"),
-                new Segmento("Reabierta", r.getReabiertas(), "reporte-naranja"));
+                new Segmento("En curso", r.getEnCurso(), "reporte-azul"),
+                new Segmento("Pendiente de aprobación", r.getPendientes(), "reporte-naranja"),
+                new Segmento("Aprobada", r.getAprobadas(), "reporte-verde"),
+                new Segmento("Rechazada", r.getRechazadas(), "reporte-rojo"));
         segmentos(barraEstado, segmentos);
         leyendaEstado.getChildren().clear();
         for (Segmento s : segmentos) {
@@ -418,9 +423,10 @@ public class ReporteController {
         tabla.setPlaceholder(new Label("Sin encuestas."));
         colNombre.setCellValueFactory(d -> new ReadOnlyStringWrapper(d.getValue().getNombre()));
         numero(colTotal, ReporteEncuestador::getTotal);
-        numero(colAbiertas, ReporteEncuestador::getAbiertas);
-        numero(colCerradas, ReporteEncuestador::getCerradas);
-        numero(colReabiertas, ReporteEncuestador::getReabiertas);
+        numero(colEnCurso, ReporteEncuestador::getEnCurso);
+        numero(colPendientes, ReporteEncuestador::getPendientes);
+        numero(colAprobadas, ReporteEncuestador::getAprobadas);
+        numero(colRechazadas, ReporteEncuestador::getRechazadas);
         numero(colVisitas, ReporteEncuestador::getVisitas);
         colGasto.setCellValueFactory(d -> new ReadOnlyStringWrapper(Formato.pesos(d.getValue().getGasto())));
         colGasto.setStyle("-fx-alignment: CENTER-RIGHT;");
@@ -489,9 +495,10 @@ public class ReporteController {
                 .vacia()
                 .encabezado("Indicador", "Valor")
                 .fila("Encuestas", total)
-                .fila("Abiertas", r.getAbiertas())
-                .fila("Cerradas", r.getCerradas())
-                .fila("Reabiertas", r.getReabiertas())
+                .fila("En curso", r.getEnCurso())
+                .fila("Pendientes de aprobación", r.getPendientes())
+                .fila("Aprobadas", r.getAprobadas())
+                .fila("Rechazadas", r.getRechazadas())
                 .fila("Visitas realizadas", r.getVisitas())
                 .fila("Gasto registrado", LibroExcel.pesos(r.getGasto()))
                 .fila("Promedio por hogar", LibroExcel.pesos(
@@ -502,14 +509,15 @@ public class ReporteController {
                 .fila("Comidas fuera del hogar (D1)", r.getComidas())
                 .fila("Comidas a domicilio", r.getDomicilios());
 
-        LibroExcel.Hoja encuestadores = libro.hoja("Encuestadores").anchos(30, 12, 12, 12, 12, 12, 18)
-                .encabezado("Encuestador", "Encuestas", "Abiertas", "Cerradas", "Reabiertas", "Visitas", "Gasto registrado");
+        LibroExcel.Hoja encuestadores = libro.hoja("Encuestadores").anchos(30, 12, 12, 14, 12, 12, 12, 18)
+                .encabezado("Encuestador", "Encuestas", "En curso", "Pendientes", "Aprobadas", "Rechazadas", "Visitas",
+                        "Gasto registrado");
         for (ReporteEncuestador e : r.getEncuestadores()) {
-            encuestadores.fila(e.getNombre(), e.getTotal(), e.getAbiertas(), e.getCerradas(), e.getReabiertas(),
-                    e.getVisitas(), LibroExcel.pesos(e.getGasto()));
+            encuestadores.fila(e.getNombre(), e.getTotal(), e.getEnCurso(), e.getPendientes(), e.getAprobadas(),
+                    e.getRechazadas(), e.getVisitas(), LibroExcel.pesos(e.getGasto()));
         }
-        encuestadores.filaNegrita("Total", total, r.getAbiertas(), r.getCerradas(), r.getReabiertas(),
-                r.getVisitas(), LibroExcel.pesos(r.getGasto()));
+        encuestadores.filaNegrita("Total", total, r.getEnCurso(), r.getPendientes(), r.getAprobadas(),
+                r.getRechazadas(), r.getVisitas(), LibroExcel.pesos(r.getGasto()));
 
         hojaValores(libro, "Gasto por tipo", "Tipo de gasto", "Valor", r.getTipos(), r.getGasto(), true);
         hojaValores(libro, "Formas de adquisición", "Forma de adquisición", "Valor", r.getFormas(), r.getGasto(), true);

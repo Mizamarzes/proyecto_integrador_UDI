@@ -475,22 +475,17 @@
     -fx-background-radius: 2;
 }
 
-.insignia-abierta {
+.insignia-en_curso {
     -fx-background-color: #dfe6ef;
     -fx-text-fill: #2d4a6b;
 }
 
-.insignia-cerrada {
-    -fx-background-color: #dbe8de;
-    -fx-text-fill: #3c6a4a;
-}
-
-.insignia-reabierta {
+.insignia-pendiente_aprobacion {
     -fx-background-color: #f4e3c1;
     -fx-text-fill: #8a6519;
 }
 
-.insignia-en_correccion {
+.insignia-rechazada {
     -fx-background-color: #f2dcd7;
     -fx-text-fill: #9a3a28;
 }
@@ -1117,6 +1112,10 @@
 
 .reporte-naranja {
     -fx-background-color: #c25a1c;
+}
+
+.reporte-rojo {
+    -fx-background-color: #b23a48;
 }
 
 .reporte-gris {

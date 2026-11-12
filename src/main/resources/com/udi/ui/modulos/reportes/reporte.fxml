@@ -180,9 +180,10 @@
                <columns>
                   <TableColumn fx:id="colNombre" text="Encuestador" prefWidth="280.0" minWidth="200.0" sortable="false" />
                   <TableColumn fx:id="colTotal" text="Encuestas" prefWidth="90.0" minWidth="90.0" sortable="false" />
-                  <TableColumn fx:id="colAbiertas" text="Abiertas" prefWidth="90.0" minWidth="90.0" sortable="false" />
-                  <TableColumn fx:id="colCerradas" text="Cerradas" prefWidth="90.0" minWidth="90.0" sortable="false" />
-                  <TableColumn fx:id="colReabiertas" text="Reabiertas" prefWidth="90.0" minWidth="90.0" sortable="false" />
+                  <TableColumn fx:id="colEnCurso" text="En curso" prefWidth="90.0" minWidth="90.0" sortable="false" />
+                  <TableColumn fx:id="colPendientes" text="Pendientes" prefWidth="90.0" minWidth="90.0" sortable="false" />
+                  <TableColumn fx:id="colAprobadas" text="Aprobadas" prefWidth="90.0" minWidth="90.0" sortable="false" />
+                  <TableColumn fx:id="colRechazadas" text="Rechazadas" prefWidth="90.0" minWidth="90.0" sortable="false" />
                   <TableColumn fx:id="colVisitas" text="Visitas" prefWidth="90.0" minWidth="90.0" sortable="false" />
                   <TableColumn fx:id="colGasto" text="Gasto registrado" prefWidth="140.0" minWidth="130.0" sortable="false" />
                </columns>

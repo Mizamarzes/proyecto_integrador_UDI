@@ -79,16 +79,20 @@ public class Reporte {
         return sumar(ReporteEncuestador::getTotal);
     }
 
-    public long getAbiertas() {
-        return sumar(ReporteEncuestador::getAbiertas);
+    public long getEnCurso() {
+        return sumar(ReporteEncuestador::getEnCurso);
     }
 
-    public long getCerradas() {
-        return sumar(ReporteEncuestador::getCerradas);
+    public long getPendientes() {
+        return sumar(ReporteEncuestador::getPendientes);
     }
 
-    public long getReabiertas() {
-        return sumar(ReporteEncuestador::getReabiertas);
+    public long getAprobadas() {
+        return sumar(ReporteEncuestador::getAprobadas);
+    }
+
+    public long getRechazadas() {
+        return sumar(ReporteEncuestador::getRechazadas);
     }
 
     public long getVisitas() {

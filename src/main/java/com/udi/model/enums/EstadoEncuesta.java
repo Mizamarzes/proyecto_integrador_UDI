@@ -3,17 +3,18 @@ package com.udi.model.enums;
 /**
  * Estado del caso (RF-06, RF-10).
  *
- * ABIERTA → CERRADA (el encuestador cierra el día 14) → APROBADA (el
- * crítico-digitador la verifica y exporta). Desde CERRADA el crítico puede
- * devolverla a EN_CORRECCION, y al cerrarla de nuevo vuelve a CERRADA. Un
- * administrador puede reabrir un caso cerrado (REABIERTA).
+ * EN_CURSO → PENDIENTE_APROBACION (el encuestador cierra el día 14) →
+ * APROBADA (el crítico-digitador la verifica y exporta). Desde
+ * PENDIENTE_APROBACION el crítico puede marcarla RECHAZADA, con una
+ * observación; el encuestador la corrige y al cerrarla de nuevo vuelve a
+ * PENDIENTE_APROBACION. Un administrador puede devolver a EN_CURSO un caso
+ * pendiente o aprobado.
  */
 public enum EstadoEncuesta {
-    ABIERTA("Abierta"),
-    CERRADA("Cerrada"),
-    REABIERTA("Reabierta"),
-    EN_CORRECCION("En corrección"),
-    APROBADA("Aprobada");
+    EN_CURSO("En curso"),
+    PENDIENTE_APROBACION("Pendiente de aprobación"),
+    APROBADA("Aprobada"),
+    RECHAZADA("Rechazada");
 
     private final String descripcion;
 
@@ -25,14 +26,14 @@ public enum EstadoEncuesta {
         return descripcion;
     }
 
-    /** Una encuesta cerrada o aprobada no admite registros ni modificaciones. */
+    /** Una encuesta pendiente de aprobación o aprobada no admite registros ni modificaciones. */
     public boolean admiteCambios() {
-        return this != CERRADA && this != APROBADA;
+        return this == EN_CURSO || this == RECHAZADA;
     }
 
     /** Estados que aparecen en la bandeja de verificación. */
     public boolean enVerificacion() {
-        return this == CERRADA || this == EN_CORRECCION || this == APROBADA;
+        return this != EN_CURSO;
     }
 
     @Override

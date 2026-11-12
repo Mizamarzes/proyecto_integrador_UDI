@@ -191,7 +191,7 @@ public class EncuestaDetalleController {
         return vivienda;
     }
 
-    /** false si la encuesta está cerrada (RF-06): las pestañas quedan en solo lectura. */
+    /** false si la encuesta está pendiente de aprobación o aprobada (RF-06): las pestañas quedan en solo lectura. */
     public boolean esEditable() {
         return encuesta != null && !encuesta.estaCerrada();
     }
@@ -229,10 +229,10 @@ public class EncuestaDetalleController {
         lblSubtitulo.setText(texto.toString());
     }
 
-    /** Qué pidió corregir el crítico-digitador; se oculta si la encuesta no está en corrección. */
+    /** Qué pidió corregir el crítico-digitador; se oculta si la encuesta no está rechazada. */
     private void pintarCorreccion(AuditoriaEncuesta devolucion) {
         if (devolucion != null) {
-            lblCorreccion.setText("Devuelta a corrección por " + devolucion.getUsuarioNombre() + " el "
+            lblCorreccion.setText("Rechazada por " + devolucion.getUsuarioNombre() + " el "
                     + Formato.fechaHora(devolucion.getCreatedAt()) + ": «" + devolucion.getObservacion()
                     + "». Corrija y vuelva a cerrar el caso en la pestaña Cierre.");
         }

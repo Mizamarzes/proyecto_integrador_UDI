@@ -14,7 +14,6 @@ import com.udi.model.Municipio;
 import com.udi.model.Region;
 import com.udi.model.ReglaVerificacion;
 import com.udi.model.Vivienda;
-import com.udi.model.enums.AccionAuditoria;
 import com.udi.model.enums.EstadoEncuesta;
 import com.udi.service.verificacion.VerificacionService;
 import com.udi.util.Alertas;
@@ -49,7 +48,7 @@ import java.util.TreeSet;
 
 /**
  * Bandeja del crítico-digitador (RF-10). A la izquierda los casos cerrados,
- * en corrección y aprobados; a la derecha el caso elegido con su validación
+ * rechazados y aprobados; a la derecha el caso elegido con su validación
  * cruzada, las acciones que permite su estado y su historial.
  */
 public class VerificacionController {
@@ -132,7 +131,7 @@ public class VerificacionController {
     @FXML
     private Button btnAbrir;
     @FXML
-    private Button btnDevolver;
+    private Button btnRechazar;
     @FXML
     private Button btnAprobar;
     @FXML
@@ -151,8 +150,8 @@ public class VerificacionController {
 
     @FXML
     private void initialize() {
-        cmbEstado.getItems().addAll(TODOS, texto(EstadoEncuesta.CERRADA), texto(EstadoEncuesta.EN_CORRECCION),
-                texto(EstadoEncuesta.APROBADA));
+        cmbEstado.getItems().addAll(TODOS, texto(EstadoEncuesta.PENDIENTE_APROBACION),
+                texto(EstadoEncuesta.RECHAZADA), texto(EstadoEncuesta.APROBADA));
         cmbEncuestador.getItems().add(TODOS);
         cmbRegion.setOpcionVacia("Todas");
         cmbDepartamento.setOpcionVacia("Todos");
@@ -182,7 +181,7 @@ public class VerificacionController {
     private void cargar(Long encuestaId) {
         Tareas.ejecutar(verificacionService::listarCasos, lista -> {
             casos.setAll(lista);
-            lblPorVerificar.setText(String.valueOf(contar(EstadoEncuesta.CERRADA)));
+            lblPorVerificar.setText(String.valueOf(contar(EstadoEncuesta.PENDIENTE_APROBACION)));
             lblAprobadas.setText(String.valueOf(contar(EstadoEncuesta.APROBADA)));
             actualizarEncuestadores();
             CasoVerificacion caso = encuestaId == null ? null : casos.stream()
@@ -235,21 +234,21 @@ public class VerificacionController {
             listaReglas.getChildren().add(fila(r));
         }
 
-        boolean porVerificar = estado == EstadoEncuesta.CERRADA;
+        boolean porVerificar = estado == EstadoEncuesta.PENDIENTE_APROBACION;
         boolean bloqueado = porVerificar && caso.getErrores() > 0;
         lblEstadoCaso.getStyleClass().setAll("label");
         if (bloqueado) {
             lblEstadoCaso.setText("No se puede aprobar: " + plural(caso.getErrores(), "error", "errores")
-                    + " por resolver. Devuelve el caso a corrección con una observación. Los avisos no bloquean.");
+                    + " por resolver. Rechaza el caso con una observación. Los avisos no bloquean.");
             lblEstadoCaso.getStyleClass().add("banner-error");
         } else if (porVerificar) {
             lblEstadoCaso.setText(caso.getAvisos() > 0
                     ? "Sin errores. Revisa los avisos contra el cuadernillo físico antes de aprobar."
                     : "Sin errores ni avisos: el caso se puede aprobar.");
             lblEstadoCaso.getStyleClass().add("banner-ok");
-        } else if (estado == EstadoEncuesta.EN_CORRECCION) {
-            lblEstadoCaso.setText("El caso está en corrección y se puede editar desde la encuesta. Cuando se cierre"
-                    + " de nuevo vuelve a esta bandeja como «Por verificar».");
+        } else if (estado == EstadoEncuesta.RECHAZADA) {
+            lblEstadoCaso.setText("El caso fue rechazado y se puede editar desde la encuesta. Cuando se cierre"
+                    + " de nuevo vuelve a esta bandeja como «Pendiente de aprobación».");
             lblEstadoCaso.getStyleClass().add("banner-alerta");
         } else {
             lblEstadoCaso.setText("Caso aprobado. Ya no admite cambios.");
@@ -258,11 +257,11 @@ public class VerificacionController {
         Formato.mostrar(boxObservacion, porVerificar);
         txtObservacion.clear();
         Formato.mostrar(lblError, false);
-        Formato.mostrar(btnDevolver, porVerificar);
+        Formato.mostrar(btnRechazar, porVerificar);
         Formato.mostrar(btnAprobar, porVerificar);
         btnAprobar.setDisable(bloqueado);
         Formato.mostrar(btnExportar, estado == EstadoEncuesta.APROBADA);
-        btnAbrir.setText(estado == EstadoEncuesta.EN_CORRECCION ? "Abrir encuesta para corregir" : "Ver encuesta");
+        btnAbrir.setText(estado == EstadoEncuesta.RECHAZADA ? "Abrir encuesta para corregir" : "Ver encuesta");
 
         listaHistorial.getChildren().clear();
         long id = e.getId();
@@ -307,8 +306,7 @@ public class VerificacionController {
     private static VBox fila(AuditoriaEncuesta a) {
         String texto = a.getAccion().getDescripcion();
         if (a.getObservacion() != null) {
-            texto += a.getAccion() == AccionAuditoria.EXPORTACION
-                    ? " (" + a.getObservacion() + ")" : ": «" + a.getObservacion() + "»";
+            texto += ": «" + a.getObservacion() + "»";
         }
         Label accion = new Label(texto + ".");
         accion.setWrapText(true);
@@ -330,26 +328,26 @@ public class VerificacionController {
     }
 
     @FXML
-    private void devolver() {
+    private void rechazar() {
         if (seleccionado == null) {
             return;
         }
         String observacion = Formato.texto(txtObservacion.getText());
         if (observacion == null) {
-            lblError.setText("Escribe la observación para el encuestador antes de devolver el caso.");
+            lblError.setText("Escribe la observación para el encuestador antes de rechazar el caso.");
             Formato.mostrar(lblError, true);
             txtObservacion.requestFocus();
             return;
         }
         Encuesta e = seleccionado.getEncuesta();
         String codigo = Formato.codigo("E", e.getId());
-        if (!Alertas.confirmar("Devolver a corrección", "La encuesta " + codigo + " pasará a «En corrección» y "
-                + seleccionado.getResumen().getEncuestador() + " podrá editarla de nuevo. ¿Desea devolverla?")) {
+        if (!Alertas.confirmar("Rechazar caso", "La encuesta " + codigo + " pasará a «Rechazada» y "
+                + seleccionado.getResumen().getEncuestador() + " podrá corregirla. ¿Desea rechazarla?")) {
             return;
         }
         long id = e.getId();
-        Tareas.accion(() -> verificacionService.devolver(id, observacion), () -> {
-            avisar(codigo + " pasó a «En corrección». Cuando el encuestador la cierre de nuevo, vuelve a esta bandeja.");
+        Tareas.accion(() -> verificacionService.rechazar(id, observacion), () -> {
+            avisar(codigo + " pasó a «Rechazada». Cuando el encuestador la cierre de nuevo, vuelve a esta bandeja.");
             cargar(id);
         });
     }
@@ -520,15 +518,14 @@ public class VerificacionController {
     // Utilidades
     // ------------------------------------------------------------------
 
-    /** En esta bandeja un caso cerrado es uno «Por verificar». */
     private static String texto(EstadoEncuesta estado) {
-        return estado == EstadoEncuesta.CERRADA ? "Por verificar" : estado.getDescripcion();
+        return estado.getDescripcion();
     }
 
     private static void pintarEstado(Label etiqueta, EstadoEncuesta estado) {
         etiqueta.setText(texto(estado));
         etiqueta.getStyleClass().setAll("label", "insignia",
-                estado == EstadoEncuesta.CERRADA ? "insignia-abierta" : "insignia-" + estado.name().toLowerCase());
+                "insignia-" + estado.name().toLowerCase());
     }
 
     private static String claseValidacion(ReglaVerificacion.Nivel nivel) {

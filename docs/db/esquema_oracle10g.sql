@@ -150,7 +150,7 @@ CREATE TABLE encuesta (
   forma_pago             VARCHAR2(20),
   forma_pago_otra        VARCHAR2(100),
   observaciones          VARCHAR2(1000),
-  estado                 VARCHAR2(20)    DEFAULT 'ABIERTA' NOT NULL,
+  estado                 VARCHAR2(20)    DEFAULT 'EN_CURSO' NOT NULL,
   fecha_cierre           TIMESTAMP,
   cerrada_por            NUMBER(10),
   created_at             TIMESTAMP       DEFAULT SYSTIMESTAMP NOT NULL,
@@ -165,9 +165,9 @@ CREATE TABLE encuesta (
   CONSTRAINT ck_encuesta_forma_pago_otra CHECK (
     (forma_pago = 'OTRA' AND forma_pago_otra IS NOT NULL)
     OR (NVL(forma_pago, '-') <> 'OTRA' AND forma_pago_otra IS NULL)),
-  CONSTRAINT ck_encuesta_estado CHECK (estado IN ('ABIERTA', 'CERRADA', 'REABIERTA', 'EN_CORRECCION', 'APROBADA')),
+  CONSTRAINT ck_encuesta_estado CHECK (estado IN ('EN_CURSO', 'PENDIENTE_APROBACION', 'APROBADA', 'RECHAZADA')),
   CONSTRAINT ck_encuesta_cierre CHECK (
-    estado NOT IN ('CERRADA', 'APROBADA') OR (fecha_cierre IS NOT NULL AND cerrada_por IS NOT NULL))
+    estado NOT IN ('PENDIENTE_APROBACION', 'APROBADA') OR (fecha_cierre IS NOT NULL AND cerrada_por IS NOT NULL))
 );
 
 CREATE TABLE visita (
@@ -355,8 +355,8 @@ CREATE TABLE auditoria_encuesta (
   updated_at   TIMESTAMP,
   created_by   NUMBER(10),
   CONSTRAINT pk_auditoria_encuesta PRIMARY KEY (id),
-  CONSTRAINT ck_auditoria_accion CHECK (accion IN ('CIERRE', 'REAPERTURA', 'DEVOLUCION', 'APROBACION', 'EXPORTACION')),
-  CONSTRAINT ck_auditoria_devolucion CHECK (accion <> 'DEVOLUCION' OR observacion IS NOT NULL)
+  CONSTRAINT ck_auditoria_accion CHECK (accion IN ('APROBADA', 'RECHAZADA')),
+  CONSTRAINT ck_auditoria_rechazo CHECK (accion <> 'RECHAZADA' OR observacion IS NOT NULL)
 );
 
 -- =====================================================================
@@ -625,29 +625,30 @@ INSERT INTO hogar (id, vivienda_id, hogar_numero, total_personas, ciclo, created
 INSERT INTO hogar (id, vivienda_id, hogar_numero, total_personas, ciclo, created_by) VALUES (seq_hogar.NEXTVAL, 9, 1, 3, 'C03', 11);
 
 -- ---------------------------------------------------------------------
--- Encuestas (10): una por hogar. Las 3, 4 y 5 están cerradas por el
--- crítico-digitador (usuario 2); la 6 fue reabierta; las demás están abiertas.
+-- Encuestas (10): una por hogar. Las 3, 4 y 5 están cerradas y pendientes
+-- de aprobación (cerró el usuario 2); la 6 fue reabierta por un
+-- administrador y volvió a estar en curso; las demás están en curso.
 -- ---------------------------------------------------------------------
 INSERT INTO encuesta (id, hogar_id, encuestador_id, informante_nombre, informante_orden, resultado_cuadernillo, fecha_desde, fecha_hasta, gasto_fiestas, forma_pago, forma_pago_otra, observaciones, estado, fecha_cierre, cerrada_por, created_by)
-  VALUES (seq_encuesta.NEXTVAL, 1, 1, 'Paola Andrea Gómez', 1, 'EI', DATE '2026-09-28', DATE '2026-10-11', NULL, NULL, NULL, NULL, 'ABIERTA', NULL, NULL, 3);
+  VALUES (seq_encuesta.NEXTVAL, 1, 1, 'Paola Andrea Gómez', 1, 'EI', DATE '2026-09-28', DATE '2026-10-11', NULL, NULL, NULL, NULL, 'EN_CURSO', NULL, NULL, 3);
 INSERT INTO encuesta (id, hogar_id, encuestador_id, informante_nombre, informante_orden, resultado_cuadernillo, fecha_desde, fecha_hasta, gasto_fiestas, forma_pago, forma_pago_otra, observaciones, estado, fecha_cierre, cerrada_por, created_by)
-  VALUES (seq_encuesta.NEXTVAL, 2, 1, 'Julián Ortiz', 1, 'EI', DATE '2026-09-28', DATE '2026-10-11', NULL, NULL, NULL, 'Estudiante que arrienda una habitación', 'ABIERTA', NULL, NULL, 3);
+  VALUES (seq_encuesta.NEXTVAL, 2, 1, 'Julián Ortiz', 1, 'EI', DATE '2026-09-28', DATE '2026-10-11', NULL, NULL, NULL, 'Estudiante que arrienda una habitación', 'EN_CURSO', NULL, NULL, 3);
 INSERT INTO encuesta (id, hogar_id, encuestador_id, informante_nombre, informante_orden, resultado_cuadernillo, fecha_desde, fecha_hasta, gasto_fiestas, forma_pago, forma_pago_otra, observaciones, estado, fecha_cierre, cerrada_por, created_by)
-  VALUES (seq_encuesta.NEXTVAL, 3, 2, 'Marta Lucía Díaz', 2, 'EC', DATE '2026-09-01', DATE '2026-09-14', 'N', 'EFECTIVO', NULL, NULL, 'CERRADA', TIMESTAMP '2026-09-15 10:00:00', 2, 4);
+  VALUES (seq_encuesta.NEXTVAL, 3, 2, 'Marta Lucía Díaz', 2, 'EC', DATE '2026-09-01', DATE '2026-09-14', 'N', 'EFECTIVO', NULL, NULL, 'PENDIENTE_APROBACION', TIMESTAMP '2026-09-15 10:00:00', 2, 4);
 INSERT INTO encuesta (id, hogar_id, encuestador_id, informante_nombre, informante_orden, resultado_cuadernillo, fecha_desde, fecha_hasta, gasto_fiestas, forma_pago, forma_pago_otra, observaciones, estado, fecha_cierre, cerrada_por, created_by)
-  VALUES (seq_encuesta.NEXTVAL, 4, 3, 'Jorge Iván Castro', 1, 'EC', DATE '2026-09-01', DATE '2026-09-14', 'S', 'TARJETA_DEBITO', NULL, 'Cumpleanos el día 9', 'CERRADA', TIMESTAMP '2026-09-15 15:30:00', 2, 5);
+  VALUES (seq_encuesta.NEXTVAL, 4, 3, 'Jorge Iván Castro', 1, 'EC', DATE '2026-09-01', DATE '2026-09-14', 'S', 'TARJETA_DEBITO', NULL, 'Cumpleanos el día 9', 'PENDIENTE_APROBACION', TIMESTAMP '2026-09-15 15:30:00', 2, 5);
 INSERT INTO encuesta (id, hogar_id, encuestador_id, informante_nombre, informante_orden, resultado_cuadernillo, fecha_desde, fecha_hasta, gasto_fiestas, forma_pago, forma_pago_otra, observaciones, estado, fecha_cierre, cerrada_por, created_by)
-  VALUES (seq_encuesta.NEXTVAL, 5, 4, 'Luz Dary Mantilla', 1, 'EC', DATE '2026-09-08', DATE '2026-09-21', 'N', 'FIADO', NULL, NULL, 'CERRADA', TIMESTAMP '2026-09-22 09:20:00', 2, 6);
+  VALUES (seq_encuesta.NEXTVAL, 5, 4, 'Luz Dary Mantilla', 1, 'EC', DATE '2026-09-08', DATE '2026-09-21', 'N', 'FIADO', NULL, NULL, 'PENDIENTE_APROBACION', TIMESTAMP '2026-09-22 09:20:00', 2, 6);
 INSERT INTO encuesta (id, hogar_id, encuestador_id, informante_nombre, informante_orden, resultado_cuadernillo, fecha_desde, fecha_hasta, gasto_fiestas, forma_pago, forma_pago_otra, observaciones, estado, fecha_cierre, cerrada_por, created_by)
-  VALUES (seq_encuesta.NEXTVAL, 6, 5, 'Rosa Elena Pabón', 2, 'EI', DATE '2026-09-15', DATE '2026-09-28', 'N', 'OTRA', 'Transferencia bancaria', 'Reabierta para corregir el día 3', 'REABIERTA', TIMESTAMP '2026-09-29 11:00:00', 2, 7);
+  VALUES (seq_encuesta.NEXTVAL, 6, 5, 'Rosa Elena Pabón', 2, 'EI', DATE '2026-09-15', DATE '2026-09-28', 'N', 'OTRA', 'Transferencia bancaria', 'Reabierta para corregir el día 3', 'EN_CURSO', TIMESTAMP '2026-09-29 11:00:00', 2, 7);
 INSERT INTO encuesta (id, hogar_id, encuestador_id, informante_nombre, informante_orden, resultado_cuadernillo, fecha_desde, fecha_hasta, gasto_fiestas, forma_pago, forma_pago_otra, observaciones, estado, fecha_cierre, cerrada_por, created_by)
-  VALUES (seq_encuesta.NEXTVAL, 7, 6, 'Hernán Villamizar', 1, 'AT', DATE '2026-10-01', DATE '2026-10-14', NULL, NULL, NULL, 'Informante de viaje hasta el 6 de octubre', 'ABIERTA', NULL, NULL, 8);
+  VALUES (seq_encuesta.NEXTVAL, 7, 6, 'Hernán Villamizar', 1, 'AT', DATE '2026-10-01', DATE '2026-10-14', NULL, NULL, NULL, 'Informante de viaje hasta el 6 de octubre', 'EN_CURSO', NULL, NULL, 8);
 INSERT INTO encuesta (id, hogar_id, encuestador_id, informante_nombre, informante_orden, resultado_cuadernillo, fecha_desde, fecha_hasta, gasto_fiestas, forma_pago, forma_pago_otra, observaciones, estado, fecha_cierre, cerrada_por, created_by)
-  VALUES (seq_encuesta.NEXTVAL, 8, 7, 'Claudia Suárez', 1, 'EI', DATE '2026-10-01', DATE '2026-10-14', NULL, NULL, NULL, NULL, 'ABIERTA', NULL, NULL, 9);
+  VALUES (seq_encuesta.NEXTVAL, 8, 7, 'Claudia Suárez', 1, 'EI', DATE '2026-10-01', DATE '2026-10-14', NULL, NULL, NULL, NULL, 'EN_CURSO', NULL, NULL, 9);
 INSERT INTO encuesta (id, hogar_id, encuestador_id, informante_nombre, informante_orden, resultado_cuadernillo, fecha_desde, fecha_hasta, gasto_fiestas, forma_pago, forma_pago_otra, observaciones, estado, fecha_cierre, cerrada_por, created_by)
-  VALUES (seq_encuesta.NEXTVAL, 9, 8, 'Andrés Restrepo', 1, 'EI', DATE '2026-10-05', DATE '2026-10-18', NULL, NULL, NULL, NULL, 'ABIERTA', NULL, NULL, 10);
+  VALUES (seq_encuesta.NEXTVAL, 9, 8, 'Andrés Restrepo', 1, 'EI', DATE '2026-10-05', DATE '2026-10-18', NULL, NULL, NULL, NULL, 'EN_CURSO', NULL, NULL, 10);
 INSERT INTO encuesta (id, hogar_id, encuestador_id, informante_nombre, informante_orden, resultado_cuadernillo, fecha_desde, fecha_hasta, gasto_fiestas, forma_pago, forma_pago_otra, observaciones, estado, fecha_cierre, cerrada_por, created_by)
-  VALUES (seq_encuesta.NEXTVAL, 10, 9, 'Yolanda Charris', 2, 'EI', DATE '2026-10-05', DATE '2026-10-18', NULL, NULL, NULL, NULL, 'ABIERTA', NULL, NULL, 11);
+  VALUES (seq_encuesta.NEXTVAL, 10, 9, 'Yolanda Charris', 2, 'EI', DATE '2026-10-05', DATE '2026-10-18', NULL, NULL, NULL, NULL, 'EN_CURSO', NULL, NULL, 11);
 
 -- ---------------------------------------------------------------------
 -- Visitas (10): 4 al hogar 1, 3 al hogar 3 y 3 al hogar 4
@@ -752,11 +753,7 @@ INSERT INTO comida_fuera_hogar (id, registro_diario_id, encuestador_id, lugar_co
 INSERT INTO comida_fuera_hogar (id, registro_diario_id, encuestador_id, lugar_compra_id, numero_orden, descripcion, tipo_comida, cantidad, forma_adquisicion, forma_adquisicion_otra, valor, frecuencia_compra, tipo_gasto, a_domicilio, created_by)
   VALUES (seq_comida_fuera_hogar.NEXTVAL, 4, 1, NULL, 3, 'Lechona', 'ALMUERZO', 1, 'REGALO', NULL, 15000, NULL, 'HOGAR', 'N', 3);
 
--- ---------------------------------------------------------------------
--- Historial de verificación: el cierre de cada encuesta que tiene fecha de cierre
--- ---------------------------------------------------------------------
-INSERT INTO auditoria_encuesta (id, encuesta_id, accion, observacion, created_at, created_by)
-  SELECT seq_auditoria_encuesta.NEXTVAL, id, 'CIERRE', NULL, fecha_cierre, cerrada_por
-    FROM encuesta WHERE fecha_cierre IS NOT NULL;
+-- Historial de verificación (auditoria_encuesta): vacío, ningún caso se ha
+-- aprobado ni rechazado todavía.
 
 COMMIT;

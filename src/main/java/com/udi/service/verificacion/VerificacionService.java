@@ -65,11 +65,13 @@ import java.util.stream.Collectors;
 
 /**
  * Verificación y consolidación de los casos cerrados por el crítico-digitador
- * (RF-10): validación cruzada, devolución a corrección, aprobación y
+ * (RF-10): validación cruzada, rechazo con observación, aprobación y
  * exportación a Excel para el traslado al sistema del DANE.
  *
- * Flujo de estados: CERRADA → EN_CORRECCION (devolver) → CERRADA (el
- * encuestador la cierra de nuevo) → APROBADA (aprobar, solo sin errores).
+ * Flujo de estados: PENDIENTE_APROBACION → RECHAZADA (rechazar) →
+ * PENDIENTE_APROBACION (el encuestador la cierra de nuevo) → APROBADA
+ * (aprobar, solo sin errores). El historial solo guarda las aprobaciones y
+ * los rechazos.
  */
 public class VerificacionService {
 
@@ -92,9 +94,9 @@ public class VerificacionService {
     private final AuditoriaEncuestaDAO auditoriaDao = new AuditoriaEncuestaDAO();
 
     /**
-     * Casos de la bandeja (cerrados, en corrección y aprobados) con su
-     * validación: primero los que faltan por verificar, luego los que están en
-     * corrección y al final los aprobados; dentro de cada grupo, el cierre más
+     * Casos de la bandeja (pendientes de aprobación, rechazados y aprobados)
+     * con su validación: primero los pendientes, luego los rechazados y al
+     * final los aprobados; dentro de cada grupo, el cierre más
      * reciente primero.
      */
     public List<CasoVerificacion> listarCasos() {
@@ -123,41 +125,41 @@ public class VerificacionService {
     }
 
     /**
-     * Devuelve un caso cerrado a corrección con una observación para el
+     * Rechaza un caso pendiente de aprobación con una observación para el
      * encuestador. Vuelve a admitir cambios hasta que se cierre de nuevo.
      */
-    public void devolver(long encuestaId, String observacion) {
+    public void rechazar(long encuestaId, String observacion) {
         Sesion.exigirModulo(RutasModulo.VERIFICACION);
         String texto = Formato.texto(observacion);
         Validar.requerido(texto, "Observación para el encuestador");
         Validar.condicion(texto.length() <= 1000, "La observación no puede tener más de 1000 caracteres.");
         ConexionBD.enTransaccion(c -> {
-            Encuesta e = exigirCerrada(c, encuestaId, "devolver");
-            encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.EN_CORRECCION, e.getFechaCierre(), e.getCerradaPor());
-            return registrar(c, encuestaId, AccionAuditoria.DEVOLUCION, texto);
+            Encuesta e = exigirPendiente(c, encuestaId, "rechazar");
+            encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.RECHAZADA, e.getFechaCierre(), e.getCerradaPor());
+            return registrar(c, encuestaId, AccionAuditoria.RECHAZADA, texto);
         });
     }
 
-    /** Aprueba un caso cerrado cuya validación cruzada no tiene errores (los avisos no bloquean). */
+    /** Aprueba un caso pendiente cuya validación cruzada no tiene errores (los avisos no bloquean). */
     public void aprobar(long encuestaId) {
         Sesion.exigirModulo(RutasModulo.VERIFICACION);
         ConexionBD.enTransaccion(c -> {
-            Encuesta e = exigirCerrada(c, encuestaId, "aprobar");
+            Encuesta e = exigirPendiente(c, encuestaId, "aprobar");
             long errores = validar(c, e, grupoDao.contar(c)).stream()
                     .filter(r -> r.getNivel() == Nivel.ERROR).count();
             if (errores > 0) {
                 throw new ReglaNegocioException("No se puede aprobar el caso " + Formato.codigo("E", encuestaId)
                         + ": la validación tiene " + plural(errores, "error", "errores")
-                        + ". Devuélvalo a corrección con una observación.");
+                        + ". Recháselo con una observación.");
             }
             encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.APROBADA, e.getFechaCierre(), e.getCerradaPor());
-            return registrar(c, encuestaId, AccionAuditoria.APROBACION, null);
+            return registrar(c, encuestaId, AccionAuditoria.APROBADA, null);
         });
     }
 
     /**
      * Escribe el libro de Excel del caso aprobado (capítulos A, B, C, D, D1 y
-     * D2, una hoja por capítulo) y registra la exportación en el historial.
+     * D2, una hoja por capítulo).
      */
     public void exportar(long encuestaId, Path archivo) {
         Sesion.exigirModulo(RutasModulo.VERIFICACION);
@@ -173,8 +175,6 @@ public class VerificacionService {
         } catch (IOException ex) {
             throw new ReglaNegocioException("No se pudo escribir el archivo: " + ex.getMessage());
         }
-        ConexionBD.enTransaccion(c -> registrar(c, encuestaId, AccionAuditoria.EXPORTACION,
-                String.valueOf(archivo.getFileName())));
     }
 
     /** Nombre sugerido del archivo de exportación. */
@@ -396,7 +396,7 @@ public class VerificacionService {
         String encuestador = encuestadorDao.buscarPorId(c, e.getEncuestadorId())
                 .flatMap(en -> buscarUsuario(c, en.getUsuarioId())).orElse("");
         String cerradaPor = e.getCerradaPor() == null ? "" : buscarUsuario(c, e.getCerradaPor()).orElse("");
-        AuditoriaEncuesta aprobacion = auditoriaDao.ultimaPorAccion(c, e.getId(), AccionAuditoria.APROBACION).orElse(null);
+        AuditoriaEncuesta aprobacion = auditoriaDao.ultimaPorAccion(c, e.getId(), AccionAuditoria.APROBADA).orElse(null);
 
         LibroExcel libro = new LibroExcel();
         LibroExcel.Hoja a = libro.hoja("A y D2 Encuesta").anchos(34, 56).encabezado("Campo", "Valor")
@@ -531,10 +531,10 @@ public class VerificacionService {
     // Utilidades
     // ------------------------------------------------------------------
 
-    private Encuesta exigirCerrada(Connection c, long encuestaId, String accion) throws SQLException {
+    private Encuesta exigirPendiente(Connection c, long encuestaId, String accion) throws SQLException {
         Encuesta e = Validar.encontrado(encuestaDao.buscarPorId(c, encuestaId), "No existe la encuesta " + encuestaId + ".");
-        if (e.getEstado() != EstadoEncuesta.CERRADA) {
-            throw new ReglaNegocioException("Solo se puede " + accion + " un caso cerrado; "
+        if (e.getEstado() != EstadoEncuesta.PENDIENTE_APROBACION) {
+            throw new ReglaNegocioException("Solo se puede " + accion + " un caso pendiente de aprobación; "
                     + Formato.codigo("E", encuestaId) + " está «" + e.getEstado().getDescripcion() + "».");
         }
         return e;
@@ -547,9 +547,9 @@ public class VerificacionService {
         return auditoriaDao.insertar(c, registro);
     }
 
-    /** Orden de la bandeja: por verificar, en corrección, aprobadas. */
+    /** Orden de la bandeja: pendientes de aprobación, rechazadas, aprobadas. */
     private static int orden(EstadoEncuesta estado) {
-        return estado == EstadoEncuesta.CERRADA ? 0 : estado == EstadoEncuesta.EN_CORRECCION ? 1 : 2;
+        return estado == EstadoEncuesta.PENDIENTE_APROBACION ? 0 : estado == EstadoEncuesta.RECHAZADA ? 1 : 2;
     }
 
     private static boolean esCero(BigDecimal valor) {

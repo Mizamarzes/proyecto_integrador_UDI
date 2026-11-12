@@ -8,20 +8,22 @@ public class ReporteEncuestador {
     private final Long encuestadorId;
     private final String nombre;
     private final long total;
-    private final long abiertas;
-    private final long cerradas;
-    private final long reabiertas;
+    private final long enCurso;
+    private final long pendientes;
+    private final long aprobadas;
+    private final long rechazadas;
     private final long visitas;
     private final BigDecimal gasto;
 
-    public ReporteEncuestador(Long encuestadorId, String nombre, long total, long abiertas, long cerradas,
-                              long reabiertas, long visitas, BigDecimal gasto) {
+    public ReporteEncuestador(Long encuestadorId, String nombre, long total, long enCurso, long pendientes,
+                              long aprobadas, long rechazadas, long visitas, BigDecimal gasto) {
         this.encuestadorId = encuestadorId;
         this.nombre = nombre;
         this.total = total;
-        this.abiertas = abiertas;
-        this.cerradas = cerradas;
-        this.reabiertas = reabiertas;
+        this.enCurso = enCurso;
+        this.pendientes = pendientes;
+        this.aprobadas = aprobadas;
+        this.rechazadas = rechazadas;
         this.visitas = visitas;
         this.gasto = gasto == null ? BigDecimal.ZERO : gasto;
     }
@@ -38,16 +40,20 @@ public class ReporteEncuestador {
         return total;
     }
 
-    public long getAbiertas() {
-        return abiertas;
+    public long getEnCurso() {
+        return enCurso;
     }
 
-    public long getCerradas() {
-        return cerradas;
+    public long getPendientes() {
+        return pendientes;
     }
 
-    public long getReabiertas() {
-        return reabiertas;
+    public long getAprobadas() {
+        return aprobadas;
+    }
+
+    public long getRechazadas() {
+        return rechazadas;
     }
 
     public long getVisitas() {

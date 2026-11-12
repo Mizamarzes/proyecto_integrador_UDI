@@ -161,7 +161,7 @@ public class EncuestaService {
                 .map(Encuestador::getId);
     }
 
-    /** Crea la encuesta ABIERTA y calcula fecha_hasta. Un hogar solo tiene una encuesta. */
+    /** Crea la encuesta EN_CURSO y calcula fecha_hasta. Un hogar solo tiene una encuesta. */
     public Encuesta crear(Encuesta encuesta) {
         Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Validar.requerido(encuesta.getHogarId(), "Hogar");
@@ -173,7 +173,7 @@ public class EncuestaService {
                     "El hogar " + encuesta.getHogarId() + " ya tiene una encuesta.");
             validarDatos(c, encuesta);
             encuesta.setId(null);
-            encuesta.setEstado(EstadoEncuesta.ABIERTA);
+            encuesta.setEstado(EstadoEncuesta.EN_CURSO);
             encuesta.setFechaCierre(null);
             encuesta.setCerradaPor(null);
             encuesta.setCreatedBy(Sesion.idUsuario());
@@ -208,53 +208,48 @@ public class EncuestaService {
     }
 
     /**
-     * Marca el caso como completo (RF-06). Desde ese momento no admite cambios
-     * y pasa a la bandeja de verificación (también si estaba en corrección).
+     * Marca el caso como completo (RF-06): pasa a «Pendiente de aprobación»,
+     * no admite cambios y entra a la bandeja de verificación (también si
+     * estaba rechazada).
      */
     public void cerrar(long encuestaId) {
         Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Usuario usuario = Sesion.exigirSesion();
         ConexionBD.enTransaccion(c -> {
             ReglasEncuesta.exigirEditable(c, encuestaId);
-            encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.CERRADA, LocalDateTime.now(), usuario.getId());
-            return registrar(c, encuestaId, AccionAuditoria.CIERRE, null);
+            return encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.PENDIENTE_APROBACION,
+                    LocalDateTime.now(), usuario.getId());
         });
     }
 
-    /** Solo un administrador puede reabrir un caso cerrado o aprobado (RF-06). */
+    /**
+     * Solo un administrador puede reabrir un caso pendiente de aprobación o
+     * aprobado (RF-06); vuelve a «En curso».
+     */
     public void reabrir(long encuestaId) {
         Sesion.exigirAdmin();
         ConexionBD.enTransaccion(c -> {
             Encuesta encuesta = Validar.encontrado(encuestaDao.buscarPorId(c, encuestaId),
                     "No existe la encuesta " + encuestaId + ".");
             Validar.condicion(encuesta.estaCerrada(), "La encuesta " + encuestaId + " no está cerrada.");
-            encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.REABIERTA,
+            return encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.EN_CURSO,
                     encuesta.getFechaCierre(), encuesta.getCerradaPor());
-            return registrar(c, encuestaId, AccionAuditoria.REAPERTURA, null);
         });
     }
 
     /**
-     * Última devolución del crítico-digitador, para mostrarle al encuestador
-     * qué debe corregir. Vacío si la encuesta no está en corrección.
+     * Último rechazo del crítico-digitador, para mostrarle al encuestador
+     * qué debe corregir. Vacío si la encuesta no está rechazada.
      */
     public Optional<AuditoriaEncuesta> ultimaDevolucion(long encuestaId) {
         Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         return ConexionBD.consultar(c -> {
             Optional<Encuesta> encuesta = encuestaDao.buscarPorId(c, encuestaId);
-            if (!encuesta.isPresent() || encuesta.get().getEstado() != EstadoEncuesta.EN_CORRECCION) {
+            if (!encuesta.isPresent() || encuesta.get().getEstado() != EstadoEncuesta.RECHAZADA) {
                 return Optional.<AuditoriaEncuesta>empty();
             }
-            return auditoriaDao.ultimaPorAccion(c, encuestaId, AccionAuditoria.DEVOLUCION);
+            return auditoriaDao.ultimaPorAccion(c, encuestaId, AccionAuditoria.RECHAZADA);
         });
-    }
-
-    /** Agrega un registro al historial de la encuesta (tabla auditoria_encuesta). */
-    private AuditoriaEncuesta registrar(Connection c, long encuestaId, AccionAuditoria accion, String observacion)
-            throws SQLException {
-        AuditoriaEncuesta registro = new AuditoriaEncuesta(encuestaId, accion, observacion);
-        registro.setCreatedBy(Sesion.idUsuario());
-        return auditoriaDao.insertar(c, registro);
     }
 
     /** Elimina la encuesta con su capítulo C y sus días (en cascada). No aplica a encuestas cerradas. */

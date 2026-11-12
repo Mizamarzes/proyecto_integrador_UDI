@@ -129,7 +129,7 @@
                </VBox>
             </GridPane>
             <Label fx:id="lblReapertura" wrapText="true" styleClass="texto-suave"
-                   text="¿Hay que corregir algo? Pida la reapertura a un administrador. Al reabrirlo, el estado pasa a «Reabierta»." />
+                   text="¿Hay que corregir algo? Pida la reapertura a un administrador. Al reabrirlo, el estado vuelve a «En curso»." />
             <Button fx:id="btnReabrir" text="Reabrir caso" onAction="#reabrir" styleClass="boton-secundario" maxWidth="Infinity" />
          </VBox>
       </VBox>
