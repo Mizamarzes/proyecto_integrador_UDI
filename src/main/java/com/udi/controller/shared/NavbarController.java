@@ -69,18 +69,18 @@ public class NavbarController {
         Rutas.permitir(btnRoles, VISTA_ROLES);
         Rutas.permitir(btnReportes, VISTA_REPORTES);
         Rutas.permitir(btnVerificacion, VISTA_VERIFICACION);
-        if (btnEncuestas.isVisible()) {
+        if (btnReportes.isVisible()) {
+            irReportes();
+        } else if (btnEncuestas.isVisible()) {
             irEncuestas();
-        } else if (btnVerificacion.isVisible()) {
-            irVerificacion();
         } else if (btnViviendas.isVisible()) {
             irViviendas();
+        } else if (btnVerificacion.isVisible()) {
+            irVerificacion();
         } else if (btnUsuarios.isVisible()) {
             irUsuarios();
         } else if (btnRoles.isVisible()) {
             irRoles();
-        } else if (btnReportes.isVisible()) {
-            irReportes();
         } else {
             sinModulos();
         }
@@ -159,7 +159,7 @@ public class NavbarController {
     }
 
     private void marcar(Button boton) {
-        for (Button b : List.of(btnEncuestas, btnVerificacion, btnViviendas, btnUsuarios, btnRoles, btnReportes)) {
+        for (Button b : List.of(btnReportes, btnEncuestas, btnViviendas, btnVerificacion, btnUsuarios, btnRoles)) {
             b.getStyleClass().remove(ACTIVO);
         }
         boton.getStyleClass().add(ACTIVO);

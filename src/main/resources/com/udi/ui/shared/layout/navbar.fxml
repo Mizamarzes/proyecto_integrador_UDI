@@ -30,19 +30,24 @@
          </VBox>
 
          <VBox styleClass="sidebar-nav" spacing="2.0">
+            <Button fx:id="btnReportes" text="Reportes" onAction="#irReportes" styleClass="nav-item" maxWidth="Infinity">
+               <graphic>
+                  <SVGPath styleClass="nav-icono" content="M1.5,14.5 H14.5 M3.5,12 V8 M7,12 V3.5 M10.5,12 V6 M14,12 V9.5" />
+               </graphic>
+            </Button>
             <Button fx:id="btnEncuestas" text="Encuestas" onAction="#irEncuestas" styleClass="nav-item" maxWidth="Infinity">
                <graphic>
                   <SVGPath styleClass="nav-icono" content="M2.5,1.5 H13.5 V14.5 H2.5 Z M5,5 H11 M5,8 H11 M5,11 H9" />
                </graphic>
             </Button>
-            <Button fx:id="btnVerificacion" text="Verificación" onAction="#irVerificacion" styleClass="nav-item" maxWidth="Infinity">
-               <graphic>
-                  <SVGPath styleClass="nav-icono" content="M2.5,1.5 H10.5 L13.5,4.5 V14.5 H2.5 Z M5,9 L7,11 L11,6.5" />
-               </graphic>
-            </Button>
             <Button fx:id="btnViviendas" text="Viviendas y hogares" onAction="#irViviendas" styleClass="nav-item" maxWidth="Infinity">
                <graphic>
                   <SVGPath styleClass="nav-icono" content="M1.5,7.5 L8,2 L14.5,7.5 M3.5,6 V14 H12.5 V6 M6.5,14 V10 H9.5 V14" />
+               </graphic>
+            </Button>
+            <Button fx:id="btnVerificacion" text="Verificación" onAction="#irVerificacion" styleClass="nav-item" maxWidth="Infinity">
+               <graphic>
+                  <SVGPath styleClass="nav-icono" content="M2.5,1.5 H10.5 L13.5,4.5 V14.5 H2.5 Z M5,9 L7,11 L11,6.5" />
                </graphic>
             </Button>
             <Button fx:id="btnUsuarios" text="Usuarios" onAction="#irUsuarios" styleClass="nav-item" maxWidth="Infinity">
@@ -53,11 +58,6 @@
             <Button fx:id="btnRoles" text="Roles y permisos" onAction="#irRoles" styleClass="nav-item" maxWidth="Infinity">
                <graphic>
                   <SVGPath styleClass="nav-icono" content="M8,1.5 L13.5,3.5 V8 C13.5,11.5 11,13.5 8,14.5 C5,13.5 2.5,11.5 2.5,8 V3.5 Z M5.5,8 L7.2,9.7 L10.5,6.4" />
-               </graphic>
-            </Button>
-            <Button fx:id="btnReportes" text="Reportes" onAction="#irReportes" styleClass="nav-item" maxWidth="Infinity">
-               <graphic>
-                  <SVGPath styleClass="nav-icono" content="M1.5,14.5 H14.5 M3.5,12 V8 M7,12 V3.5 M10.5,12 V6 M14,12 V9.5" />
                </graphic>
             </Button>
          </VBox>
