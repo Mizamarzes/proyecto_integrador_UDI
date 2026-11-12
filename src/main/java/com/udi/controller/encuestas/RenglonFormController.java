@@ -102,6 +102,10 @@ public class RenglonFormController {
     private Label lblError;
     @FXML
     private Button btnGuardar;
+    @FXML
+    private Button btnCancelar;
+    @FXML
+    private VBox cuerpo;
 
     private final GastoDiarioService gastoService = new GastoDiarioService();
 
@@ -198,6 +202,18 @@ public class RenglonFormController {
                 .findFirst().ifPresent(grupoComida::selectToggle);
         llenarComunes(comida.getFormaAdquisicion(), comida.getFormaAdquisicionOtra(), comida.getLugarCompraId(),
                 comida.getFrecuenciaCompra(), comida.getValor(), comida.getTipoGasto(), lugares);
+    }
+
+    /**
+     * Deja el renglón cargado con {@link #editarGasto} o {@link #editarComida}
+     * solo para consulta: la encuesta está pendiente de aprobación o aprobada (RF-06).
+     */
+    public void soloLectura() {
+        cuerpo.setDisable(true);
+        Formato.mostrar(btnGuardar, false);
+        btnCancelar.setText("Cerrar");
+        lblTitulo.setText(esGasto ? "Ver gasto (tabla D)" : "Ver comida (tabla D1)");
+        lblSubtitulo.setText(lblSubtitulo.getText() + " Encuesta cerrada: solo consulta.");
     }
 
     /** Columnas (6) a (10), comunes a D y D1. */

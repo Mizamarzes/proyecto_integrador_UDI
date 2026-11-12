@@ -215,8 +215,12 @@
 }
 
 /* Campos deshabilitados (encuesta cerrada): legibles, no gris pálido */
-.tarjeta .label:disabled {
+.tarjeta .label:disabled, .modal .label:disabled {
     -fx-opacity: 1;
+}
+
+.modal .check-box:disabled {
+    -fx-opacity: 0.8;
 }
 
 .campo-linea:disabled, .combo-linea:disabled, .campo-fecha:disabled, .area-texto:disabled {

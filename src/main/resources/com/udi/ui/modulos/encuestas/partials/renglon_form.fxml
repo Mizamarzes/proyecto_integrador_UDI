@@ -30,7 +30,7 @@
       <Label fx:id="lblSubtitulo" styleClass="subtitulo-pagina" wrapText="true" />
    </VBox>
 
-   <VBox styleClass="modal-cuerpo" spacing="14.0">
+   <VBox fx:id="cuerpo" styleClass="modal-cuerpo" spacing="14.0">
       <!-- Tabla D: gasto diario -->
       <GridPane fx:id="gridGasto" hgap="20.0" vgap="12.0">
          <columnConstraints>
@@ -142,7 +142,7 @@
    </VBox>
 
    <HBox styleClass="modal-pie" spacing="10.0" alignment="CENTER_RIGHT">
-      <Button text="Cancelar" onAction="#cancelar" styleClass="boton-secundario" />
+      <Button fx:id="btnCancelar" text="Cancelar" onAction="#cancelar" styleClass="boton-secundario" />
       <Button fx:id="btnGuardar" onAction="#guardar" styleClass="boton-primario" />
    </HBox>
 </VBox>

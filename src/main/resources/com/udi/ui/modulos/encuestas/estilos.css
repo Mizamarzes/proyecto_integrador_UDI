@@ -119,12 +119,14 @@
     -fx-opacity: 0.55;
 }
 
-.dia:selected {
+/* Con las clases de estado (registrado, hoy) para ganarles en especificidad:
+   si no, el día elegido queda verde claro con el texto blanco y no se lee */
+.dia:selected, .dia.dia-registrado:selected, .dia.dia-hoy:selected {
     -fx-background-color: -color-tinta;
     -fx-border-color: -color-tinta;
 }
 
-.dia:selected .label {
+.dia:selected .label, .dia.dia-registrado:selected .label, .dia.dia-hoy:selected .label {
     -fx-text-fill: white;
 }
 

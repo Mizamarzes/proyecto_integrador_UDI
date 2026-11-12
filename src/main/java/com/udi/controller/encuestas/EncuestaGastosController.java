@@ -351,15 +351,19 @@ public class EncuestaGastosController implements SeccionEncuesta {
         abrirRenglon(esGasto, null, null);
     }
 
-    /** Abre el modal del renglón: nuevo si {@code gasto} y {@code comida} son null, o para editar uno de ellos. */
+    /**
+     * Abre el modal del renglón: nuevo si {@code gasto} y {@code comida} son
+     * null, o uno de ellos para editarlo (o solo verlo si la encuesta está cerrada).
+     */
     private void abrirRenglon(boolean esGasto, GastoDiario gasto, ComidaFueraHogar comida) {
         RegistroDiario registro = registros.get(dia);
         boolean editando = gasto != null || comida != null;
+        boolean soloVer = editando && !detalle.esEditable();
         int siguiente = esGasto
                 ? tablaD.getItems().stream().mapToInt(GastoDiario::getNumeroOrden).max().orElse(0) + 1
                 : tablaD1.getItems().stream().mapToInt(ComidaFueraHogar::getNumeroOrden).max().orElse(0) + 1;
         Modal<RenglonFormController> modal = Modal.cargar("modulos/encuestas/partials/renglon_form",
-                (editando ? "Editar " : "Agregar ") + (esGasto ? "gasto" : "comida"));
+                (soloVer ? "Ver " : editando ? "Editar " : "Agregar ") + (esGasto ? "gasto" : "comida"));
         Consumer<String> alGuardar = mensaje -> {
             detalle.avisar(mensaje);
             cargar();
@@ -372,6 +376,9 @@ public class EncuestaGastosController implements SeccionEncuesta {
             modal.controlador().gasto(registro, siguiente, lugares, alGuardar);
         } else {
             modal.controlador().comida(registro, siguiente, lugares, alGuardar);
+        }
+        if (soloVer) {
+            modal.controlador().soloLectura();
         }
         modal.mostrar();
     }
@@ -426,11 +433,12 @@ public class EncuestaGastosController implements SeccionEncuesta {
         dAcciones.setCellFactory(col -> new TableCell<>() {
             private final HBox acciones = acciones(
                     () -> abrirRenglon(true, getItem(), null), () -> eliminarGasto(getItem()));
+            private final Hyperlink ver = enlace("Ver", () -> abrirRenglon(true, getItem(), null));
 
             @Override
             protected void updateItem(GastoDiario gasto, boolean vacia) {
                 super.updateItem(gasto, vacia);
-                setGraphic(vacia || gasto == null || !detalle.esEditable() ? null : acciones);
+                setGraphic(vacia || gasto == null ? null : detalle.esEditable() ? acciones : ver);
             }
         });
     }
@@ -452,11 +460,12 @@ public class EncuestaGastosController implements SeccionEncuesta {
         mAcciones.setCellFactory(col -> new TableCell<>() {
             private final HBox acciones = acciones(
                     () -> abrirRenglon(false, null, getItem()), () -> eliminarComida(getItem()));
+            private final Hyperlink ver = enlace("Ver", () -> abrirRenglon(false, null, getItem()));
 
             @Override
             protected void updateItem(ComidaFueraHogar comida, boolean vacia) {
                 super.updateItem(comida, vacia);
-                setGraphic(vacia || comida == null || !detalle.esEditable() ? null : acciones);
+                setGraphic(vacia || comida == null ? null : detalle.esEditable() ? acciones : ver);
             }
         });
     }
