@@ -19,6 +19,7 @@ import com.udi.service.verificacion.VerificacionService;
 import com.udi.util.Alertas;
 import com.udi.util.Formato;
 import com.udi.util.Tareas;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -30,6 +31,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -55,7 +57,20 @@ public class VerificacionController {
 
     private static final String TODOS = "Todos";
     private static final String VISTA_ENCUESTA = "modulos/encuestas/encuesta_detalle";
+    /** Ancho de página por debajo del cual el detalle del caso pasa debajo de la bandeja. */
+    private static final double ANCHO_LADO_A_LADO = 1000;
+    /** Alto del detalle cuando va al lado de la bandeja (luego tiene su propio scroll). */
+    private static final double ALTO_DETALLE_LATERAL = 300;
+    private static final double ANCHO_MAX_DETALLE = 480;
 
+    @FXML
+    private ScrollPane scroll;
+    @FXML
+    private VBox pagina;
+    @FXML
+    private HBox boxCasos;
+    @FXML
+    private ScrollPane scrollDetalle;
     @FXML
     private Label lblAviso;
     @FXML
@@ -159,6 +174,7 @@ public class VerificacionController {
         ubicacion = new SelectoresUbicacion(cmbRegion, cmbDepartamento, cmbMunicipio, false);
         Rutas.permitir(btnAbrir, VISTA_ENCUESTA);
         configurarTabla();
+        configurarDisposicion();
 
         txtBuscar.textProperty().addListener((obs, antes, ahora) -> filtrar());
         cmbEstado.valueProperty().addListener((obs, antes, ahora) -> filtrar());
@@ -399,7 +415,7 @@ public class VerificacionController {
         selector.setTitle("Exportar caso a Excel");
         selector.setInitialFileName(VerificacionService.nombreArchivo(id));
         selector.getExtensionFilters().add(new FileChooser.ExtensionFilter("Libro de Excel", "*.xlsx"));
-        File archivo = selector.showSaveDialog(tabla.getScene().getWindow());
+        File archivo = selector.showSaveDialog(scroll.getScene().getWindow());
         return archivo == null ? null : archivo.toPath();
     }
 
@@ -411,6 +427,37 @@ public class VerificacionController {
     // ------------------------------------------------------------------
     // Tabla y filtros
     // ------------------------------------------------------------------
+
+    /**
+     * La página ocupa al menos el alto visible, así la bandeja crece en pantalla
+     * completa; si la ventana es más baja que el contenido, la página hace scroll
+     * en lugar de aplastar la tabla. En ventanas angostas el detalle del caso va
+     * debajo de la bandeja para que la tabla use todo el ancho.
+     */
+    private void configurarDisposicion() {
+        pagina.minHeightProperty().bind(Bindings.createDoubleBinding(
+                () -> scroll.getViewportBounds().getHeight(), scroll.viewportBoundsProperty()));
+        scroll.viewportBoundsProperty().addListener((obs, antes, ahora) -> acomodarDetalle(ahora.getWidth()));
+    }
+
+    private void acomodarDetalle(double ancho) {
+        boolean ladoALado = ancho >= ANCHO_LADO_A_LADO;
+        if (ladoALado == boxCasos.getChildren().contains(scrollDetalle)) {
+            return;
+        }
+        if (ladoALado) {
+            pagina.getChildren().remove(scrollDetalle);
+            scrollDetalle.setMaxWidth(ANCHO_MAX_DETALLE);
+            scrollDetalle.setPrefViewportHeight(ALTO_DETALLE_LATERAL);
+            boxCasos.getChildren().add(scrollDetalle);
+        } else {
+            // Debajo de la tabla: ancho completo y alto de su contenido (scroll de la página)
+            boxCasos.getChildren().remove(scrollDetalle);
+            scrollDetalle.setMaxWidth(Double.MAX_VALUE);
+            scrollDetalle.setPrefViewportHeight(0);
+            pagina.getChildren().add(scrollDetalle);
+        }
+    }
 
     private void configurarTabla() {
         paginador.vincular(tabla, filtrados, "caso", "casos");

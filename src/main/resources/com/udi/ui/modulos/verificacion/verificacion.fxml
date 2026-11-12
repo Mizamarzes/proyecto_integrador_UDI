@@ -19,9 +19,15 @@
 <?import com.udi.componentes.SelectBuscable?>
 
 <!-- Verificación (RF-10): bandeja de casos cerrados del crítico-digitador, validación cruzada,
-     rechazo, aprobación y exportación a Excel -->
-<VBox spacing="18.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.udi.controller.verificacion.VerificacionController">
+     rechazo, aprobación y exportación a Excel. La página tiene su propio scroll para que la bandeja
+     conserve un alto mínimo en ventanas bajas; en ventanas angostas el controlador pasa el detalle
+     del caso debajo de la tabla -->
+<ScrollPane fx:id="scroll" fitToWidth="true" styleClass="scroll-transparente" xmlns="http://javafx.com/javafx/11"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.udi.controller.verificacion.VerificacionController">
+<VBox fx:id="pagina" spacing="18.0">
+   <padding>
+      <Insets right="14.0" bottom="8.0" />
+   </padding>
 
    <!-- Título -->
    <VBox spacing="4.0">
@@ -82,9 +88,9 @@
    </VBox>
 
    <!-- Bandeja y detalle del caso -->
-   <HBox spacing="18.0" VBox.vgrow="ALWAYS">
-      <VBox HBox.hgrow="ALWAYS" minWidth="420.0">
-         <TableView fx:id="tabla" styleClass="tabla" VBox.vgrow="ALWAYS">
+   <HBox fx:id="boxCasos" spacing="18.0" VBox.vgrow="ALWAYS">
+      <VBox HBox.hgrow="ALWAYS">
+         <TableView fx:id="tabla" styleClass="tabla" VBox.vgrow="ALWAYS" minHeight="270.0" prefHeight="270.0">
             <columns>
                <TableColumn fx:id="colCaso" text="Caso" styleClass="columna-codigo" />
                <TableColumn fx:id="colHogar" text="Hogar / Dirección" />
@@ -96,7 +102,8 @@
          <Paginador fx:id="paginador" />
       </VBox>
 
-      <ScrollPane fitToWidth="true" styleClass="scroll-transparente" prefWidth="440.0" minWidth="360.0" maxWidth="480.0">
+      <ScrollPane fx:id="scrollDetalle" fitToWidth="true" styleClass="scroll-transparente" prefWidth="440.0" minWidth="360.0"
+                  maxWidth="480.0" prefViewportHeight="300.0">
          <VBox styleClass="tarjeta" spacing="16.0">
             <!-- Sin caso seleccionado -->
             <Label fx:id="lblSinSeleccion" text="Selecciona un caso de la bandeja para ver su validación cruzada y su historial."
@@ -184,3 +191,4 @@
       </ScrollPane>
    </HBox>
 </VBox>
+</ScrollPane>
