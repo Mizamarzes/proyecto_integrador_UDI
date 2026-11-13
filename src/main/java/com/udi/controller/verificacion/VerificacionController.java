@@ -74,6 +74,8 @@ public class VerificacionController {
     @FXML
     private Label lblAviso;
     @FXML
+    private Button btnExportarAprobadas;
+    @FXML
     private Label lblPorVerificar;
     @FXML
     private Label lblAprobadas;
@@ -199,6 +201,7 @@ public class VerificacionController {
             casos.setAll(lista);
             lblPorVerificar.setText(String.valueOf(contar(EstadoEncuesta.PENDIENTE_APROBACION)));
             lblAprobadas.setText(String.valueOf(contar(EstadoEncuesta.APROBADA)));
+            btnExportarAprobadas.setDisable(contar(EstadoEncuesta.APROBADA) == 0);
             actualizarEncuestadores();
             CasoVerificacion caso = encuestaId == null ? null : casos.stream()
                     .filter(c -> c.getEncuesta().getId().equals(encuestaId)).findFirst().orElse(null);
@@ -267,7 +270,7 @@ public class VerificacionController {
                     + " de nuevo vuelve a esta bandeja como «Pendiente de aprobación».");
             lblEstadoCaso.getStyleClass().add("banner-alerta");
         } else {
-            lblEstadoCaso.setText("Caso aprobado. Ya no admite cambios.");
+            lblEstadoCaso.setText("Caso aprobado. Ya no admite cambios; puedes exportarlo con «Exportar a Excel».");
             lblEstadoCaso.getStyleClass().add("banner-ok");
         }
         Formato.mostrar(boxObservacion, porVerificar);
@@ -368,7 +371,7 @@ public class VerificacionController {
         });
     }
 
-    /** Aprueba el caso y en seguida guarda su Excel; si se cancela la elección del archivo, no se aprueba. */
+    /** Aprueba el caso. El Excel es aparte: «Exportar a Excel», disponible cuando el caso ya está aprobado. */
     @FXML
     private void aprobar() {
         if (seleccionado == null) {
@@ -377,19 +380,16 @@ public class VerificacionController {
         long id = seleccionado.getEncuesta().getId();
         String codigo = Formato.codigo("E", id);
         if (!Alertas.confirmar("Aprobar caso", "La encuesta " + codigo + " quedará «Aprobada» y ya no admitirá cambios."
-                + " Después se guardará su archivo de Excel. ¿Desea aprobarla?")) {
-            return;
-        }
-        Path archivo = elegirArchivo(id);
-        if (archivo == null) {
+                + " ¿Desea aprobarla?")) {
             return;
         }
         Tareas.accion(() -> verificacionService.aprobar(id), () -> {
+            avisar(codigo + " quedó «Aprobada». Puedes exportarla con «Exportar a Excel».");
             cargar(id);
-            guardarExcel(id, archivo, codigo + " quedó «Aprobada»");
         });
     }
 
+    /** Guarda el Excel de un caso aprobado (solo ese caso). */
     @FXML
     private void exportar() {
         if (seleccionado == null) {
@@ -398,16 +398,42 @@ public class VerificacionController {
         long id = seleccionado.getEncuesta().getId();
         Path archivo = elegirArchivo(id);
         if (archivo != null) {
-            guardarExcel(id, archivo, null);
+            Tareas.accion(() -> verificacionService.exportar(id, archivo),
+                    () -> avisar("Se guardó " + archivo + " con los capítulos A, B, C, D, D1 y D2."));
         }
     }
 
-    private void guardarExcel(long id, Path archivo, String antes) {
-        Tareas.accion(() -> verificacionService.exportar(id, archivo), () -> {
-            avisar((antes == null ? "Se guardó " : antes + " y se guardó ") + archivo
-                    + " con los capítulos A, B, C, D, D1 y D2.");
-            cargar(id);
-        });
+    /**
+     * Exporta en un solo libro todas las encuestas aprobadas de la región,
+     * departamento y municipio elegidos (los demás filtros no se aplican). La
+     * lista la arma el procedimiento pr_exportar_aprobadas; no cambia estados.
+     */
+    @FXML
+    private void exportarAprobadas() {
+        Long regionId = id(cmbRegion.getValue());
+        Long departamentoId = id(cmbDepartamento.getValue());
+        Long municipioId = id(cmbMunicipio.getValue());
+        boolean filtrado = regionId != null || departamentoId != null || municipioId != null;
+        long aprobadas = casos.stream().filter(c -> c.getEncuesta().getEstado() == EstadoEncuesta.APROBADA
+                && coincideUbicacion(c, regionId, departamentoId, municipioId)).count();
+        if (aprobadas == 0) {
+            Alertas.info("Exportar aprobadas", "No hay encuestas aprobadas"
+                    + (filtrado ? " en la ubicación elegida" : "") + " para exportar.");
+            return;
+        }
+        FileChooser selector = new FileChooser();
+        selector.setTitle("Exportar encuestas aprobadas a Excel");
+        selector.setInitialFileName(VerificacionService.nombreArchivoAprobadas());
+        selector.getExtensionFilters().add(new FileChooser.ExtensionFilter("Libro de Excel", "*.xlsx"));
+        File elegido = selector.showSaveDialog(scroll.getScene().getWindow());
+        if (elegido == null) {
+            return;
+        }
+        Path archivo = elegido.toPath();
+        Tareas.ejecutar(() -> verificacionService.exportarAprobadas(regionId, departamentoId, municipioId, archivo),
+                total -> avisar("Se guardó " + archivo + " con " + plural(total, "encuesta aprobada", "encuestas aprobadas")
+                        + (filtrado ? " de la ubicación elegida" : "")
+                        + ": resumen y capítulos B, C, D y D1."));
     }
 
     private Path elegirArchivo(long id) {
@@ -529,15 +555,20 @@ public class VerificacionController {
                     || caso.getResumen().getDireccion().toLowerCase().contains(texto)
                     || caso.getResumen().getMunicipio().toLowerCase().contains(texto)
                     || (v != null && v.getBarrio() != null && v.getBarrio().toLowerCase().contains(texto));
-            boolean coincideUbicacion = (regionId == null || (v != null && regionId.equals(v.getRegionId())))
-                    && (departamentoId == null || (v != null && departamentoId.equals(v.getDepartamentoId())))
-                    && (municipioId == null || (v != null && municipioId.equals(v.getMunicipioId())));
+            boolean coincideUbicacion = coincideUbicacion(caso, regionId, departamentoId, municipioId);
             boolean coincideEstado = estado == null || TODOS.equals(estado) || texto(e.getEstado()).equals(estado);
             boolean coincideEncuestador = encuestador == null || TODOS.equals(encuestador)
                     || caso.getResumen().getEncuestador().equals(encuestador);
             return coincideTexto && coincideUbicacion && coincideEstado && coincideEncuestador;
         });
         actualizarTotal();
+    }
+
+    private static boolean coincideUbicacion(CasoVerificacion caso, Long regionId, Long departamentoId, Long municipioId) {
+        Vivienda v = caso.getResumen().getVivienda();
+        return (regionId == null || (v != null && regionId.equals(v.getRegionId())))
+                && (departamentoId == null || (v != null && departamentoId.equals(v.getDepartamentoId())))
+                && (municipioId == null || (v != null && municipioId.equals(v.getMunicipioId())));
     }
 
     private void actualizarEncuestadores() {

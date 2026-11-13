@@ -157,6 +157,52 @@ END;
 /
 
 PROMPT
+PROMPT -- 2.2 Exportacion de las encuestas aprobadas (pr_exportar_aprobadas, cursor de salida)
+DECLARE
+c_encuestas SYS_REFCURSOR;
+v_encuestaId encuesta.id%TYPE;
+v_codigo VARCHAR2(20);
+v_hogarId hogar.id%TYPE;
+v_hogarNumero hogar.hogar_numero%TYPE;
+v_personas hogar.total_personas%TYPE;
+v_region region.nombre%TYPE;
+v_departamento departamento.nombre%TYPE;
+v_municipio municipio.nombre%TYPE;
+v_barrio vivienda.barrio%TYPE;
+v_direccion vivienda.direccion%TYPE;
+v_encuestador VARCHAR2(200);
+v_informante encuesta.informante_nombre%TYPE;
+v_desde encuesta.fecha_desde%TYPE;
+v_hasta encuesta.fecha_hasta%TYPE;
+v_cierre encuesta.fecha_cierre%TYPE;
+v_aprobadaPor VARCHAR2(200);
+v_fechaAprobacion auditoria_encuesta.created_at%TYPE;
+v_visitas NUMBER;
+v_dias NUMBER;
+v_gasto NUMBER;
+v_total NUMBER:=0;
+BEGIN
+pr_exportar_aprobadas(NULL,NULL,NULL,c_encuestas);
+LOOP
+   FETCH c_encuestas INTO v_encuestaId, v_codigo, v_hogarId, v_hogarNumero, v_personas, v_region,
+      v_departamento, v_municipio, v_barrio, v_direccion, v_encuestador, v_informante, v_desde,
+      v_hasta, v_cierre, v_aprobadaPor, v_fechaAprobacion, v_visitas, v_dias, v_gasto;
+   EXIT WHEN c_encuestas%NOTFOUND;
+   v_total:=v_total+1;
+   DBMS_OUTPUT.PUT_LINE(v_codigo||'  '||v_municipio||' ('||v_departamento||')  '||v_encuestador
+      ||'  aprobada por '||NVL(v_aprobadaPor,'-')||'  dias: '||v_dias||'  gasto: '||v_gasto);
+END LOOP;
+CLOSE c_encuestas;
+DBMS_OUTPUT.PUT_LINE(v_total||' encuesta(s) aprobada(s).');
+
+BEGIN
+   pr_exportar_aprobadas(NULL,NULL,-1,c_encuestas);
+EXCEPTION WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('Municipio que no existe:    '||REGEXP_SUBSTR(SQLERRM,'[^'||CHR(10)||']+'));
+END;
+END;
+/
+
+PROMPT
 PROMPT =============================================================
 PROMPT  3. DISPARADORES DE VALIDACION
 PROMPT =============================================================

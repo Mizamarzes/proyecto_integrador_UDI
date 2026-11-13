@@ -18,7 +18,8 @@
 --   -20005  La fecha del día no corresponde al periodo de la encuesta
 --   -20006  Gasto personal después del día 7
 --   -20007  Cambio de estado no permitido
---   -20008  Parámetro no válido en un reporte (plsql/reportes.sql)
+--   -20008  Parámetro no válido en un reporte (plsql/reportes.sql) o en
+--           pr_exportar_aprobadas (plsql/procedimientos.sql)
 --
 -- Los mensajes no llevan «ñ» ni mayúsculas con tilde: la base usa ZHS16GBK.
 -- =====================================================================

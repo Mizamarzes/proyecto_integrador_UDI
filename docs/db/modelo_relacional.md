@@ -308,6 +308,7 @@ Están en `plsql/` y los ejecuta `esquema_oracle10g.sql` al final. Los usuarios 
 | Procedimiento | `pr_reabrir_encuesta` | PENDIENTE_APROBACION o APROBADA → EN_CURSO | `EncuestaService.reabrir` |
 | Procedimiento | `pr_rechazar_encuesta` | PENDIENTE_APROBACION → RECHAZADA + revisión con observación | `VerificacionService.rechazar` |
 | Procedimiento | `pr_aprobar_encuesta` | PENDIENTE_APROBACION → APROBADA + revisión | `VerificacionService.aprobar` |
+| Procedimiento | `pr_exportar_aprobadas(region, departamento, municipio, OUT cursor)` | Cursor (`SYS_REFCURSOR`) con una fila por encuesta APROBADA: ubicación, encuestador, quién y cuándo la aprobó, visitas, días y gasto total; filtros opcionales (`NULL` = todas), -20008 si uno no existe. Solo lee | `ExportacionDAO.listarAprobadas` → `VerificacionService.exportarAprobadas` |
 | Disparador | `trg_val_encuesta` | Solo los cambios de estado del flujo; una encuesta cerrada no se modifica | `BEFORE UPDATE` |
 | Disparador | `trg_val_visita`, `trg_val_caracteristica_gasto` | Bloquean cambios si la encuesta está cerrada | `BEFORE INSERT OR UPDATE` |
 | Disparador | `trg_val_registro_diario` | Encuesta abierta y fecha = `fn_fecha_dia` | `BEFORE INSERT OR UPDATE` |

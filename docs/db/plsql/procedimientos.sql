@@ -159,6 +159,77 @@ END;
 /
 
 -- ---------------------------------------------------------------------
+-- Exportación de las encuestas aprobadas (RF-10). Abre un cursor con una
+-- fila por encuesta APROBADA: ubicación de la vivienda, encuestador, quién
+-- la aprobó y cuándo (última aprobación en auditoria_encuesta), visitas,
+-- días registrados y gasto total (fn_gasto_total_encuesta). Los filtros de
+-- ubicación son opcionales: NULL = todas. La aplicación escribe con este
+-- cursor la hoja «Encuestas aprobadas» del Excel y le agrega el detalle de
+-- los capítulos B, C, D y D1 de cada encuesta. Solo lee: no cambia estados
+-- ni registra revisiones. Falla con -20008 si un filtro no existe.
+-- ---------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE pr_exportar_aprobadas
+(v_regionId region.id%TYPE,
+v_departamentoId departamento.id%TYPE,
+v_municipioId municipio.id%TYPE,
+c_encuestas OUT SYS_REFCURSOR)
+IS
+v_existe NUMBER;
+BEGIN
+IF v_regionId IS NOT NULL THEN
+   SELECT COUNT(*) INTO v_existe FROM region WHERE id=v_regionId;
+   IF v_existe=0 THEN
+      RAISE_APPLICATION_ERROR(-20008,'No existe la region '||v_regionId||'.');
+   END IF;
+END IF;
+IF v_departamentoId IS NOT NULL THEN
+   SELECT COUNT(*) INTO v_existe FROM departamento WHERE id=v_departamentoId;
+   IF v_existe=0 THEN
+      RAISE_APPLICATION_ERROR(-20008,'No existe el departamento '||v_departamentoId||'.');
+   END IF;
+END IF;
+IF v_municipioId IS NOT NULL THEN
+   SELECT COUNT(*) INTO v_existe FROM municipio WHERE id=v_municipioId;
+   IF v_existe=0 THEN
+      RAISE_APPLICATION_ERROR(-20008,'No existe el municipio '||v_municipioId||'.');
+   END IF;
+END IF;
+
+OPEN c_encuestas FOR
+SELECT e.id encuesta_id, fn_codigo_encuesta(e.id) codigo, e.hogar_id,
+       h.hogar_numero, h.total_personas,
+       r.nombre region, d.nombre departamento, m.nombre municipio,
+       v.barrio, v.direccion,
+       ue.nombre||' '||ue.apellido encuestador,
+       e.informante_nombre, e.fecha_desde, e.fecha_hasta, e.fecha_cierre,
+       CASE WHEN ua.id IS NULL THEN NULL ELSE ua.nombre||' '||ua.apellido END aprobada_por,
+       ap.created_at fecha_aprobacion,
+       (SELECT COUNT(*) FROM visita vi WHERE vi.hogar_id=e.hogar_id) visitas,
+       (SELECT COUNT(*) FROM registro_diario rd WHERE rd.encuesta_id=e.id) dias,
+       fn_gasto_total_encuesta(e.id) gasto_total
+FROM encuesta e
+JOIN hogar h ON h.id=e.hogar_id
+JOIN vivienda v ON v.id=h.vivienda_id
+JOIN municipio m ON m.id=v.municipio_id
+JOIN departamento d ON d.id=m.departamento_id
+JOIN region r ON r.id=d.region_id
+JOIN encuestador en ON en.id=e.encuestador_id
+JOIN usuario ue ON ue.id=en.usuario_id
+LEFT JOIN (SELECT a.encuesta_id, a.created_by, a.created_at,
+                  ROW_NUMBER() OVER (PARTITION BY a.encuesta_id
+                                     ORDER BY a.created_at DESC, a.id DESC) n
+           FROM auditoria_encuesta a
+           WHERE a.accion='APROBADA') ap ON ap.encuesta_id=e.id AND ap.n=1
+LEFT JOIN usuario ua ON ua.id=ap.created_by
+WHERE e.estado='APROBADA'
+AND (v_regionId IS NULL OR d.region_id=v_regionId)
+AND (v_departamentoId IS NULL OR m.departamento_id=v_departamentoId)
+AND (v_municipioId IS NULL OR v.municipio_id=v_municipioId)
+ORDER BY r.nombre, d.nombre, m.nombre, e.id;
+END;
+/
+
+-- ---------------------------------------------------------------------
 -- Auditoría: inserta un movimiento en la tabla auditoria. Lo llaman los
 -- disparadores trg_cud_<tabla> (plsql/disparadores.sql). El usuario es el
 -- de la sesión (fn_usuario_sesion) o, si no hay, el que trae el registro
