@@ -271,7 +271,7 @@ Restricción única: `(hogar_id, numero_visita)`.
 
 ### Auditoría general
 
-**`auditoria`**: una fila por cada inserción, modificación o eliminación en cualquier tabla del esquema. No la escribe la aplicación: la llenan los triggers `trg_cud_<tabla>` (uno por tabla, `AFTER INSERT OR UPDATE OR DELETE ... FOR EACH ROW`) a través del procedimiento `incluir_auditoria`. Se crea con `migraciones/migracion_auditoria.sql`.
+**`auditoria`**: una fila por cada inserción, modificación o eliminación en cualquier tabla del esquema. No la escribe la aplicación: la llenan los triggers `trg_cud_<tabla>` (uno por tabla, `AFTER INSERT OR UPDATE OR DELETE ... FOR EACH ROW`) a través del procedimiento `incluir_auditoria`. La tabla y `seq_auditoria` se crean con `migraciones/migracion_auditoria.sql`; la función, el procedimiento y los triggers están en `plsql/` (`funciones.sql`, `procedimientos.sql`, `disparadores.sql`).
 
 | Columna | Tipo | Restricciones | Descripción |
 |---|---|---|---|
@@ -286,7 +286,7 @@ Restricción única: `(hogar_id, numero_visita)`.
 
 `usuario_id` no tiene llave foránea para que el rastro quede aunque se elimine el usuario. Los triggers solo usan `:NEW`/`:OLD` (no consultan otras tablas) para evitar ORA-04091 en los `ON DELETE CASCADE`, y nunca guardan la clave del usuario.
 
-### Funciones, procedimientos y disparadores de validación
+### Funciones, procedimientos, disparadores de validación y reportes
 
 Están en `plsql/` y los ejecuta `esquema_oracle10g.sql` al final. Los usuarios y roles de Oracle están en `seguridad/usuarios_roles.sql` (se ejecuta como SYSTEM). Hay bloques que los invocan en `pruebas/`.
 
@@ -312,8 +312,15 @@ Están en `plsql/` y los ejecuta `esquema_oracle10g.sql` al final. Los usuarios 
 | Disparador | `trg_val_visita`, `trg_val_caracteristica_gasto` | Bloquean cambios si la encuesta está cerrada | `BEFORE INSERT OR UPDATE` |
 | Disparador | `trg_val_registro_diario` | Encuesta abierta y fecha = `fn_fecha_dia` | `BEFORE INSERT OR UPDATE` |
 | Disparador | `trg_val_gasto_diario`, `trg_val_comida_fuera_hogar` | Encuesta abierta y gastos personales solo días 1 a 7 | `BEFORE INSERT OR UPDATE` |
+| Reporte | `fn_reporte_encuestas(estado)` | Encuestas con encuestador, municipio, días registrados y gasto total; `NULL` = todas | Bloques anónimos (`pruebas/`) |
+| Reporte | `fn_reporte_encuestadores(desde, hasta)` | Encuestas de cada encuestador por estado y gasto registrado, por fecha de inicio | Bloques anónimos |
+| Reporte | `fn_reporte_gasto_ubicacion` | Hogares, gasto total y promedio por hogar por región, departamento y municipio | Bloques anónimos |
+| Reporte | `fn_reporte_revisiones(encuesta)` | Historial de aprobaciones y rechazos con crítico y observación | Bloques anónimos |
+| Función | `fn_columna` | Columna de ancho fijo para los reportes (RPAD cuenta las tildes doble en ZHS16GBK) | Reportes |
 
-Los disparadores de validación no se disparan al eliminar: al borrar una encuesta en cascada consultarían `encuesta` mientras cambia (ORA-04091). Los errores propios van de ORA-20001 a ORA-20007 (lista al inicio de `plsql/funciones.sql`).
+Los disparadores de validación no se disparan al eliminar: al borrar una encuesta en cascada consultarían `encuesta` mientras cambia (ORA-04091). Los errores propios van de ORA-20001 a ORA-20008 (lista al inicio de `plsql/funciones.sql`).
+
+Los reportes (`plsql/reportes.sql`) son funciones que recorren un cursor y devuelven el texto del reporte línea por línea; se imprimen con `DBMS_OUTPUT.PUT_LINE` desde un bloque anónimo (con `SET LINESIZE 32767`). Como son funciones, `enph_consulta` también los puede ejecutar. En la aplicación, el módulo Reportes muestra la misma información con gráficos y la exporta a Excel.
 
 | Usuario Oracle | Rol Oracle | Privilegios |
 |---|---|---|

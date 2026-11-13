@@ -14,6 +14,7 @@ SET DEFINE ON
 SET VERIFY OFF
 SET FEEDBACK ON
 SET LINESIZE 120
+SET TAB OFF
 COLUMN caso FORMAT A10
 COLUMN identificador FORMAT A15
 DEFINE esquema = &1
@@ -38,6 +39,12 @@ CONNECT enph_consulta/enph_consulta
 ALTER SESSION SET CURRENT_SCHEMA = &esquema;
 SELECT COUNT(*) viviendas FROM vivienda;
 SELECT fn_codigo_encuesta(id) caso, fn_gasto_total_encuesta(id) gasto FROM encuesta WHERE ROWNUM<=3;
+PROMPT -- Permitido: los reportes son funciones
+SET SERVEROUTPUT ON SIZE 1000000 FORMAT WRAPPED
+SET LINESIZE 32767
+SET TRIMOUT ON
+EXEC DBMS_OUTPUT.PUT_LINE(fn_reporte_gasto_ubicacion)
+SET LINESIZE 120
 PROMPT -- Prohibido: modificar datos (ORA-01031)
 UPDATE region SET nombre = nombre WHERE ROWNUM = 1;
 PROMPT -- Prohibido: ver la tabla usuario, que guarda las claves (ORA-00942)

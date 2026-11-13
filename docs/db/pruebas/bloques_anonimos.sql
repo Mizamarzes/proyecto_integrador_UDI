@@ -1,6 +1,7 @@
 -- =====================================================================
 -- ENPH - Cuadernillo 2 Urbano
--- Bloques anónimos que invocan las funciones, procedimientos y disparadores
+-- Bloques anónimos que invocan las funciones, procedimientos, disparadores
+-- y reportes
 -- (para la sustentación y el video).
 --
 --   docker exec -it -e NLS_LANG=AMERICAN_AMERICA.AL32UTF8 oracle-xe-10g \
@@ -249,4 +250,99 @@ SELECT * FROM (
    FROM auditoria ORDER BY id DESC)
 WHERE ROWNUM<=10;
 
+PROMPT
+PROMPT =============================================================
+PROMPT  5. REPORTES (plsql/reportes.sql)
+PROMPT =============================================================
+-- Cada reporte es un texto de varias líneas: con LINESIZE corto SQL*Plus
+-- lo partiría cada LINESIZE caracteres.
+SET SERVEROUTPUT ON SIZE 1000000 FORMAT WRAPPED
+SET LINESIZE 32767
+SET TRIMOUT ON
+SET TAB OFF
+
+PROMPT
+PROMPT -- 5.1 Todas las encuestas
+DECLARE
+v_mensaje VARCHAR2(32767);
+BEGIN
+v_mensaje:=fn_reporte_encuestas(NULL);
+DBMS_OUTPUT.PUT_LINE(v_mensaje);
+END;
+/
+
+PROMPT
+PROMPT -- 5.2 Solo las encuestas pendientes de aprobacion
+DECLARE
+v_mensaje VARCHAR2(32767);
+BEGIN
+v_mensaje:=fn_reporte_encuestas('PENDIENTE_APROBACION');
+DBMS_OUTPUT.PUT_LINE(v_mensaje);
+END;
+/
+
+PROMPT
+PROMPT -- 5.3 Encuestadores: encuestas que empezaron en los ultimos 90 dias
+DECLARE
+v_desde DATE:=TRUNC(SYSDATE)-90;
+v_hasta DATE:=TRUNC(SYSDATE);
+v_mensaje VARCHAR2(32767);
+BEGIN
+v_mensaje:=fn_reporte_encuestadores(v_desde,v_hasta);
+DBMS_OUTPUT.PUT_LINE(v_mensaje);
+END;
+/
+
+PROMPT
+PROMPT -- 5.4 Gasto por region, departamento y municipio
+DECLARE
+v_mensaje VARCHAR2(32767);
+BEGIN
+v_mensaje:=fn_reporte_gasto_ubicacion;
+DBMS_OUTPUT.PUT_LINE(v_mensaje);
+END;
+/
+
+PROMPT
+PROMPT -- 5.5 Historial de revisiones de la ultima encuesta revisada
+DECLARE
+v_encuestaId encuesta.id%TYPE;
+v_mensaje VARCHAR2(32767);
+BEGIN
+SELECT MAX(encuesta_id) INTO v_encuestaId
+FROM auditoria_encuesta
+WHERE id=(SELECT MAX(id) FROM auditoria_encuesta);
+IF v_encuestaId IS NULL THEN
+   SELECT MIN(id) INTO v_encuestaId FROM encuesta;
+END IF;
+v_mensaje:=fn_reporte_revisiones(v_encuestaId);
+DBMS_OUTPUT.PUT_LINE(v_mensaje);
+END;
+/
+
+PROMPT
+PROMPT -- 5.6 Errores controlados de los reportes (-20008 y -20001)
+BEGIN
+DBMS_OUTPUT.PUT_LINE(fn_reporte_encuestas('CERRADA'));
+EXCEPTION
+WHEN OTHERS THEN
+   DBMS_OUTPUT.PUT_LINE('Error esperado: '||REGEXP_SUBSTR(SQLERRM,'[^'||CHR(10)||']+'));
+END;
+/
+BEGIN
+DBMS_OUTPUT.PUT_LINE(fn_reporte_encuestadores(SYSDATE,SYSDATE-30));
+EXCEPTION
+WHEN OTHERS THEN
+   DBMS_OUTPUT.PUT_LINE('Error esperado: '||REGEXP_SUBSTR(SQLERRM,'[^'||CHR(10)||']+'));
+END;
+/
+BEGIN
+DBMS_OUTPUT.PUT_LINE(fn_reporte_revisiones(-1));
+EXCEPTION
+WHEN OTHERS THEN
+   DBMS_OUTPUT.PUT_LINE('Error esperado: '||REGEXP_SUBSTR(SQLERRM,'[^'||CHR(10)||']+'));
+END;
+/
+
+SET LINESIZE 150
 SET FEEDBACK ON

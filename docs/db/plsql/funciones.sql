@@ -18,9 +18,9 @@
 --   -20005  La fecha del día no corresponde al periodo de la encuesta
 --   -20006  Gasto personal después del día 7
 --   -20007  Cambio de estado no permitido
+--   -20008  Parámetro no válido en un reporte (plsql/reportes.sql)
 --
 -- Los mensajes no llevan «ñ» ni mayúsculas con tilde: la base usa ZHS16GBK.
--- (fn_usuario_sesion está en migraciones/migracion_auditoria.sql.)
 -- =====================================================================
 
 SET DEFINE OFF
@@ -196,5 +196,23 @@ FROM comida_fuera_hogar cf JOIN registro_diario r ON r.id=cf.registro_diario_id
 WHERE r.encuesta_id=v_encuestaId;
 
 RETURN v_gastos+v_comidas;
+END;
+/
+
+-- ---------------------------------------------------------------------
+-- Auditoría: id del usuario de la aplicación que dejó pr_iniciar_sesion en
+-- CLIENT_IDENTIFIER (NULL si no hay o no es un número). Lo usa
+-- incluir_auditoria para llenar auditoria.usuario_id.
+-- ---------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION fn_usuario_sesion
+RETURN NUMBER
+IS
+v_usuarioId NUMBER(10);
+BEGIN
+v_usuarioId:=TO_NUMBER(SYS_CONTEXT('USERENV','CLIENT_IDENTIFIER'));
+RETURN v_usuarioId;
+EXCEPTION
+WHEN VALUE_ERROR OR INVALID_NUMBER THEN
+   RETURN NULL;
 END;
 /

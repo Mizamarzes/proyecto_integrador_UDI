@@ -157,3 +157,20 @@ r_revision.created_by:=v_usuarioId;
 pr_incluir_revision(r_revision);
 END;
 /
+
+-- ---------------------------------------------------------------------
+-- Auditoría: inserta un movimiento en la tabla auditoria. Lo llaman los
+-- disparadores trg_cud_<tabla> (plsql/disparadores.sql). El usuario es el
+-- de la sesión (fn_usuario_sesion) o, si no hay, el que trae el registro
+-- (created_by en las inserciones).
+-- ---------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE incluir_auditoria
+(r_auditoria auditoria%ROWTYPE)
+IS
+BEGIN
+INSERT INTO auditoria (id, tabla, operacion, registro_id, descripcion, usuario_id, usuario_bd, fecha)
+VALUES (seq_auditoria.NEXTVAL, r_auditoria.tabla, r_auditoria.operacion, r_auditoria.registro_id,
+        SUBSTR(r_auditoria.descripcion,1,500), NVL(fn_usuario_sesion,r_auditoria.usuario_id),
+        USER, SYSTIMESTAMP);
+END;
+/
