@@ -19,7 +19,8 @@ import java.util.List;
  *
  * Todas parten de las encuestas que cumplen los filtros (fecha de inicio,
  * ubicación de la vivienda y, para un encuestador, sus propias encuestas). El gasto de una encuesta es la suma de sus gastos
- * diarios (D) y de sus comidas fuera del hogar (D1).
+ * diarios (D) y de sus comidas fuera del hogar (D1), que calcula la función
+ * {@code fn_gasto_total_encuesta} (docs/db/plsql/funciones.sql).
  */
 public class ReporteDAO {
 
@@ -46,10 +47,7 @@ public class ReporteDAO {
                 + " SUM(x.visitas) visitas, SUM(x.gasto) gasto"
                 + " FROM (SELECT e.encuestador_id, e.estado,"
                 + "   (SELECT COUNT(*) FROM visita vi WHERE vi.hogar_id = e.hogar_id) visitas,"
-                + "   (SELECT NVL(SUM(g.valor), 0) FROM gasto_diario g"
-                + "      JOIN registro_diario r ON r.id = g.registro_diario_id WHERE r.encuesta_id = e.id)"
-                + "   + (SELECT NVL(SUM(cf.valor), 0) FROM comida_fuera_hogar cf"
-                + "      JOIN registro_diario r ON r.id = cf.registro_diario_id WHERE r.encuesta_id = e.id) gasto"
+                + "   fn_gasto_total_encuesta(e.id) gasto"
                 + ENCUESTAS + w.sql + ") x"
                 + " JOIN encuestador en ON en.id = x.encuestador_id"
                 + " JOIN usuario u ON u.id = en.usuario_id"

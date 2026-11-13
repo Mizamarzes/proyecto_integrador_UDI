@@ -1,3 +1,11 @@
 db.url=jdbc:oracle:thin:@localhost:1522:XE
 db.usuario=nombre_user
 db.contrasena=contrasena
+
+# Opcional. Si la aplicación se conecta con un usuario que no es el dueño de
+# las tablas (enph_app, creado por docs/db/seguridad/usuarios_roles.sql),
+# aquí va el dueño: la conexión hace ALTER SESSION SET CURRENT_SCHEMA.
+#   db.usuario=enph_app
+#   db.contrasena=enph_app
+#   db.esquema=ENPH
+db.esquema=

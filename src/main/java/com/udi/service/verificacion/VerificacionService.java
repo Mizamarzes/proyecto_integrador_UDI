@@ -127,22 +127,29 @@ public class VerificacionService {
     /**
      * Rechaza un caso pendiente de aprobación con una observación para el
      * encuestador. Vuelve a admitir cambios hasta que se cierre de nuevo.
+     * El procedimiento pr_rechazar_encuesta revisa el estado, lo cambia y
+     * registra la revisión en auditoria_encuesta.
      */
     public void rechazar(long encuestaId, String observacion) {
         Sesion.exigirModulo(RutasModulo.VERIFICACION);
+        Usuario usuario = Sesion.exigirSesion();
         String texto = Formato.texto(observacion);
         Validar.requerido(texto, "Observación para el encuestador");
         Validar.condicion(texto.length() <= 1000, "La observación no puede tener más de 1000 caracteres.");
         ConexionBD.enTransaccion(c -> {
-            Encuesta e = exigirPendiente(c, encuestaId, "rechazar");
-            encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.RECHAZADA, e.getFechaCierre(), e.getCerradaPor());
-            return registrar(c, encuestaId, AccionAuditoria.RECHAZADA, texto);
+            encuestaDao.rechazar(c, encuestaId, texto, usuario.getId());
+            return null;
         });
     }
 
-    /** Aprueba un caso pendiente cuya validación cruzada no tiene errores (los avisos no bloquean). */
+    /**
+     * Aprueba un caso pendiente cuya validación cruzada no tiene errores (los
+     * avisos no bloquean). La validación se hace aquí; el procedimiento
+     * pr_aprobar_encuesta cambia el estado y registra la revisión.
+     */
     public void aprobar(long encuestaId) {
         Sesion.exigirModulo(RutasModulo.VERIFICACION);
+        Usuario usuario = Sesion.exigirSesion();
         ConexionBD.enTransaccion(c -> {
             Encuesta e = exigirPendiente(c, encuestaId, "aprobar");
             long errores = validar(c, e, grupoDao.contar(c)).stream()
@@ -152,8 +159,8 @@ public class VerificacionService {
                         + ": la validación tiene " + plural(errores, "error", "errores")
                         + ". Recháselo con una observación.");
             }
-            encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.APROBADA, e.getFechaCierre(), e.getCerradaPor());
-            return registrar(c, encuestaId, AccionAuditoria.APROBADA, null);
+            encuestaDao.aprobar(c, encuestaId, usuario.getId());
+            return null;
         });
     }
 
@@ -538,13 +545,6 @@ public class VerificacionService {
                     + Formato.codigo("E", encuestaId) + " está «" + e.getEstado().getDescripcion() + "».");
         }
         return e;
-    }
-
-    private AuditoriaEncuesta registrar(Connection c, long encuestaId, AccionAuditoria accion, String observacion)
-            throws SQLException {
-        AuditoriaEncuesta registro = new AuditoriaEncuesta(encuestaId, accion, observacion);
-        registro.setCreatedBy(Sesion.idUsuario());
-        return auditoriaDao.insertar(c, registro);
     }
 
     /** Orden de la bandeja: pendientes de aprobación, rechazadas, aprobadas. */

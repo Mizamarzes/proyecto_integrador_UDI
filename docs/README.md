@@ -12,7 +12,10 @@ Software para el registro y procesamiento del **Cuadernillo 2 (gastos diarios de
 | `arquitectura/` | `arquitectura.md` | Arquitectura MVC en capas, estructura de carpetas del código, acceso a datos y reglas de negocio |
 | `db/` | `modelo_relacional.dbml` | Modelo relacional en formato dbdiagram.io. Es la fuente de verdad del esquema |
 | | `modelo_relacional.md` | Explicación del paso del modelo entidad-relación al relacional, y diccionario de datos |
-| | `esquema_oracle10g.sql` | Script para Oracle 10g: tablas, restricciones, secuencias, catálogos y datos de prueba |
+| | `esquema_oracle10g.sql` | Script para Oracle 10g: tablas, restricciones, secuencias, catálogos, datos de prueba, auditoría y PL/SQL |
+| `db/plsql/` | `funciones.sql`, `procedimientos.sql`, `disparadores.sql` | Funciones, procedimientos almacenados y disparadores de validación (los ejecuta `esquema_oracle10g.sql`) |
+| `db/seguridad/` | `usuarios_roles.sql` | Usuarios y roles de Oracle (`enph_app`, `enph_consulta`, `enph_auditor`). Se ejecuta como SYSTEM |
+| `db/pruebas/` | `bloques_anonimos.sql`, `pruebas_seguridad.sql` | Bloques que invocan funciones, procedimientos y disparadores, y prueba de los permisos de cada usuario de Oracle |
 | `db/diagramas/` | `modelo-entidad-relacion.png` | Diagrama entidad-relación |
 | | `relacional_Db_diagram.png` | Diagrama del modelo relacional (exportado de dbdiagram.io) |
 | `diseno/` | `prompt_diseno_ui.md` | Prompt para diseñar la interfaz: roles, módulos, pantallas y reglas que debe reflejar |

@@ -764,3 +764,13 @@ COMMIT;
 -- El usuario necesita: GRANT CREATE PROCEDURE, CREATE TRIGGER TO <usuario>;
 -- =====================================================================
 @@migraciones/migracion_auditoria.sql
+
+-- =====================================================================
+-- 8. FUNCIONES, PROCEDIMIENTOS Y DISPARADORES DE VALIDACIÓN
+-- Van después de los datos de prueba: los disparadores no revisan la semilla.
+-- Los usuarios y roles de Oracle se crean aparte, como SYSTEM:
+--   sqlplus system/oracle @seguridad/usuarios_roles.sql <ESQUEMA>
+-- =====================================================================
+@@plsql/funciones.sql
+@@plsql/procedimientos.sql
+@@plsql/disparadores.sql
