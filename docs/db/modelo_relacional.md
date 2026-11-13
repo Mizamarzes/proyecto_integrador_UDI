@@ -321,14 +321,14 @@ Están en `plsql/` y los ejecuta `esquema_oracle10g.sql` al final. Los usuarios 
 
 Los disparadores de validación no se disparan al eliminar: al borrar una encuesta en cascada consultarían `encuesta` mientras cambia (ORA-04091). Los errores propios van de ORA-20001 a ORA-20008 (lista al inicio de `plsql/funciones.sql`).
 
-Los reportes (`plsql/reportes.sql`) son funciones que recorren un cursor y devuelven el texto del reporte línea por línea; se imprimen con `DBMS_OUTPUT.PUT_LINE` desde un bloque anónimo (con `SET LINESIZE 32767`). Como son funciones, `enph_consulta` también los puede ejecutar. En la aplicación, el módulo Reportes muestra la misma información con gráficos y la exporta a Excel.
+Los reportes (`plsql/reportes.sql`) son funciones que recorren un cursor y devuelven el texto del reporte línea por línea; se imprimen con `DBMS_OUTPUT.PUT_LINE` desde un bloque anónimo (con `SET LINESIZE 32767`). Como son funciones, `<esquema>_CONSULTA` también los puede ejecutar. En la aplicación, el módulo Reportes muestra la misma información con gráficos y la exporta a Excel.
 
 | Usuario Oracle | Rol Oracle | Privilegios |
 |---|---|---|
 | dueño del esquema (`enph`) | — | Crea tablas y PL/SQL; solo para scripts |
-| `enph_app` | `rol_enph_aplicacion` | SELECT, INSERT, UPDATE y DELETE en las tablas; SELECT en las secuencias; EXECUTE en funciones y procedimientos |
-| `enph_consulta` | `rol_enph_lectura` | SELECT en todas las tablas menos `usuario`; EXECUTE en las funciones |
-| `enph_auditor` | `rol_enph_auditor` | SELECT en `auditoria` y `auditoria_encuesta` |
+| `<esquema>_APP` | `ROL_<esquema>_APLICACION` | SELECT, INSERT, UPDATE y DELETE en las tablas; SELECT en las secuencias; EXECUTE en funciones y procedimientos |
+| `<esquema>_CONSULTA` | `ROL_<esquema>_LECTURA` | SELECT en todas las tablas menos `usuario`; EXECUTE en las funciones |
+| `<esquema>_AUDITOR` | `ROL_<esquema>_AUDITOR` | SELECT en `auditoria` y `auditoria_encuesta` |
 
 ### Capítulo C
 

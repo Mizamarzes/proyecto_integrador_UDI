@@ -1,6 +1,7 @@
 -- =====================================================================
 -- ENPH - Cuadernillo 2 Urbano
--- Prueba de los usuarios y roles de Oracle (seguridad/usuarios_roles.sql).
+-- Prueba de los usuarios y roles de Oracle (seguridad/usuarios_roles.sql):
+-- <esquema>_APP, <esquema>_CONSULTA y <esquema>_AUDITOR.
 --
 --   docker exec -it oracle-xe-10g sqlplus /nolog @/tmp/db/pruebas/pruebas_seguridad.sql ENPH
 --
@@ -20,8 +21,8 @@ COLUMN identificador FORMAT A15
 DEFINE esquema = &1
 
 PROMPT
-PROMPT ==== ENPH_APP (la aplicación): lee, escribe y ejecuta, pero no crea objetos
-CONNECT enph_app/enph_app
+PROMPT ==== &esquema._APP (la aplicación): lee, escribe y ejecuta, pero no crea objetos
+CONNECT &esquema._app/&esquema._app
 ALTER SESSION SET CURRENT_SCHEMA = &esquema;
 SELECT COUNT(*) encuestas FROM encuesta;
 SELECT fn_codigo_encuesta(MIN(id)) caso, fn_gasto_total_encuesta(MIN(id)) gasto FROM encuesta;
@@ -34,8 +35,8 @@ PROMPT -- Prohibido: borrar una tabla del esquema (ORA-01031)
 DROP TABLE &esquema..region;
 
 PROMPT
-PROMPT ==== ENPH_CONSULTA (solo lectura)
-CONNECT enph_consulta/enph_consulta
+PROMPT ==== &esquema._CONSULTA (solo lectura)
+CONNECT &esquema._consulta/&esquema._consulta
 ALTER SESSION SET CURRENT_SCHEMA = &esquema;
 SELECT COUNT(*) viviendas FROM vivienda;
 SELECT fn_codigo_encuesta(id) caso, fn_gasto_total_encuesta(id) gasto FROM encuesta WHERE ROWNUM<=3;
@@ -53,8 +54,8 @@ PROMPT -- Prohibido: ejecutar procedimientos (PLS-00201 / ORA-06550)
 EXEC pr_reabrir_encuesta(1)
 
 PROMPT
-PROMPT ==== ENPH_AUDITOR (solo la trazabilidad)
-CONNECT enph_auditor/enph_auditor
+PROMPT ==== &esquema._AUDITOR (solo la trazabilidad)
+CONNECT &esquema._auditor/&esquema._auditor
 ALTER SESSION SET CURRENT_SCHEMA = &esquema;
 SELECT COUNT(*) movimientos FROM auditoria;
 SELECT COUNT(*) revisiones FROM auditoria_encuesta;
