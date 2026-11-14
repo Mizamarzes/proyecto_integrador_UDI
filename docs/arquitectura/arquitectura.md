@@ -229,7 +229,11 @@ proyecto_integrador_UDI/
 - **Los DAO reciben la conexión** en cada método. Así un servicio puede agrupar varias operaciones en una misma transacción, por ejemplo crear un usuario y su encuestador.
 - **Ids:** cada `insertar` toma el id de `seq_<tabla>.NEXTVAL`. Si la entidad ya trae id, lo respeta; los catálogos lo usan para guardar el código del cuadernillo.
 - **Conversión de tipos:** `LocalDate` ↔ `DATE`, `LocalDateTime` ↔ `TIMESTAMP`, `boolean` ↔ `CHAR(1)` `'S'`/`'N'` y enum ↔ `VARCHAR2` con el nombre del enum.
-- **Configuración:** `db.properties`, que no se versiona y se crea copiando `db.properties.example` (por defecto `jdbc:oracle:thin:@localhost:1522:XE`, usuario `enph`). Cada valor se puede sobrescribir al ejecutar con `-Ddb.url=...`, `-Ddb.usuario=...` o `-Ddb.contrasena=...`.
+- **Configuración:** `db.properties`, que no se versiona y se crea copiando `db.properties.example` (por defecto `jdbc:oracle:thin:@localhost:1522:XE`, usuario `enph`). Cada valor se puede sobrescribir al ejecutar con `-Ddb.url=...`, `-Ddb.usuario=...`, `-Ddb.contrasena=...` o `-Ddb.esquema=...`.
+- **Usuario de Oracle de la aplicación:** la aplicación puede conectarse con `enph_app` (creado por `docs/db/seguridad/usuarios_roles.sql`), que solo lee, escribe y ejecuta PL/SQL, sin crear ni borrar objetos. `db.esquema` indica el dueño de las tablas y `ConexionBD` hace `ALTER SESSION SET CURRENT_SCHEMA` en cada conexión nueva, así que los DAO no escriben el esquema.
+- **Procedimientos almacenados:** los cambios de estado de la encuesta se hacen con procedimientos (`pr_cerrar_encuesta`, `pr_reabrir_encuesta`, `pr_rechazar_encuesta`, `pr_aprobar_encuesta`). Los llama `EncuestaDAO` con `BaseDAO.llamar(c, "pr_...", parametros...)` (un `CallableStatement`). Los procedimientos no hacen COMMIT: quedan dentro de `enTransaccion`. La exportación de todas las encuestas aprobadas usa `pr_exportar_aprobadas`, que devuelve un `SYS_REFCURSOR`; lo llama `dao/verificacion/ExportacionDAO` (no extiende `BaseDAO`) registrando el parámetro de salida con `OracleTypes.CURSOR`, porque ojdbc6 (JDBC 4.0) no conoce `Types.REF_CURSOR`.
+- **Errores de la base:** lo que un procedimiento o disparador rechaza con `RAISE_APPLICATION_ERROR` (ORA-20000 a ORA-20999) es una regla de negocio. `ConexionBD` lo convierte en `ReglaNegocioException` con la primera línea del mensaje, y el usuario lo ve como cualquier otra validación. Los demás errores llegan como `DatosException`.
+- **Usuario de la sesión en Oracle:** al iniciar sesión `AuthService` llama a `ConexionBD.identificarUsuario(id)`, que ejecuta `pr_iniciar_sesion` (`DBMS_SESSION.SET_IDENTIFIER`); al cerrarla, `pr_cerrar_sesion`. Con eso `fn_usuario_sesion` y los disparadores de auditoría registran quién modificó o eliminó cada fila. Si la conexión se vuelve a abrir, el identificador se aplica de nuevo.
 
 ## Vistas por módulo
 
@@ -281,7 +285,7 @@ Una vista se nombra con su ruta dentro de `ui`, sin extensión: `"modulos/encues
 
 ## Reglas de negocio que implementan los servicios
 
-El esquema de base de datos no usa triggers, así que estas reglas son responsabilidad de la capa `service`:
+Estas reglas son responsabilidad de la capa `service`, que muestra un mensaje claro antes de llegar a la base. Algunas se repiten en la base como segunda barrera (ver `docs/db/plsql/`): los disparadores `trg_val_<tabla>` bloquean cambios en una encuesta cerrada, revisan la fecha de cada día y los gastos personales después del día 7, y solo permiten los cambios de estado del flujo del caso. Los cambios de estado los hacen los procedimientos `pr_*_encuesta`.
 
 | Regla | Servicio |
 |---|---|

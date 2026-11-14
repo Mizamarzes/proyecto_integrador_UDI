@@ -9,9 +9,10 @@
 
 - Crear seccion para exportar datos o syncronizar con Dane
 - Crear modulo de roles y permisos modulos X
-- Crear modulo de reportes 
-- Crea modulo de critica y consolidacion para cierre de casos
+- Crear modulo de reportes X
+- Crea modulo de critica y consolidacion para cierre de casos X
 - Crear modulo de catalogos 
+- Crear roles y permisos para acceso a la db SGDMB 
 
 
 mvn clean javafx:run

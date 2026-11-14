@@ -759,8 +759,20 @@ INSERT INTO comida_fuera_hogar (id, registro_diario_id, encuestador_id, lugar_co
 COMMIT;
 
 -- =====================================================================
--- 7. AUDITORÍA: tabla, secuencia, procedimiento y triggers trg_cud_<tabla>.
--- Va después de los datos de prueba para que la semilla no quede auditada.
+-- 7. AUDITORÍA: tabla auditoria y seq_auditoria. Su función, procedimiento
+-- y disparadores trg_cud_<tabla> se crean en la sección 8 (plsql/), después
+-- de los datos de prueba para que la semilla no quede auditada.
 -- El usuario necesita: GRANT CREATE PROCEDURE, CREATE TRIGGER TO <usuario>;
 -- =====================================================================
 @@migraciones/migracion_auditoria.sql
+
+-- =====================================================================
+-- 8. FUNCIONES, PROCEDIMIENTOS, DISPARADORES (VALIDACIÓN Y AUDITORÍA) Y REPORTES
+-- Van después de los datos de prueba: los disparadores no revisan la semilla.
+-- Los usuarios y roles de Oracle se crean aparte, como SYSTEM:
+--   sqlplus system/oracle @seguridad/usuarios_roles.sql <ESQUEMA>
+-- =====================================================================
+@@plsql/funciones.sql
+@@plsql/procedimientos.sql
+@@plsql/disparadores.sql
+@@plsql/reportes.sql

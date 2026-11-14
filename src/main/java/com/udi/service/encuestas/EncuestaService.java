@@ -210,30 +210,28 @@ public class EncuestaService {
     /**
      * Marca el caso como completo (RF-06): pasa a «Pendiente de aprobación»,
      * no admite cambios y entra a la bandeja de verificación (también si
-     * estaba rechazada).
+     * estaba rechazada). Lo hace el procedimiento pr_cerrar_encuesta, que
+     * rechaza la operación si la encuesta no existe o ya está cerrada.
      */
     public void cerrar(long encuestaId) {
         Sesion.exigirModulo(RutasModulo.ENCUESTAS);
         Usuario usuario = Sesion.exigirSesion();
         ConexionBD.enTransaccion(c -> {
-            ReglasEncuesta.exigirEditable(c, encuestaId);
-            return encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.PENDIENTE_APROBACION,
-                    LocalDateTime.now(), usuario.getId());
+            encuestaDao.cerrar(c, encuestaId, usuario.getId(), LocalDateTime.now());
+            return null;
         });
     }
 
     /**
      * Solo un administrador puede reabrir un caso pendiente de aprobación o
-     * aprobado (RF-06); vuelve a «En curso».
+     * aprobado (RF-06); vuelve a «En curso». El procedimiento
+     * pr_reabrir_encuesta revisa que el caso esté cerrado.
      */
     public void reabrir(long encuestaId) {
         Sesion.exigirAdmin();
         ConexionBD.enTransaccion(c -> {
-            Encuesta encuesta = Validar.encontrado(encuestaDao.buscarPorId(c, encuestaId),
-                    "No existe la encuesta " + encuestaId + ".");
-            Validar.condicion(encuesta.estaCerrada(), "La encuesta " + encuestaId + " no está cerrada.");
-            return encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.EN_CURSO,
-                    encuesta.getFechaCierre(), encuesta.getCerradaPor());
+            encuestaDao.reabrir(c, encuestaId);
+            return null;
         });
     }
 

@@ -271,7 +271,7 @@ Restricción única: `(hogar_id, numero_visita)`.
 
 ### Auditoría general
 
-**`auditoria`**: una fila por cada inserción, modificación o eliminación en cualquier tabla del esquema. No la escribe la aplicación: la llenan los triggers `trg_cud_<tabla>` (uno por tabla, `AFTER INSERT OR UPDATE OR DELETE ... FOR EACH ROW`) a través del procedimiento `incluir_auditoria`. Se crea con `migraciones/migracion_auditoria.sql`.
+**`auditoria`**: una fila por cada inserción, modificación o eliminación en cualquier tabla del esquema. No la escribe la aplicación: la llenan los triggers `trg_cud_<tabla>` (uno por tabla, `AFTER INSERT OR UPDATE OR DELETE ... FOR EACH ROW`) a través del procedimiento `incluir_auditoria`. La tabla y `seq_auditoria` se crean con `migraciones/migracion_auditoria.sql`; la función, el procedimiento y los triggers están en `plsql/` (`funciones.sql`, `procedimientos.sql`, `disparadores.sql`).
 
 | Columna | Tipo | Restricciones | Descripción |
 |---|---|---|---|
@@ -285,6 +285,50 @@ Restricción única: `(hogar_id, numero_visita)`.
 | fecha | TIMESTAMP | NN | Momento del cambio |
 
 `usuario_id` no tiene llave foránea para que el rastro quede aunque se elimine el usuario. Los triggers solo usan `:NEW`/`:OLD` (no consultan otras tablas) para evitar ORA-04091 en los `ON DELETE CASCADE`, y nunca guardan la clave del usuario.
+
+### Funciones, procedimientos, disparadores de validación y reportes
+
+Están en `plsql/` y los ejecuta `esquema_oracle10g.sql` al final. Los usuarios y roles de Oracle están en `seguridad/usuarios_roles.sql` (se ejecuta como SYSTEM). Hay bloques que los invocan en `pruebas/`.
+
+| Tipo | Nombre | Qué hace | Dónde se usa |
+|---|---|---|---|
+| Función | `fn_usuario_sesion` | Id del usuario de la aplicación (CLIENT_IDENTIFIER) | `incluir_auditoria` |
+| Función | `fn_codigo_encuesta` | Código del caso, `E-000005` | Mensajes de los procedimientos |
+| Función | `fn_estado_encuesta` | Estado de la encuesta; ORA-20001 si no existe | Procedimientos |
+| Función | `fn_descripcion_estado` | Nombre del estado para los mensajes | Procedimientos, `trg_val_encuesta` |
+| Función | `fn_encuesta_editable` | `'S'` si está en curso o rechazada, `'N'` si está cerrada | Procedimientos, disparadores |
+| Función | `fn_encuesta_hogar` | Encuesta de un hogar | `trg_val_visita` |
+| Función | `fn_encuesta_registro` / `fn_dia_registro` | Encuesta y número de día de un `registro_diario` | `trg_val_gasto_diario`, `trg_val_comida_fuera_hogar` |
+| Función | `fn_fecha_dia` | `fecha_desde + numero_dia - 1` | `trg_val_registro_diario` |
+| Función | `fn_gasto_total_encuesta` | Suma de D y D1 de la encuesta | `ReporteDAO.porEncuestador` |
+| Procedimiento | `incluir_auditoria` | Inserta en `auditoria` | Disparadores `trg_cud_<tabla>` |
+| Procedimiento | `pr_iniciar_sesion` / `pr_cerrar_sesion` | `DBMS_SESSION.SET_IDENTIFIER` / `CLEAR_IDENTIFIER` | `ConexionBD.identificarUsuario` (login y logout) |
+| Procedimiento | `pr_incluir_revision` | Inserta en `auditoria_encuesta` | `pr_rechazar_encuesta`, `pr_aprobar_encuesta` |
+| Procedimiento | `pr_cerrar_encuesta` | EN_CURSO o RECHAZADA → PENDIENTE_APROBACION | `EncuestaService.cerrar` |
+| Procedimiento | `pr_reabrir_encuesta` | PENDIENTE_APROBACION o APROBADA → EN_CURSO | `EncuestaService.reabrir` |
+| Procedimiento | `pr_rechazar_encuesta` | PENDIENTE_APROBACION → RECHAZADA + revisión con observación | `VerificacionService.rechazar` |
+| Procedimiento | `pr_aprobar_encuesta` | PENDIENTE_APROBACION → APROBADA + revisión | `VerificacionService.aprobar` |
+| Procedimiento | `pr_exportar_aprobadas(region, departamento, municipio, OUT cursor)` | Cursor (`SYS_REFCURSOR`) con una fila por encuesta APROBADA: ubicación, encuestador, quién y cuándo la aprobó, visitas, días y gasto total; filtros opcionales (`NULL` = todas), -20008 si uno no existe. Solo lee | `ExportacionDAO.listarAprobadas` → `VerificacionService.exportarAprobadas` |
+| Disparador | `trg_val_encuesta` | Solo los cambios de estado del flujo; una encuesta cerrada no se modifica | `BEFORE UPDATE` |
+| Disparador | `trg_val_visita`, `trg_val_caracteristica_gasto` | Bloquean cambios si la encuesta está cerrada | `BEFORE INSERT OR UPDATE` |
+| Disparador | `trg_val_registro_diario` | Encuesta abierta y fecha = `fn_fecha_dia` | `BEFORE INSERT OR UPDATE` |
+| Disparador | `trg_val_gasto_diario`, `trg_val_comida_fuera_hogar` | Encuesta abierta y gastos personales solo días 1 a 7 | `BEFORE INSERT OR UPDATE` |
+| Reporte | `fn_reporte_encuestas(estado)` | Encuestas con encuestador, municipio, días registrados y gasto total; `NULL` = todas | Bloques anónimos (`pruebas/`) |
+| Reporte | `fn_reporte_encuestadores(desde, hasta)` | Encuestas de cada encuestador por estado y gasto registrado, por fecha de inicio | Bloques anónimos |
+| Reporte | `fn_reporte_gasto_ubicacion` | Hogares, gasto total y promedio por hogar por región, departamento y municipio | Bloques anónimos |
+| Reporte | `fn_reporte_revisiones(encuesta)` | Historial de aprobaciones y rechazos con crítico y observación | Bloques anónimos |
+| Función | `fn_columna` | Columna de ancho fijo para los reportes (RPAD cuenta las tildes doble en ZHS16GBK) | Reportes |
+
+Los disparadores de validación no se disparan al eliminar: al borrar una encuesta en cascada consultarían `encuesta` mientras cambia (ORA-04091). Los errores propios van de ORA-20001 a ORA-20008 (lista al inicio de `plsql/funciones.sql`).
+
+Los reportes (`plsql/reportes.sql`) son funciones que recorren un cursor y devuelven el texto del reporte línea por línea; se imprimen con `DBMS_OUTPUT.PUT_LINE` desde un bloque anónimo (con `SET LINESIZE 32767`). Como son funciones, `<esquema>_CONSULTA` también los puede ejecutar. En la aplicación, el módulo Reportes muestra la misma información con gráficos y la exporta a Excel.
+
+| Usuario Oracle | Rol Oracle | Privilegios |
+|---|---|---|
+| dueño del esquema (`enph`) | — | Crea tablas y PL/SQL; solo para scripts |
+| `<esquema>_APP` | `ROL_<esquema>_APLICACION` | SELECT, INSERT, UPDATE y DELETE en las tablas; SELECT en las secuencias; EXECUTE en funciones y procedimientos |
+| `<esquema>_CONSULTA` | `ROL_<esquema>_LECTURA` | SELECT en todas las tablas menos `usuario`; EXECUTE en las funciones |
+| `<esquema>_AUDITOR` | `ROL_<esquema>_AUDITOR` | SELECT en `auditoria` y `auditoria_encuesta` |
 
 ### Capítulo C
 

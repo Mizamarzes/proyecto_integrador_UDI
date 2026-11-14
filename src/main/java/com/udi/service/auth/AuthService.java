@@ -26,7 +26,9 @@ public class AuthService {
 
     /**
      * Valida el correo y la contraseña, revisa que el usuario esté activo,
-     * registra el último acceso y deja los datos en {@link Sesion}.
+     * registra el último acceso y deja los datos en {@link Sesion}. También
+     * identifica al usuario en la sesión de Oracle (pr_iniciar_sesion) para
+     * que la auditoría registre quién hace cada cambio.
      */
     public Usuario iniciarSesion(String email, String contrasena) {
         Validar.requerido(email, "Correo");
@@ -45,12 +47,14 @@ public class AuthService {
             usuarioDao.actualizarUltimoAcceso(c, usuario.getId());
             return new DatosSesion(usuario, rol, modulos);
         });
+        ConexionBD.identificarUsuario(datos.usuario.getId());
         Sesion.iniciar(datos.usuario, datos.rol, datos.modulos);
         return datos.usuario;
     }
 
     public void cerrarSesion() {
         Sesion.cerrar();
+        ConexionBD.identificarUsuario(null);
     }
 
     private static final class DatosSesion {

@@ -5,6 +5,7 @@ import com.udi.model.EntidadAuditable;
 import com.udi.model.Pagina;
 
 import java.math.BigDecimal;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -16,6 +17,7 @@ import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -150,6 +152,22 @@ public abstract class BaseDAO<T extends Entidad> {
         try (PreparedStatement ps = c.prepareStatement(sql)) {
             asignarParametros(ps, parametros);
             return ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Llama a un procedimiento almacenado ({@code docs/db/plsql/procedimientos.sql})
+     * con parámetros de entrada, convertidos como en {@link #asignarParametros}.
+     * El procedimiento no hace COMMIT: queda dentro de la transacción del
+     * servicio. Si el procedimiento rechaza la operación con
+     * RAISE_APPLICATION_ERROR, {@code ConexionBD} la convierte en
+     * {@code ReglaNegocioException}.
+     */
+    protected static void llamar(Connection c, String procedimiento, Object... parametros) throws SQLException {
+        String marcas = String.join(", ", Collections.nCopies(parametros.length, "?"));
+        try (CallableStatement cs = c.prepareCall("{call " + procedimiento + "(" + marcas + ")}")) {
+            asignarParametros(cs, parametros);
+            cs.execute();
         }
     }
 

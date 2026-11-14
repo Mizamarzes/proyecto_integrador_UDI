@@ -12,6 +12,7 @@ import com.udi.dao.encuestas.VisitaDAO;
 import com.udi.dao.usuarios.EncuestadorDAO;
 import com.udi.dao.usuarios.UsuarioDAO;
 import com.udi.dao.verificacion.AuditoriaEncuestaDAO;
+import com.udi.dao.verificacion.ExportacionDAO;
 import com.udi.dao.viviendas.HogarDAO;
 import com.udi.dao.viviendas.ViviendaDAO;
 import com.udi.exception.DatosException;
@@ -22,6 +23,7 @@ import com.udi.model.CaracteristicaGasto;
 import com.udi.model.CasoVerificacion;
 import com.udi.model.ComidaFueraHogar;
 import com.udi.model.Encuesta;
+import com.udi.model.EncuestaAprobada;
 import com.udi.model.EncuestaResumen;
 import com.udi.model.GastoDiario;
 import com.udi.model.GrupoAlimento;
@@ -51,6 +53,7 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -92,6 +95,7 @@ public class VerificacionService {
     private final EncuestadorDAO encuestadorDao = new EncuestadorDAO();
     private final UsuarioDAO usuarioDao = new UsuarioDAO();
     private final AuditoriaEncuestaDAO auditoriaDao = new AuditoriaEncuestaDAO();
+    private final ExportacionDAO exportacionDao = new ExportacionDAO();
 
     /**
      * Casos de la bandeja (pendientes de aprobación, rechazados y aprobados)
@@ -127,22 +131,29 @@ public class VerificacionService {
     /**
      * Rechaza un caso pendiente de aprobación con una observación para el
      * encuestador. Vuelve a admitir cambios hasta que se cierre de nuevo.
+     * El procedimiento pr_rechazar_encuesta revisa el estado, lo cambia y
+     * registra la revisión en auditoria_encuesta.
      */
     public void rechazar(long encuestaId, String observacion) {
         Sesion.exigirModulo(RutasModulo.VERIFICACION);
+        Usuario usuario = Sesion.exigirSesion();
         String texto = Formato.texto(observacion);
         Validar.requerido(texto, "Observación para el encuestador");
         Validar.condicion(texto.length() <= 1000, "La observación no puede tener más de 1000 caracteres.");
         ConexionBD.enTransaccion(c -> {
-            Encuesta e = exigirPendiente(c, encuestaId, "rechazar");
-            encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.RECHAZADA, e.getFechaCierre(), e.getCerradaPor());
-            return registrar(c, encuestaId, AccionAuditoria.RECHAZADA, texto);
+            encuestaDao.rechazar(c, encuestaId, texto, usuario.getId());
+            return null;
         });
     }
 
-    /** Aprueba un caso pendiente cuya validación cruzada no tiene errores (los avisos no bloquean). */
+    /**
+     * Aprueba un caso pendiente cuya validación cruzada no tiene errores (los
+     * avisos no bloquean). La validación se hace aquí; el procedimiento
+     * pr_aprobar_encuesta cambia el estado y registra la revisión.
+     */
     public void aprobar(long encuestaId) {
         Sesion.exigirModulo(RutasModulo.VERIFICACION);
+        Usuario usuario = Sesion.exigirSesion();
         ConexionBD.enTransaccion(c -> {
             Encuesta e = exigirPendiente(c, encuestaId, "aprobar");
             long errores = validar(c, e, grupoDao.contar(c)).stream()
@@ -152,8 +163,8 @@ public class VerificacionService {
                         + ": la validación tiene " + plural(errores, "error", "errores")
                         + ". Recháselo con una observación.");
             }
-            encuestaDao.actualizarEstado(c, encuestaId, EstadoEncuesta.APROBADA, e.getFechaCierre(), e.getCerradaPor());
-            return registrar(c, encuestaId, AccionAuditoria.APROBADA, null);
+            encuestaDao.aprobar(c, encuestaId, usuario.getId());
+            return null;
         });
     }
 
@@ -170,16 +181,43 @@ public class VerificacionService {
                     "Solo se exportan casos aprobados. Apruebe primero el caso " + Formato.codigo("E", encuestaId) + ".");
             return libroExcel(c, e);
         });
-        try {
-            libro.guardar(archivo);
-        } catch (IOException ex) {
-            throw new ReglaNegocioException("No se pudo escribir el archivo: " + ex.getMessage());
-        }
+        guardar(libro, archivo);
+    }
+
+    /**
+     * Escribe en un solo libro todas las encuestas aprobadas de la ubicación
+     * indicada (cada filtro es opcional: null = todas). La lista sale del
+     * procedimiento pr_exportar_aprobadas, que solo devuelve encuestas en
+     * estado APROBADA; las hojas B, C, D y D1 juntan los renglones de todas.
+     * No cambia el estado de ninguna encuesta.
+     *
+     * @return cuántas encuestas se exportaron
+     */
+    public int exportarAprobadas(Long regionId, Long departamentoId, Long municipioId, Path archivo) {
+        Sesion.exigirModulo(RutasModulo.VERIFICACION);
+        int[] total = new int[1];
+        LibroExcel libro = ConexionBD.consultar(c -> {
+            List<EncuestaAprobada> aprobadas = exportacionDao.listarAprobadas(c, regionId, departamentoId, municipioId);
+            if (aprobadas.isEmpty()) {
+                boolean filtrado = regionId != null || departamentoId != null || municipioId != null;
+                throw new ReglaNegocioException("No hay encuestas aprobadas"
+                        + (filtrado ? " en la ubicación elegida" : "") + " para exportar.");
+            }
+            total[0] = aprobadas.size();
+            return libroAprobadas(c, aprobadas);
+        });
+        guardar(libro, archivo);
+        return total[0];
     }
 
     /** Nombre sugerido del archivo de exportación. */
     public static String nombreArchivo(long encuestaId) {
         return "ENPH_C2_" + Formato.codigo("E", encuestaId) + ".xlsx";
+    }
+
+    /** Nombre sugerido del archivo con todas las encuestas aprobadas. */
+    public static String nombreArchivoAprobadas() {
+        return "ENPH_C2_aprobadas_" + LocalDate.now() + ".xlsx";
     }
 
     // ------------------------------------------------------------------
@@ -438,77 +476,172 @@ public class VerificacionService {
                 .fila("Fecha de aprobación", aprobacion == null ? null : Formato.fechaHora(aprobacion.getCreatedAt()))
                 .fila("Exportado", Formato.fechaHora(LocalDateTime.now()));
 
-        LibroExcel.Hoja b = libro.hoja("B Visitas").anchos(8, 12, 12, 12, 26, 30, 18)
-                .encabezado("Visita", "Fecha", "Hora inicio", "Hora fin", "Resultado", "Partes pendientes", "Próxima visita");
-        for (Visita vi : visitaDao.listarPorHogar(c, e.getHogarId())) {
-            b.fila(vi.getNumeroVisita(), Formato.fecha(vi.getFecha()), Formato.hora(vi.getHoraInicio()),
-                    Formato.hora(vi.getHoraFin()), vi.getResultadoVisita() == null ? null : vi.getResultadoVisita().toString(),
-                    vi.getPartesPendientes(),
-                    vi.getFechaProxima() == null ? null : (Formato.fecha(vi.getFechaProxima()) + " " + Formato.hora(vi.getHoraProxima())).trim());
-        }
+        new Capitulos(c, libro, false).escribir(c, e.getId(), e.getHogarId());
+        return libro;
+    }
 
-        Map<Long, String> grupos = new HashMap<>();
-        for (GrupoAlimento g : grupoDao.listar(c)) {
-            grupos.put(g.getId(), g.getNombre());
+    /**
+     * Libro consolidado de las encuestas aprobadas: la hoja «Encuestas
+     * aprobadas» sale del cursor de pr_exportar_aprobadas y las hojas B, C, D
+     * y D1 juntan los renglones de todas, con el código de la encuesta en la
+     * primera columna.
+     */
+    private LibroExcel libroAprobadas(Connection c, List<EncuestaAprobada> aprobadas) throws SQLException {
+        LibroExcel libro = new LibroExcel();
+        LibroExcel.Hoja resumen = libro.hoja("Encuestas aprobadas")
+                .anchos(11, 10, 10, 10, 16, 20, 22, 20, 36, 26, 26, 12, 12, 17, 26, 17, 8, 9, 16)
+                .encabezado("Encuesta", "Hogar", "A.13 Hogar número", "A.14 Personas", "Región", "A.2 Departamento",
+                        "A.3 Municipio", "A.15 Barrio", "A.16 Dirección", "Encuestador", "Informante", "A.21 Desde",
+                        "A.22 Hasta", "Cierre del caso", "Aprobada por", "Fecha de aprobación", "Visitas",
+                        "Días registrados", "Gasto total");
+        long visitas = 0;
+        long dias = 0;
+        BigDecimal gasto = BigDecimal.ZERO;
+        for (EncuestaAprobada a : aprobadas) {
+            resumen.fila(a.getCodigo(), Formato.codigo("H", a.getHogarId()), a.getHogarNumero(), a.getTotalPersonas(),
+                    a.getRegion(), a.getDepartamento(), a.getMunicipio(), a.getBarrio(), a.getDireccion(),
+                    a.getEncuestador(), a.getInformante(), Formato.fecha(a.getFechaDesde()),
+                    Formato.fecha(a.getFechaHasta()), Formato.fechaHora(a.getFechaCierre()), a.getAprobadaPor(),
+                    a.getFechaAprobacion() == null ? null : Formato.fechaHora(a.getFechaAprobacion()),
+                    a.getVisitas(), a.getDias(), LibroExcel.pesos(a.getGastoTotal()));
+            visitas += a.getVisitas();
+            dias += a.getDias();
+            gasto = gasto.add(a.getGastoTotal());
         }
-        LibroExcel.Hoja cap = libro.hoja("C Características").anchos(8, 60, 12, 24, 18, 14)
-                .encabezado("Grupo", "Nombre", "C.2 Código", "C.2 Frecuencia", "C.3.1 Última compra", "C.3.2 Comprará");
-        for (CaracteristicaGasto g : caracteristicaDao.listarPorEncuesta(c, e.getId())) {
-            cap.fila(g.getGrupoAlimentoId(), grupos.get(g.getGrupoAlimentoId()),
-                    g.getFrecuenciaCompra() == null ? null : g.getFrecuenciaCompra().getCodigo(),
-                    g.getFrecuenciaCompra() == null ? null : g.getFrecuenciaCompra().getDescripcion(),
-                    g.getValorUltimaCompra() == null ? null : LibroExcel.pesos(g.getValorUltimaCompra()),
-                    g.getCompraraEnPeriodo() == null ? null : (g.getCompraraEnPeriodo() ? "Sí" : "No"));
-        }
+        Object[] total = new Object[19];
+        total[0] = "Total";
+        total[1] = plural(aprobadas.size(), "encuesta", "encuestas");
+        total[16] = visitas;
+        total[17] = dias;
+        total[18] = LibroExcel.pesos(gasto);
+        resumen.vacia().filaNegrita(total)
+                .fila("Exportado", Formato.fechaHora(LocalDateTime.now()));
 
-        Map<Long, RegistroDiario> registros = new HashMap<>();
-        for (RegistroDiario r : registroDao.listarPorEncuesta(c, e.getId())) {
-            registros.put(r.getId(), r);
-        }
-        Map<Long, String> lugares = new HashMap<>();
-        for (LugarCompra l : lugarDao.listar(c)) {
-            lugares.put(l.getId(), l.getNombre());
-        }
-
-        LibroExcel.Hoja d = libro.hoja("D Gastos diarios").anchos(6, 12, 7, 32, 10, 20, 12, 8, 34, 8, 30, 14, 10, 10, 24)
-                .encabezado("Día", "Fecha", "Orden", "Artículo", "Cantidad", "Unidad", "Equivalencia", "Forma",
-                        "Forma de adquisición", "Lugar", "Lugar de compra", "Valor", "Frecuencia", "Tipo de gasto",
-                        "Beneficiario de la mesada");
-        for (GastoDiario g : gastoDao.listarPorEncuesta(c, e.getId())) {
-            RegistroDiario r = registros.get(g.getRegistroDiarioId());
-            BigDecimal equivalencia = g.getEquivalenciaGr() != null ? g.getEquivalenciaGr() : g.getEquivalenciaCm3();
-            d.fila(r == null ? null : r.getNumeroDia(), r == null ? null : Formato.fecha(r.getFecha()), g.getNumeroOrden(),
-                    g.getNombreArticulo(), g.getCantidad(),
-                    g.getUnidadMedidaOtra() != null ? g.getUnidadMedidaOtra()
-                            : g.getUnidadMedida() == null ? null : g.getUnidadMedida().getDescripcion(),
-                    equivalencia == null ? null : equivalencia.toPlainString() + (g.getEquivalenciaGr() != null ? " g" : " cm³"),
-                    g.getFormaAdquisicion() == null ? null : g.getFormaAdquisicion().getCodigo(),
-                    forma(g.getFormaAdquisicion(), g.getFormaAdquisicionOtra()),
-                    g.getLugarCompraId(), g.getLugarCompraId() == null ? null : lugares.get(g.getLugarCompraId()),
-                    LibroExcel.pesos(g.getValor()),
-                    g.getFrecuenciaCompra() == null ? null : g.getFrecuenciaCompra().getCodigo(),
-                    g.getTipoGasto() == null ? null : g.getTipoGasto().getCodigo(),
-                    g.getBeneficiarioMesada());
-        }
-
-        LibroExcel.Hoja d1 = libro.hoja("D1 Comidas fuera del hogar").anchos(6, 12, 7, 32, 26, 10, 8, 34, 8, 30, 14, 10, 10, 12)
-                .encabezado("Día", "Fecha", "Orden", "Descripción", "Tipo de comida", "Cantidad", "Forma",
-                        "Forma de adquisición", "Lugar", "Lugar de compra", "Valor", "Frecuencia", "Tipo de gasto",
-                        "A domicilio");
-        for (ComidaFueraHogar f : comidaDao.listarPorEncuesta(c, e.getId())) {
-            RegistroDiario r = registros.get(f.getRegistroDiarioId());
-            d1.fila(r == null ? null : r.getNumeroDia(), r == null ? null : Formato.fecha(r.getFecha()), f.getNumeroOrden(),
-                    f.getDescripcion(), f.getTipoComida() == null ? null : f.getTipoComida().getDescripcion(),
-                    f.getCantidad(),
-                    f.getFormaAdquisicion() == null ? null : f.getFormaAdquisicion().getCodigo(),
-                    forma(f.getFormaAdquisicion(), f.getFormaAdquisicionOtra()),
-                    f.getLugarCompraId(), f.getLugarCompraId() == null ? null : lugares.get(f.getLugarCompraId()),
-                    LibroExcel.pesos(f.getValor()),
-                    f.getFrecuenciaCompra() == null ? null : f.getFrecuenciaCompra().getCodigo(),
-                    f.getTipoGasto() == null ? null : f.getTipoGasto().getCodigo(),
-                    f.isADomicilio() ? "Sí" : "No");
+        Capitulos capitulos = new Capitulos(c, libro, true);
+        for (EncuestaAprobada a : aprobadas) {
+            capitulos.escribir(c, a.getEncuestaId(), a.getHogarId());
         }
         return libro;
+    }
+
+    private static void guardar(LibroExcel libro, Path archivo) {
+        try {
+            libro.guardar(archivo);
+        } catch (IOException ex) {
+            throw new ReglaNegocioException("No se pudo escribir el archivo: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * Hojas B, C, D y D1 de una o varias encuestas. En el libro consolidado
+     * ({@code consolidado}) cada fila empieza con el código de la encuesta.
+     */
+    private final class Capitulos {
+
+        private final boolean consolidado;
+        private final Map<Long, String> grupos = new HashMap<>();
+        private final Map<Long, String> lugares = new HashMap<>();
+        private final LibroExcel.Hoja b;
+        private final LibroExcel.Hoja cap;
+        private final LibroExcel.Hoja d;
+        private final LibroExcel.Hoja d1;
+
+        private Capitulos(Connection c, LibroExcel libro, boolean consolidado) throws SQLException {
+            this.consolidado = consolidado;
+            for (GrupoAlimento g : grupoDao.listar(c)) {
+                grupos.put(g.getId(), g.getNombre());
+            }
+            for (LugarCompra l : lugarDao.listar(c)) {
+                lugares.put(l.getId(), l.getNombre());
+            }
+            b = hoja(libro, "B Visitas", new double[]{8, 12, 12, 12, 26, 30, 18},
+                    "Visita", "Fecha", "Hora inicio", "Hora fin", "Resultado", "Partes pendientes", "Próxima visita");
+            cap = hoja(libro, "C Características", new double[]{8, 60, 12, 24, 18, 14},
+                    "Grupo", "Nombre", "C.2 Código", "C.2 Frecuencia", "C.3.1 Última compra", "C.3.2 Comprará");
+            d = hoja(libro, "D Gastos diarios", new double[]{6, 12, 7, 32, 10, 20, 12, 8, 34, 8, 30, 14, 10, 10, 24},
+                    "Día", "Fecha", "Orden", "Artículo", "Cantidad", "Unidad", "Equivalencia", "Forma",
+                    "Forma de adquisición", "Lugar", "Lugar de compra", "Valor", "Frecuencia", "Tipo de gasto",
+                    "Beneficiario de la mesada");
+            d1 = hoja(libro, "D1 Comidas fuera del hogar", new double[]{6, 12, 7, 32, 26, 10, 8, 34, 8, 30, 14, 10, 10, 12},
+                    "Día", "Fecha", "Orden", "Descripción", "Tipo de comida", "Cantidad", "Forma",
+                    "Forma de adquisición", "Lugar", "Lugar de compra", "Valor", "Frecuencia", "Tipo de gasto",
+                    "A domicilio");
+        }
+
+        private LibroExcel.Hoja hoja(LibroExcel libro, String nombre, double[] anchos, Object... titulos) {
+            if (!consolidado) {
+                return libro.hoja(nombre).anchos(anchos).encabezado(titulos);
+            }
+            double[] conCodigo = new double[anchos.length + 1];
+            conCodigo[0] = 11;
+            System.arraycopy(anchos, 0, conCodigo, 1, anchos.length);
+            return libro.hoja(nombre).anchos(conCodigo).encabezado(conCodigo("Encuesta", titulos));
+        }
+
+        private void fila(LibroExcel.Hoja hoja, String codigo, Object... celdas) {
+            hoja.fila(consolidado ? conCodigo(codigo, celdas) : celdas);
+        }
+
+        private Object[] conCodigo(Object primera, Object[] celdas) {
+            Object[] fila = new Object[celdas.length + 1];
+            fila[0] = primera;
+            System.arraycopy(celdas, 0, fila, 1, celdas.length);
+            return fila;
+        }
+
+        private void escribir(Connection c, long encuestaId, long hogarId) throws SQLException {
+            String codigo = Formato.codigo("E", encuestaId);
+            for (Visita vi : visitaDao.listarPorHogar(c, hogarId)) {
+                fila(b, codigo, vi.getNumeroVisita(), Formato.fecha(vi.getFecha()), Formato.hora(vi.getHoraInicio()),
+                        Formato.hora(vi.getHoraFin()), vi.getResultadoVisita() == null ? null : vi.getResultadoVisita().toString(),
+                        vi.getPartesPendientes(),
+                        vi.getFechaProxima() == null ? null : (Formato.fecha(vi.getFechaProxima()) + " " + Formato.hora(vi.getHoraProxima())).trim());
+            }
+
+            for (CaracteristicaGasto g : caracteristicaDao.listarPorEncuesta(c, encuestaId)) {
+                fila(cap, codigo, g.getGrupoAlimentoId(), grupos.get(g.getGrupoAlimentoId()),
+                        g.getFrecuenciaCompra() == null ? null : g.getFrecuenciaCompra().getCodigo(),
+                        g.getFrecuenciaCompra() == null ? null : g.getFrecuenciaCompra().getDescripcion(),
+                        g.getValorUltimaCompra() == null ? null : LibroExcel.pesos(g.getValorUltimaCompra()),
+                        g.getCompraraEnPeriodo() == null ? null : (g.getCompraraEnPeriodo() ? "Sí" : "No"));
+            }
+
+            Map<Long, RegistroDiario> registros = new HashMap<>();
+            for (RegistroDiario r : registroDao.listarPorEncuesta(c, encuestaId)) {
+                registros.put(r.getId(), r);
+            }
+
+            for (GastoDiario g : gastoDao.listarPorEncuesta(c, encuestaId)) {
+                RegistroDiario r = registros.get(g.getRegistroDiarioId());
+                BigDecimal equivalencia = g.getEquivalenciaGr() != null ? g.getEquivalenciaGr() : g.getEquivalenciaCm3();
+                fila(d, codigo, r == null ? null : r.getNumeroDia(), r == null ? null : Formato.fecha(r.getFecha()), g.getNumeroOrden(),
+                        g.getNombreArticulo(), g.getCantidad(),
+                        g.getUnidadMedidaOtra() != null ? g.getUnidadMedidaOtra()
+                                : g.getUnidadMedida() == null ? null : g.getUnidadMedida().getDescripcion(),
+                        equivalencia == null ? null : equivalencia.toPlainString() + (g.getEquivalenciaGr() != null ? " g" : " cm³"),
+                        g.getFormaAdquisicion() == null ? null : g.getFormaAdquisicion().getCodigo(),
+                        forma(g.getFormaAdquisicion(), g.getFormaAdquisicionOtra()),
+                        g.getLugarCompraId(), g.getLugarCompraId() == null ? null : lugares.get(g.getLugarCompraId()),
+                        LibroExcel.pesos(g.getValor()),
+                        g.getFrecuenciaCompra() == null ? null : g.getFrecuenciaCompra().getCodigo(),
+                        g.getTipoGasto() == null ? null : g.getTipoGasto().getCodigo(),
+                        g.getBeneficiarioMesada());
+            }
+
+            for (ComidaFueraHogar f : comidaDao.listarPorEncuesta(c, encuestaId)) {
+                RegistroDiario r = registros.get(f.getRegistroDiarioId());
+                fila(d1, codigo, r == null ? null : r.getNumeroDia(), r == null ? null : Formato.fecha(r.getFecha()), f.getNumeroOrden(),
+                        f.getDescripcion(), f.getTipoComida() == null ? null : f.getTipoComida().getDescripcion(),
+                        f.getCantidad(),
+                        f.getFormaAdquisicion() == null ? null : f.getFormaAdquisicion().getCodigo(),
+                        forma(f.getFormaAdquisicion(), f.getFormaAdquisicionOtra()),
+                        f.getLugarCompraId(), f.getLugarCompraId() == null ? null : lugares.get(f.getLugarCompraId()),
+                        LibroExcel.pesos(f.getValor()),
+                        f.getFrecuenciaCompra() == null ? null : f.getFrecuenciaCompra().getCodigo(),
+                        f.getTipoGasto() == null ? null : f.getTipoGasto().getCodigo(),
+                        f.isADomicilio() ? "Sí" : "No");
+            }
+        }
     }
 
     private Optional<String> buscarUsuario(Connection c, Long usuarioId) {
@@ -538,13 +671,6 @@ public class VerificacionService {
                     + Formato.codigo("E", encuestaId) + " está «" + e.getEstado().getDescripcion() + "».");
         }
         return e;
-    }
-
-    private AuditoriaEncuesta registrar(Connection c, long encuestaId, AccionAuditoria accion, String observacion)
-            throws SQLException {
-        AuditoriaEncuesta registro = new AuditoriaEncuesta(encuestaId, accion, observacion);
-        registro.setCreatedBy(Sesion.idUsuario());
-        return auditoriaDao.insertar(c, registro);
     }
 
     /** Orden de la bandeja: pendientes de aprobación, rechazadas, aprobadas. */

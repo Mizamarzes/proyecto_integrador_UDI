@@ -14,7 +14,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-/** Acceso a la tabla encuesta. */
+/**
+ * Acceso a la tabla encuesta. Los cambios de estado del caso (cerrar,
+ * reabrir, rechazar y aprobar) se hacen con procedimientos almacenados, que
+ * validan el estado actual y registran la revisión en auditoria_encuesta.
+ */
 public class EncuestaDAO extends BaseDAO<Encuesta> {
 
     @Override
@@ -92,10 +96,26 @@ public class EncuestaDAO extends BaseDAO<Encuesta> {
                 (Object[]) estados);
     }
 
-    /** Cambia el estado del caso (cerrar, reabrir, rechazar o aprobar; RF-06 y RF-10). */
-    public boolean actualizarEstado(Connection c, long id, EstadoEncuesta estado, LocalDateTime fechaCierre,
-                                    Long cerradaPor) throws SQLException {
-        return ejecutar(c, "UPDATE encuesta SET estado = ?, fecha_cierre = ?, cerrada_por = ?,"
-                + " updated_at = SYSTIMESTAMP WHERE id = ?", estado, fechaCierre, cerradaPor, id) > 0;
+    /** Cierra el caso: pasa a PENDIENTE_APROBACION (RF-06). Procedimiento pr_cerrar_encuesta. */
+    public void cerrar(Connection c, long id, long usuarioId, LocalDateTime fechaCierre) throws SQLException {
+        llamar(c, "pr_cerrar_encuesta", id, usuarioId, fechaCierre);
+    }
+
+    /** Reabre un caso pendiente o aprobado: vuelve a EN_CURSO. Procedimiento pr_reabrir_encuesta. */
+    public void reabrir(Connection c, long id) throws SQLException {
+        llamar(c, "pr_reabrir_encuesta", id);
+    }
+
+    /**
+     * Rechaza un caso pendiente con la observación para el encuestador y la
+     * registra en auditoria_encuesta (RF-10). Procedimiento pr_rechazar_encuesta.
+     */
+    public void rechazar(Connection c, long id, String observacion, long usuarioId) throws SQLException {
+        llamar(c, "pr_rechazar_encuesta", id, observacion, usuarioId);
+    }
+
+    /** Aprueba un caso pendiente y lo registra en auditoria_encuesta (RF-10). Procedimiento pr_aprobar_encuesta. */
+    public void aprobar(Connection c, long id, long usuarioId) throws SQLException {
+        llamar(c, "pr_aprobar_encuesta", id, usuarioId);
     }
 }
