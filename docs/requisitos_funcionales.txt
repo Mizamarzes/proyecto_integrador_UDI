@@ -1,0 +1,221 @@
+APROXIMACIÓN A LOS REQUISITOS FUNCIONALES DEL SOFTWARE
+
+Con el fin de garantizar que el software satisfaga de manera intuitiva las necesidades operativas del Cuadernillo 2
+(gastos diarios urbanos) de la Encuesta Nacional de Presupuestos de los Hogares (ENPH) del DANE, se ha diseñado una
+aproximación que plasma los flujos de interacción derivados de los requerimientos funcionales del sistema. El acceso
+se organiza en tres roles (Administrador, Encuestador y Crítico Digitador) y en seis módulos (Usuarios, Roles y
+permisos, Viviendas y hogares, Encuestas, Reportes y Verificación) que se asignan a cada rol. El ciclo de vida de una
+encuesta pasa por los estados En curso, Pendiente de aprobación, Aprobada y Rechazada. Estos se detallan a
+continuación:
+
+  ● RF-01: Autenticación y Autorización de Usuarios
+      ○ Descripción: El sistema debe permitir autenticar a los usuarios validando su correo electrónico y su
+        contraseña (almacenada cifrada con SHA-256), y restringir el acceso a los módulos según los permisos que
+        tenga asignados su rol.
+      ○ Prioridad: Alta.
+      ○ Criterio de aceptación: El inicio de sesión rechaza credenciales inválidas y usuarios inactivos, registra la
+        fecha del último acceso e identifica al usuario en la sesión de la base de datos para la auditoría. Al
+        ingresar, el menú lateral muestra únicamente los módulos permitidos para el rol y abre el primero de ellos;
+        cualquier intento de abrir una pantalla, pestaña o formulario sin permiso es bloqueado con un mensaje de
+        acceso denegado. El Administrador tiene acceso a todos los módulos.
+      ○ Prototipo: Ventana de inicio de sesión con campos de correo y contraseña y la opción "Recordarme". Al
+        autenticarse se despliega la ventana principal con menú lateral, encabezado con el usuario en sesión y botón
+        para cerrar sesión.
+
+  ● RF-02: Gestión de Usuarios
+      ○ Descripción: El sistema debe permitir a los usuarios con el módulo de Usuarios registrar, consultar,
+        actualizar, activar o desactivar (baja lógica) y eliminar cuentas de usuario, asignándoles un rol. Al asignar
+        el rol Encuestador, el sistema crea automáticamente su registro como encuestador.
+      ○ Prioridad: Alta.
+      ○ Criterio de aceptación: No se permiten correos repetidos ni con formato inválido, y la contraseña debe tener
+        al menos 6 caracteres. Un usuario no puede desactivarse ni eliminarse a sí mismo, y solo un Administrador puede
+        crear, editar o asignar el rol Administrador. Un usuario con datos registrados no se elimina (se desactiva).
+        Los usuarios inactivos no pueden iniciar sesión. Cada usuario puede cambiar su propia contraseña.
+      ○ Prototipo: Panel de administración de usuarios con tabla paginada, búsqueda y filtro por estado
+        (activos/inactivos), insignias de rol y estado, y ventana modal para crear y editar perfiles.
+
+  ● RF-03: Registro de Viviendas, Hogares y Apertura de la Encuesta
+      ○ Descripción: El sistema debe permitir al Encuestador registrar la vivienda con la información de
+        identificación del Capítulo A (región, departamento, municipio, clase, sector, sección, manzana, segmento,
+        edificación, número de vivienda, barrio, dirección y teléfono) y los hogares que la ocupan (número de hogar,
+        total de personas). Sobre un hogar, el Encuestador abre la encuesta indicando la fecha de inicio; el sistema
+        calcula automáticamente el periodo de 14 días consecutivos (fecha final = fecha de inicio + 13 días).
+      ○ Prioridad: Alta.
+      ○ Criterio de aceptación: Un Encuestador solo ve y modifica las viviendas y hogares que él registró, y solo él
+        puede crear encuestas, que quedan asignadas a su nombre. Cada hogar tiene como máximo una encuesta y el
+        número de hogar no se repite dentro de una vivienda. El total de hogares de la vivienda (A.12) se calcula a
+        partir de los hogares registrados. La fecha de inicio no puede cambiarse una vez existan días registrados.
+      ○ Prototipo: Listado de viviendas con filtros encadenados de región, departamento y municipio (selectores con
+        búsqueda), vista de detalle de la vivienda con sus hogares, ventanas modales de vivienda y hogar, y una
+        ventana "Nueva encuesta" donde solo se selecciona el hogar.
+
+  ● RF-04: Registro de Gastos Diarios y Formas de Adquisición (Capítulo D)
+      ○ Descripción: El sistema debe permitir al Encuestador registrar, para cada uno de los 14 días del periodo, los
+        gastos en alimentos, bebidas y artículos de alta frecuencia (tabla D): nombre del artículo, cantidad, unidad
+        de medida con su equivalencia en gramos o centímetros cúbicos, forma de adquisición (compra, pago por
+        trabajo, regalo, intercambio, producción propia, tomado del negocio propio u otra), lugar de compra,
+        frecuencia de compra, valor pagado o estimado y si el gasto es del hogar o personal.
+      ○ Prioridad: Alta.
+      ○ Criterio de aceptación: Los días solo pueden registrarse cuando el Capítulo C está completo. La fecha de cada
+        día corresponde exactamente a la fecha de inicio más el número de día menos uno. Si la forma de adquisición
+        es compra, la frecuencia es obligatoria; si no lo es, el lugar y la frecuencia de compra quedan vacíos y el
+        valor es estimado. Los gastos personales solo se aceptan en los días 1 a 7. Ningún valor puede ser negativo
+        y el número de orden no se repite dentro del día.
+      ○ Prototipo: Pestaña "Línea de 14 días" con la línea de tiempo de los días del periodo, la tabla de renglones
+        del día seleccionado y una ventana modal de renglón con campos numéricos y selectores dinámicos que se
+        habilitan según la forma de adquisición.
+
+  ● RF-05: Consulta, Modificación y Eliminación (CRUD) de Registros en Campo
+      ○ Descripción: El sistema debe permitir consultar, modificar y eliminar viviendas, hogares, visitas, renglones
+        del Capítulo C, días y renglones de gastos (D y D1) y la propia encuesta mientras el caso permanezca editable
+        (En curso o Rechazada).
+      ○ Prioridad: Alta.
+      ○ Criterio de aceptación: Las operaciones se reflejan de inmediato en la base de datos. Cuando la encuesta está
+        Pendiente de aprobación o Aprobada, el sistema rechaza cualquier inserción, modificación o eliminación tanto
+        en la aplicación (servicios) como en la base de datos (disparadores de validación). Eliminar un día o una
+        encuesta elimina en cascada sus registros asociados.
+      ○ Prototipo: Tablas paginadas con botones de edición y eliminación por registro, que se ocultan cuando el caso
+        no es editable.
+
+  ● RF-06: Cierre y Reapertura de Casos (Capítulo D2)
+      ○ Descripción: El sistema debe permitir al Encuestador responder las preguntas de cierre del Capítulo D2
+        (gastos en fiestas y forma de pago) y cerrar el caso al finalizar el periodo de 14 días, enviándolo a
+        verificación. Solo el Administrador puede reabrir un caso cerrado.
+      ○ Prioridad: Alta.
+      ○ Criterio de aceptación: El botón de cierre solo se habilita cuando la lista de chequeo está completa: periodo
+        de 14 días terminado, Capítulo C completo, línea de 14 días con información, visita de recolección
+        registrada, preguntas D2 respondidas y resultado del cuadernillo (A.18). Al cerrar, el caso pasa a
+        "Pendiente de aprobación" con fecha y usuario de cierre, y queda bloqueado. La reapertura, exclusiva del
+        Administrador, devuelve un caso pendiente o aprobado al estado "En curso". Los cambios de estado se ejecutan
+        mediante procedimientos almacenados que solo permiten las transiciones válidas.
+      ○ Prototipo: Pestaña "Cierre" con el formulario D2, una barra de progreso de la verificación con la lista de
+        chequeo, el botón "Cerrar caso" y, para el Administrador, el botón "Reabrir".
+
+  ● RF-07: Registro de Características del Gasto en Alimentos (Capítulo C)
+      ○ Descripción: El sistema debe permitir al Encuestador registrar la frecuencia de compra de cada uno de los 25
+        grupos de alimentos definidos por el cuadernillo y, cuando la frecuencia sea superior a la bisemana, el valor
+        de la última compra (C.3.1) y si comprará durante los 14 días (C.3.2).
+      ○ Prioridad: Alta.
+      ○ Criterio de aceptación: Cada grupo se registra una sola vez por encuesta. Las preguntas C.3.1 y C.3.2 solo se
+        aceptan si la frecuencia supera la bisemana. Mientras falte alguno de los 25 grupos, el sistema impide
+        registrar los días del Capítulo D.
+      ○ Prototipo: Pestaña "Cap. C" con el listado de los 25 grupos, su avance (grupos diligenciados de 25) y campos
+        que se habilitan según la frecuencia elegida.
+
+  ● RF-08: Registro y Control de Visitas (Capítulo B)
+      ○ Descripción: El sistema debe permitir registrar cada visita realizada al hogar durante el periodo,
+        almacenando el número de visita, la fecha, la hora de inicio y de terminación, el resultado de la entrevista
+        (códigos del cuadernillo), las partes del cuadernillo pendientes y la fecha y hora programadas para la
+        próxima visita.
+      ○ Prioridad: Alta.
+      ○ Criterio de aceptación: Cada visita queda asociada al hogar con un número de visita único; si no se indica,
+        el sistema asigna el siguiente. La verificación exige al menos una visita y que todas tengan hora de
+        terminación.
+      ○ Prototipo: Pestaña "Visitas" con la tabla de visitas del hogar y una ventana modal con campos de fecha y
+        hora, selector del resultado de la entrevista y programación de la próxima visita.
+
+  ● RF-09: Registro de Comidas Preparadas Fuera del Hogar (Capítulo D1)
+      ○ Descripción: El sistema debe permitir registrar, en cada día del periodo, las comidas preparadas fuera del
+        hogar (tabla D1), especificando descripción, tipo de comida (desayuno, almuerzo, cena u onces/merienda),
+        cantidad, forma de adquisición, lugar de compra, valor, frecuencia, tipo de gasto (hogar o personal) y si la
+        adquisición incluyó servicio a domicilio.
+      ○ Prioridad: Alta.
+      ○ Criterio de aceptación: La descripción y el tipo de comida son obligatorios y se aplican las mismas reglas de
+        forma de adquisición, valor y gastos personales del RF-04. El total de renglones del día (D.2) suma los
+        renglones de las tablas D y D1.
+      ○ Prototipo: Sección D1 dentro de la pestaña "Línea de 14 días", con tabla propia y ventana modal de renglón
+        con selector de tipo de comida y casilla de domicilio.
+
+  ● RF-10: Verificación, Aprobación y Rechazo de Casos (Rol Crítico Digitador)
+      ○ Descripción: El sistema debe permitir al Crítico Digitador revisar los casos cerrados mediante una
+        validación cruzada automática y decidir si los aprueba o los rechaza con una observación para el
+        Encuestador.
+      ○ Prioridad: Alta.
+      ○ Criterio de aceptación: La validación cruzada evalúa nueve reglas (Capítulo A: informante y resultado;
+        visitas; 25 grupos del Capítulo C; última compra C.3; línea de 14 días D y D1; gastos personales solo días 1
+        a 7; valores según la forma de adquisición; lugar de compra en las compras; cierre D2), cada una como
+        Correcta, Aviso o Error. Los errores impiden la aprobación y los avisos no. Rechazar exige una observación
+        (máximo 1000 caracteres), pasa el caso a "Rechazada" y lo vuelve editable; el Encuestador ve la observación
+        en un aviso del detalle y en la pestaña "Correcciones", y al cerrarlo de nuevo vuelve a "Pendiente de
+        aprobación". Aprobar pasa el caso a "Aprobada" y no admite más cambios. Cada aprobación y rechazo queda
+        registrado en el historial de revisiones del caso.
+      ○ Prototipo: Módulo "Verificación" con una bandeja de casos pendientes, rechazados y aprobados, tarjetas de
+        resumen (pendientes de aprobación, aprobadas), filtros por ubicación y un panel lateral con el resultado de
+        las nueve reglas, los botones "Aprobar" y "Rechazar" y el historial del caso.
+
+  ● RF-11: Gestión de Roles y Permisos por Módulo (Nuevo)
+      ○ Descripción: El sistema debe permitir a los usuarios con el módulo de Roles y permisos crear y eliminar roles
+        y asignarles los módulos a los que tienen acceso mediante una matriz de roles por módulos.
+      ○ Prioridad: Alta.
+      ○ Criterio de aceptación: Los permisos de todos los roles se guardan en una sola transacción. La fila del
+        Administrador está bloqueada porque siempre tiene acceso total. Los roles del sistema (Administrador y
+        Encuestador) no se pueden eliminar, aunque los permisos del Encuestador sí se pueden editar. Los roles no se
+        renombran y no se permiten nombres repetidos. Los cambios aplican en el siguiente inicio de sesión, salvo
+        para el rol del usuario en sesión, que se recarga de inmediato.
+      ○ Prototipo: Pantalla "Roles y permisos" con una matriz de casillas de verificación (roles por módulos), botón
+        "Guardar permisos" y ventana modal para crear un rol.
+
+  ● RF-12: Reportes y Tablero de Indicadores (Nuevo)
+      ○ Descripción: El sistema debe presentar un tablero de reportes filtrado por región, departamento, municipio y
+        rango de fechas de inicio de la encuesta, con indicadores generales, encuestas por estado, gasto por tipo
+        (hogar o personal), gasto por forma de adquisición y por lugar de compra, grupos de alimentos del Capítulo C
+        y una tabla de desempeño por encuestador, exportable a Excel. Adicionalmente, la base de datos ofrece
+        reportes en el SGBDR mediante funciones con cursores (encuestas por estado, encuestadores por periodo, gasto
+        por ubicación y revisiones de una encuesta).
+      ○ Prioridad: Media.
+      ○ Criterio de aceptación: Los filtros se aplican juntos con el botón "Filtrar" y se limpian con "Limpiar"; la
+        fecha final no puede ser anterior a la inicial. Un Encuestador solo ve la información de sus propias
+        encuestas. La exportación genera un libro .xlsx con una hoja por sección e incluye todas las filas de la
+        tabla por encuestador.
+      ○ Prototipo: Tablero con tarjetas de indicadores, gráficos por categoría, tabla paginada por encuestador con
+        fila de totales y botón "Exportar a Excel".
+
+  ● RF-13: Exportación de Casos Aprobados a Excel para el DANE (Nuevo)
+      ○ Descripción: El sistema debe permitir exportar a Excel la información de los casos aprobados para su
+        traslado manual posterior al sistema del DANE, tanto de un caso individual como de todos los casos aprobados
+        de una región, departamento o municipio.
+      ○ Prioridad: Alta.
+      ○ Criterio de aceptación: Solo se exportan casos en estado "Aprobada". La exportación individual genera un libro
+        con una hoja por capítulo (A/D2, B, C, D y D1). La exportación masiva genera una hoja resumen "Encuestas
+        aprobadas", obtenida mediante el procedimiento almacenado pr_exportar_aprobadas, y las hojas B, C, D y D1
+        con los renglones de todas las encuestas identificadas por su código. Si no hay casos aprobados para el
+        filtro, el sistema lo informa. La exportación no cambia el estado de los casos.
+      ○ Prototipo: Botón "Exportar a Excel" en el panel de un caso aprobado y botón "Exportar aprobadas a Excel" en
+        el encabezado del módulo Verificación, con diálogo para elegir dónde guardar el archivo.
+
+  ● RF-14: Auditoría de Cambios y Seguridad en la Base de Datos (Nuevo)
+      ○ Descripción: El sistema debe registrar automáticamente en la base de datos cada inserción, modificación y
+        eliminación sobre las tablas del sistema, indicando el usuario responsable, y proteger el acceso a la base
+        de datos con usuarios y roles de Oracle de privilegios diferenciados.
+      ○ Prioridad: Media.
+      ○ Criterio de aceptación: Cada tabla tiene un disparador de auditoría que guarda la operación en la tabla
+        auditoria con el usuario de la sesión, sin registrar nunca contraseñas. La base de datos dispone de tres
+        cuentas: la de la aplicación (manipulación de datos y ejecución de procedimientos, sin DDL), la de consulta
+        (lectura sin la tabla de usuarios) y la de auditor (lectura de las tablas de auditoría). Las reglas de
+        negocio críticas (caso cerrado, fecha del día, gastos personales y transiciones de estado) se repiten en
+        disparadores de validación como segunda barrera.
+      ○ Prototipo: No tiene interfaz propia; se evidencia en la tabla auditoria, en la pestaña "Correcciones" y en
+        el historial de revisiones del módulo Verificación.
+
+
+RESUMEN DE CAMBIOS RESPECTO AL DOCUMENTO ANTERIOR
+  - RF-01: el acceso se controla por módulos asignados al rol (no por menús fijos por rol); se registra el último
+    acceso y el usuario para la auditoría.
+  - RF-02: se separa de la gestión de roles (ahora RF-11); se agregan eliminación, cambio de contraseña y las
+    restricciones sobre el propio usuario y el rol Administrador.
+  - RF-03: la vivienda y los hogares los registra el Encuestador (no el Administrador) con los datos del
+    Capítulo A; el encuestador se asigna al crear la encuesta y el periodo de 14 días se calcula solo.
+  - RF-04: se precisan las formas de adquisición reales del cuadernillo (siete), unidad de medida y equivalencias,
+    la regla de gastos personales (días 1 a 7) y la dependencia del Capítulo C.
+  - RF-05: se amplía a todos los registros de la encuesta y se define "editable" como En curso o Rechazada.
+  - RF-06: el estado "En Corrección" se reemplaza por el flujo En curso → Pendiente de aprobación → Aprobada /
+    Rechazada; se agrega el Capítulo D2 y la lista de chequeo de cierre; la prioridad sube a Alta.
+  - RF-07: el Capítulo C ya no se restringe a la primera visita; lo que bloquea es el Capítulo D mientras falten
+    grupos.
+  - RF-09: el capítulo correcto es D1 (no F), registrado por día dentro de la línea de 14 días.
+  - RF-10: el estado "Consolidado y Exportado" se reemplaza por Aprobada/Rechazada con observación e historial;
+    la exportación pasa a ser un requisito separado (RF-13).
+  - Nuevos: RF-11 (roles y permisos), RF-12 (reportes), RF-13 (exportación a Excel), RF-14 (auditoría y seguridad).
+
+
+El sistema debe permitir al Encuestador registrar la vivienda con la información de identificación del Capítulo A (región, departamento, municipio, clase, sector, sección, manzana, segmento, edificación, número de vivienda, barrio, dirección y teléfono) y los hogares que la ocupan (número de hogar, total de personas). Sobre un hogar, el Encuestador abre la encuesta indicando la fecha de inicio; el sistema calcula automáticamente el periodo de 14 días consecutivos (fecha final = fecha de inicio + 13 días).
