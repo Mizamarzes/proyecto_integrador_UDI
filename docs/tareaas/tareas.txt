@@ -12,3 +12,7 @@
 - Crear modulo de reportes 
 - Crea modulo de critica y consolidacion para cierre de casos
 - Crear modulo de catalogos 
+
+
+mvn clean javafx:run
+mvn javafx:run

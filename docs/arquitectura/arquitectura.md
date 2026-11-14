@@ -20,7 +20,7 @@ VISTA          CONTROLADOR         MODELO
 
 ```
 proyecto_integrador_UDI/
-├── pom.xml                                   # Dependencias: JavaFX 13, driver Oracle (ojdbc6 11.2.0.4)
+├── pom.xml                                   # Dependencias: JavaFX 21, driver Oracle (ojdbc6 11.2.0.4)
 ├── CLAUDE.md
 ├── README.md
 ├── docs/

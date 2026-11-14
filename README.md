@@ -39,14 +39,14 @@ quitaron hasta que estén listos).
 
 ## Requisitos
 
-- JDK 11 o superior
+- JDK 21 o superior
 - Apache Maven 3.6+
 - Docker, con el contenedor de Oracle 10g XE `oracle-xe-10g`
 
 ## Tecnologías
 
-- Java 11 con módulos (`module-info.java`)
-- JavaFX 13 (`javafx-controls`, `javafx-fxml`) y FXML + CSS
+- Java 21 con módulos (`module-info.java`)
+- JavaFX 21 (`javafx-controls`, `javafx-fxml`) y FXML + CSS
 - Oracle 10g XE por JDBC (`ojdbc6` 11.2.0.4; los drivers más nuevos no conectan con 10g)
 - Maven (`javafx-maven-plugin`)
 
