@@ -239,12 +239,15 @@ WHENEVER SQLERROR EXIT FAILURE
 -- La aplicación del origen ejecuta el procedimiento con su propio usuario
 GRANT EXECUTE ON pr_sincronizar_aprobadas TO &origen;
 
--- Y con <origen>_APP, si se crearon los usuarios de seguridad/usuarios_roles.sql
+-- Y con <origen>_APP, si se crearon los usuarios de db-origen/usuarios_roles.sql.
+-- Ese rol no existe si no se ejecutó usuarios_roles.sql (ORA-01917/01919) ni
+-- puede existir si el origen tiene más de 16 caracteres (el nombre del rol
+-- pasaría de 30: ORA-00972); en esos casos solo se avisa.
 BEGIN
 EXECUTE IMMEDIATE 'GRANT EXECUTE ON pr_sincronizar_aprobadas TO ROL_'||UPPER('&origen')||'_APLICACION';
 EXCEPTION
 WHEN OTHERS THEN
-   IF SQLCODE=-1917 OR SQLCODE=-1919 THEN
+   IF SQLCODE IN (-1917,-1919,-972) THEN
       DBMS_OUTPUT.PUT_LINE('No existe ROL_'||UPPER('&origen')||'_APLICACION: solo se concede a &origen.');
    ELSE
       RAISE;
