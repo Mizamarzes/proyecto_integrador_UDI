@@ -41,14 +41,14 @@ en `docs/referencias/` (ver `docs/README.md`).
 
 ## Requisitos
 
-- JDK 21 o superior
+- JDK 11 o superior
 - Apache Maven 3.6+
 - Oracle: el contenedor Docker `oracle-xe-10g` para desarrollo, o el servidor de la UDI
 
 ## Tecnologías
 
-- Java 21 con módulos (`module-info.java`)
-- JavaFX 21 (`javafx-controls`, `javafx-fxml`) con FXML y CSS
+- Java 11 con módulos (`module-info.java`)
+- JavaFX 13 (`javafx-controls`, `javafx-fxml`) con FXML y CSS
 - Oracle 10g por JDBC (`ojdbc6` 11.2.0.4; los drivers más nuevos no conectan con 10g)
 - Maven (`javafx-maven-plugin`)
 - Excel sin librerías externas (`util/LibroExcel` escribe el `.xlsx` con `java.util.zip`)
