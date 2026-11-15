@@ -4,6 +4,13 @@ import com.udi.model.enums.FrecuenciaCompra;
 
 import java.math.BigDecimal;
 
+/**
+ * Fila del capítulo C (tabla {@code caracteristica_gasto}): cómo compra el
+ * hogar un grupo de alimentos. Hay una por encuesta y grupo. El valor de la
+ * última compra y si comprará durante el periodo solo se registran cuando la
+ * frecuencia es mensual o más espaciada (mensual, bimestral, trimestral o
+ * esporádica).
+ */
 public class CaracteristicaGasto extends EntidadAuditable {
 
     private Long encuestaId;

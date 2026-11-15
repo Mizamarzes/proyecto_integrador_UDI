@@ -17,6 +17,13 @@ import javafx.scene.control.TextField;
 
 import java.util.prefs.Preferences;
 
+/**
+ * Pantalla de inicio de sesión ({@code modulos/auth/login}). Valida correo y
+ * contraseña con {@link AuthService} en segundo plano y, si son correctos,
+ * abre la estructura principal ({@code shared/layout/navbar}). La opción
+ * «Recordarme» guarda solo el correo en las preferencias del usuario del
+ * sistema operativo ({@link Preferences}), nunca la contraseña.
+ */
 public class LoginController {
 
     private static final String PREF_CORREO = "login.correo";
