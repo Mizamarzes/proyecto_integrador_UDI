@@ -15,21 +15,21 @@ El orden importa: los dos usuarios se crean primero, luego se instala el **orige
 
 ```bash
 cd db-origen
-sqlplus system/<clave_system>@<servidor> @01_crear_usuario.sql DJGCJDCMPI
+sqlplus system/<clave_system>@192.168.254.215:1521/ORCL @01_crear_usuario.sql DJGCJDCMPI
 ```
 
 ### Paso 2. Crear el usuario destino (como SYSTEM)
 
 ```bash
 cd ../db-destino
-sqlplus system/<clave_system>@<servidor> @01_crear_usuario.sql DJGCJDCMPI_CENTRAL
+sqlplus system/<clave_system>@192.168.254.215:1521/ORCL @01_crear_usuario.sql DJGCJDCMPI_CENTRAL
 ```
 
 ### Paso 3. Instalar el origen (como DJGCJDCMPI)
 
 ```bash
 cd ../db-origen
-sqlplus DJGCJDCMPI/DJGCJDCMPI@<servidor> @instalar.sql DJGCJDCMPI_CENTRAL
+sqlplus DJGCJDCMPI/DJGCJDCMPI@192.168.254.215:1521/ORCL @instalar.sql DJGCJDCMPI_CENTRAL
 ```
 
 Si todo sale bien, la última línea es:
@@ -41,7 +41,7 @@ Origen instalado. Siga con db-destino/instalar.sql (parametro: este esquema).
 
 ```bash
 cd ../db-destino
-sqlplus DJGCJDCMPI_CENTRAL/DJGCJDCMPI_CENTRAL@<servidor> @instalar.sql DJGCJDCMPI
+sqlplus DJGCJDCMPI_CENTRAL/DJGCJDCMPI_CENTRAL@192.168.254.215:1521/ORCL @instalar.sql DJGCJDCMPI
 ```
 
 Si todo sale bien, la última línea es:
@@ -53,7 +53,7 @@ Destino instalado. Configure db.esquemaDestino con este esquema en la aplicacion
 
 ```bash
 cd ../db-origen
-sqlplus DJGCJDCMPI/DJGCJDCMPI@<servidor> @prueba_sincronizacion.sql DJGCJDCMPI_CENTRAL
+sqlplus DJGCJDCMPI/DJGCJDCMPI@192.168.254.215:1521/ORCL @prueba_sincronizacion.sql DJGCJDCMPI_CENTRAL
 ```
 
 ### Paso 6. Configurar la aplicación
@@ -61,7 +61,7 @@ sqlplus DJGCJDCMPI/DJGCJDCMPI@<servidor> @prueba_sincronizacion.sql DJGCJDCMPI_C
 En `src/main/resources/com/udi/config/db.properties`:
 
 ```properties
-db.url=jdbc:oracle:thin:@<host>:<puerto>:<SID>
+db.url=jdbc:oracle:thin:@192.168.254.215:1521:ORCL
 db.usuario=DJGCJDCMPI
 db.contrasena=DJGCJDCMPI
 db.esquema=
@@ -75,6 +75,11 @@ Para iniciar sesión en la aplicación, todos los usuarios de prueba tienen la c
 
 ## Eliminar una base de datos
 
+Como SYSTEM. Borra todos los datos del esquema y no se puede deshacer:
+
+```bash
+sqlplus system/<clave_system>@192.168.254.215:1521/ORCL
+```
 ```sql
 DROP USER DJGCJDCMPI CASCADE;           -- elimina el origen
 DROP USER DJGCJDCMPI_CENTRAL CASCADE;   -- elimina el destino
