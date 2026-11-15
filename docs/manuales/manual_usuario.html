@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Manual de usuario · ENPH Urbana</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&family=IBM+Plex+Sans:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap">
+<link rel="stylesheet" href="estilos_manual.css">
+</head>
+<body>
+
+<!-- ============================ PORTADA ============================ -->
+<section class="portada">
+  <div class="logo">ENPH</div>
+  <div class="sup">Manual de usuario</div>
+  <h1>ENPH Urbana<br>Panel de campo</h1>
+  <p class="sub">Aplicación de escritorio para registrar y procesar el Cuadernillo 2 (gastos diarios urbanos del hogar) de la Encuesta Nacional de Presupuestos de los Hogares del DANE.</p>
+  <div class="meta">
+    <div><b>Proyecto</b>Proyecto Integrador · IV semestre</div>
+    <div><b>Programa</b>Ingeniería de Sistemas · UDI</div>
+    <div><b>Asignaturas</b>Ingeniería de Software I · Bases de Datos II · Programación II</div>
+    <div><b>Periodo</b>II-2026 · Versión 1.0</div>
+    <div><b>Dirigido a</b>Administradores, encuestadores y críticos-digitadores</div>
+    <div><b>Fecha</b>Noviembre de 2026</div>
+  </div>
+</section>
+
+<!-- ============================ ÍNDICE ============================ -->
+<section class="indice">
+  <h1>Contenido</h1>
+  <ol>
+    <li><span>1</span>Introducción</li>
+    <li><span>2</span>Inicio de sesión</li>
+    <li><span>3</span>Ventana principal y navegación</li>
+    <li><span>4</span>Flujo de trabajo de una encuesta</li>
+    <li><span>5</span>Viviendas y hogares</li>
+    <li><span>6</span>Encuestas</li>
+    <li class="sub">6.1 Listado · 6.2 Nueva encuesta · 6.3 Detalle · 6.4 Control de visitas · 6.5 Cap. A · 6.6 Cap. C · 6.7 Línea de 14 días · 6.8 Cierre · 6.9 Correcciones</li>
+    <li><span>7</span>Verificación (crítico-digitador)</li>
+    <li><span>8</span>Reportes</li>
+    <li><span>9</span>Usuarios</li>
+    <li><span>10</span>Roles y permisos</li>
+    <li><span>11</span>Mensajes frecuentes y solución de problemas</li>
+    <li><span>A</span>Anexo: códigos del cuadernillo</li>
+  </ol>
+</section>
+
+<!-- ============================ 1 ============================ -->
+<h1>1. Introducción</h1>
+<p><b>ENPH Urbana · Panel de campo</b> es la aplicación con la que el equipo de campo registra, revisa y consolida la información del <b>Cuadernillo 2 urbano</b> de la ENPH: los gastos diarios en alimentos, bebidas y artículos de alta frecuencia que un hogar anota durante <b>14 días consecutivos</b>.</p>
+<p>Este manual explica, pantalla por pantalla, cómo usar la aplicación según el rol de cada persona. Las imágenes son maquetas de las pantallas del diseño «ENPH Urbana – Pantallas»; los nombres de botones y campos coinciden con los de la aplicación.</p>
+
+<h2>1.1 Roles del sistema</h2>
+<table>
+  <thead><tr><th style="width:24%">Rol</th><th>Qué hace</th><th style="width:30%">Módulos por defecto</th></tr></thead>
+  <tbody>
+    <tr><td><b>Administrador</b> (ADMIN)</td><td>Gestiona usuarios, roles y permisos; consulta todas las encuestas; es el único que puede <b>reabrir</b> un caso cerrado o aprobado.</td><td>Todos (no se puede limitar)</td></tr>
+    <tr><td><b>Encuestador</b> (ENCUESTADOR)</td><td>Registra viviendas y hogares, crea encuestas sobre sus hogares, diligencia los capítulos del cuadernillo y cierra el caso.</td><td>Viviendas y hogares, Encuestas (y Reportes si se le asigna, solo con sus datos)</td></tr>
+    <tr><td><b>Crítico-digitador</b> (CRITICO_DIGITADOR)</td><td>Revisa los casos cerrados con la validación cruzada, los aprueba o los rechaza con una observación, exporta a Excel y sincroniza con el esquema central.</td><td>Verificación, Encuestas, Reportes (según la configuración)</td></tr>
+  </tbody>
+</table>
+<div class="nota"><b>Permisos configurables</b>Los módulos de cada rol se configuran en <i>Roles y permisos</i> (sección 10). Si en su menú no aparece un módulo que necesita, pida a un administrador que se lo asigne; el cambio aplica al volver a iniciar sesión.</div>
+
+<h2>1.2 Estados de una encuesta</h2>
+<table>
+  <thead><tr><th style="width:28%">Estado</th><th>Significado</th><th style="width:18%">¿Editable?</th></tr></thead>
+  <tbody>
+    <tr><td><span class="badge b-curso">En curso</span></td><td>El encuestador está diligenciando el cuadernillo.</td><td>Sí</td></tr>
+    <tr><td><span class="badge b-pend">Pendiente de aprobación</span></td><td>El encuestador cerró el caso; espera la revisión del crítico-digitador.</td><td>No</td></tr>
+    <tr><td><span class="badge b-rech">Rechazada</span></td><td>El crítico-digitador la devolvió con una observación para corregir.</td><td>Sí</td></tr>
+    <tr><td><span class="badge b-apr">Aprobada</span></td><td>Caso revisado y aceptado; listo para exportar y sincronizar.</td><td>No</td></tr>
+  </tbody>
+</table>
+
+<h2>1.3 Requisitos para usar la aplicación</h2>
+<ul>
+  <li>Equipo con la aplicación instalada (Java 21) y conexión de red al servidor Oracle del proyecto.</li>
+  <li>Una cuenta de usuario activa creada por el administrador (correo y contraseña).</li>
+  <li>El cuadernillo físico del hogar para transcribir la información.</li>
+</ul>
+
+<!-- ============================ 2 ============================ -->
+<h1>2. Inicio de sesión</h1>
+<p>Al abrir la aplicación aparece la ventana de inicio de sesión.</p>
+
+<figure class="figura">
+<div class="pantalla">
+  <div class="barra-ventana"><i></i><i></i><i></i>&nbsp; ENPH Urbana</div>
+  <div style="display:flex;gap:8mm;padding:8mm 10mm;align-items:center">
+    <div style="flex:1">
+      <div class="logo" style="width:9mm;height:9mm;font-size:5.6pt">ENPH</div>
+      <div class="tit" style="font-size:15pt;margin-top:4mm">Encuesta Nacional de Presupuestos de los Hogares</div>
+      <div class="desc" style="margin-top:1.5mm">Área urbana · Panel de campo · Cuadernillo 2</div>
+    </div>
+    <div class="card" style="width:62mm;padding:5mm;display:flex;flex-direction:column;gap:3mm">
+      <div class="tit" style="font-size:10pt">Iniciar sesión</div>
+      <div class="campo"><span><span class="num">1</span>Correo electrónico</span><div>usuario@enph.udi.edu.co</div></div>
+      <div class="campo"><span><span class="num">2</span>Contraseña</span><div>••••••</div></div>
+      <div style="display:flex;justify-content:space-between;font-size:6.6pt"><span><span class="cb on"></span> Recordarme <span class="num">3</span></span><span style="text-decoration:underline">¿Olvidó su contraseña?</span></div>
+      <span class="b" style="text-align:center">Ingresar <span class="num" style="background:#fff;color:var(--accent)">4</span></span>
+    </div>
+  </div>
+</div>
+<figcaption>Figura 2.1 · Ventana de inicio de sesión</figcaption>
+</figure>
+
+<ol class="leyenda">
+  <li><b>Correo electrónico</b> con el que fue registrado.</li>
+  <li><b>Contraseña</b> (mínimo 6 caracteres).</li>
+  <li><b>Recordarme</b>: guarda el correo en este equipo para la próxima vez.</li>
+  <li><b>Ingresar</b>: valida los datos y abre la ventana principal en el primer módulo permitido para su rol.</li>
+</ol>
+<div class="alerta"><b>No puedo entrar</b>Si el sistema indica credenciales inválidas, revise el correo y la contraseña. Si su usuario está <b>inactivo</b>, no podrá ingresar aunque la contraseña sea correcta: contacte al administrador. La opción «¿Olvidó su contraseña?» no restablece la clave automáticamente; el administrador puede asignarle una nueva desde <i>Usuarios</i>.</div>
+
+<h2>2.1 Cuentas de demostración</h2>
+<p>La base de datos de prueba trae usuarios con la contraseña <code>123456</code>:</p>
+<table>
+  <thead><tr><th>Correo</th><th>Rol</th></tr></thead>
+  <tbody>
+    <tr><td><code>admin@enph.udi.edu.co</code></td><td>Administrador</td></tr>
+    <tr><td><code>cperez@enph.udi.edu.co</code></td><td>Crítico-digitador</td></tr>
+    <tr><td><code>lmartinez@enph.udi.edu.co</code>, <code>jgarcia@…</code>, <code>mlopez@…</code> y otros</td><td>Encuestador</td></tr>
+    <tr><td><code>rcastillo@enph.udi.edu.co</code></td><td>Usuario inactivo (no puede entrar)</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================ 3 ============================ -->
+<h1>3. Ventana principal y navegación</h1>
+<p>Después de iniciar sesión se muestra la ventana principal, compuesta por una barra lateral, un encabezado y el área de contenido.</p>
+
+<figure class="figura">
+<div class="pantalla">
+  <div class="barra-ventana"><i></i><i></i><i></i>&nbsp; ENPH Urbana</div>
+  <div class="cuerpo">
+    <div class="side">
+      <div class="marca"><i>ENPH</i> Urbana <span class="num">1</span></div>
+      <div class="it">Reportes</div><div class="it on">Encuestas</div><div class="it">Viviendas y hogares</div><div class="it">Verificación</div><div class="it">Usuarios</div><div class="it">Roles y permisos</div>
+      <div class="pie">Versión 1.0<br>Proyecto Integrador UDI<br><br><span style="color:#f1ede6">⎋ Cerrar sesión</span> <span class="num">4</span></div>
+    </div>
+    <div class="main">
+      <div class="top"><div class="migas">ENPH › Encuestas <span class="num">2</span><b>Encuestas</b></div><div class="user"><i></i>Administrador ENPH · ADMIN <span class="num">3</span></div></div>
+      <div class="cont"><div class="tit">Contenido del módulo</div><div class="card" style="height:30mm;display:grid;place-content:center;color:var(--subtle)">Área de trabajo <span class="num">5</span></div></div>
+    </div>
+  </div>
+</div>
+<figcaption>Figura 3.1 · Estructura de la ventana principal</figcaption>
+</figure>
+<ol class="leyenda">
+  <li><b>Barra lateral</b>: muestra solo los módulos que su rol tiene permitidos, en el orden Reportes, Encuestas, Viviendas y hogares, Verificación, Usuarios y Roles y permisos. El módulo activo aparece resaltado.</li>
+  <li><b>Migas de pan y título</b>: indican dónde está (por ejemplo <i>ENPH › Encuestas › E-000005</i>).</li>
+  <li><b>Usuario en sesión</b>: nombre y rol.</li>
+  <li><b>Cerrar sesión</b>: termina la sesión y vuelve al inicio de sesión.</li>
+  <li><b>Área de trabajo</b>: aquí se cargan las pantallas de cada módulo.</li>
+</ol>
+<div class="nota"><b>Acceso denegado</b>Si intenta abrir una pantalla sin permiso (por ejemplo, desde un enlace entre módulos), la aplicación muestra el mensaje de acceso denegado y no la abre.</div>
+
+<h2>3.1 Elementos comunes</h2>
+<ul>
+  <li><b>Tablas paginadas</b>: muestran 10 filas por página, con controles para avanzar y retroceder. Al hacer clic en el encabezado de una columna se ordena toda la lista.</li>
+  <li><b>Selectores con búsqueda</b> (región, departamento, municipio, hogar…): escriba parte del nombre para filtrar, sin importar tildes; al final de la lista aparece «Ver más» para cargar más resultados. Los selectores de ubicación están encadenados: al elegir una región se filtran sus departamentos y al elegir un departamento, sus municipios.</li>
+  <li><b>Fechas</b> en formato <code>dd/mm/aaaa</code> y horas en <code>HH:mm</code> (24 horas).</li>
+  <li><b>Campos obligatorios</b> marcados con <b>*</b>. Si falta alguno, el formulario indica cuál.</li>
+  <li><b>Botón «Limpiar»</b> en los filtros: borra la búsqueda y los filtros.</li>
+  <li><b>Ventanas modales</b>: formularios que se abren sobre la pantalla; se cierran con <span class="btn out">Cancelar</span> o guardando.</li>
+</ul>
+
+<!-- ============================ 4 ============================ -->
+<h1>4. Flujo de trabajo de una encuesta</h1>
+<p>Una encuesta recorre los siguientes pasos desde el registro de la vivienda hasta su envío al esquema central:</p>
+<div class="flujo">
+  <div class="paso"><b>1. Vivienda y hogar</b>El encuestador registra la vivienda (Cap. A) y sus hogares.</div><div class="flecha">›</div>
+  <div class="paso"><b>2. Nueva encuesta</b>Elige un hogar sin encuesta; queda <span class="badge b-curso">En curso</span>.</div><div class="flecha">›</div>
+  <div class="paso"><b>3. Captura</b>Visitas, Cap. A, Cap. C, 14 días de gastos (D y D1) y D2.</div><div class="flecha">›</div>
+  <div class="paso"><b>4. Cierre</b>Con la lista de chequeo completa cierra el caso: <span class="badge b-pend">Pendiente</span>.</div>
+</div>
+<div class="flujo">
+  <div class="paso" style="border-top-color:var(--accent)"><b>5. Verificación</b>El crítico-digitador revisa las 9 reglas de la validación cruzada.</div><div class="flecha">›</div>
+  <div class="paso" style="border-top-color:var(--accent)"><b>6a. Rechazar</b>Con observación: <span class="badge b-rech">Rechazada</span>. El encuestador corrige y vuelve a cerrar (paso 4).</div><div class="flecha">›</div>
+  <div class="paso" style="border-top-color:#16895a"><b>6b. Aprobar</b>Sin errores: <span class="badge b-apr">Aprobada</span>. Ya no admite cambios.</div><div class="flecha">›</div>
+  <div class="paso" style="border-top-color:#16895a"><b>7. Exportar / sincronizar</b>Excel para el DANE y envío al esquema central.</div>
+</div>
+<div class="alerta"><b>Reapertura</b>Solo un administrador puede reabrir un caso <i>Pendiente de aprobación</i> o <i>Aprobado</i>; al hacerlo vuelve a <span class="badge b-curso">En curso</span>.</div>
+
+<!-- ============================ 5 ============================ -->
+<h1>5. Viviendas y hogares</h1>
+<p>Módulo del encuestador para registrar las viviendas de su sector (Capítulo A) y los hogares que las ocupan. Las encuestas se crean después desde <i>Encuestas</i>, seleccionando un hogar. <b>Un encuestador solo ve y modifica las viviendas y hogares que él registró.</b></p>
+
+<h2>5.1 Listado de viviendas</h2>
+<figure class="figura">
+<div class="pantalla">
+  <div class="barra-ventana"><i></i><i></i><i></i>&nbsp; Viviendas y hogares</div>
+  <div class="cuerpo">
+    <div class="side"><div class="marca"><i>ENPH</i> Urbana</div><div class="it">Encuestas</div><div class="it on">Viviendas y hogares</div></div>
+    <div class="main">
+      <div class="top"><div class="migas">ENPH › Viviendas y hogares<b>Viviendas y hogares</b></div><div class="user"><i></i>Laura Martínez · Encuestador</div></div>
+      <div class="cont">
+        <div class="fila" style="justify-content:space-between"><div><div class="tit">Viviendas y hogares</div><div class="desc">Registra las viviendas de tu sector (Capítulo A) y sus hogares.</div></div><span class="b acc">+ Nueva vivienda <span class="num" style="background:#fff;color:var(--accent)">1</span></span></div>
+        <div class="card fila"><div class="campo" style="flex:1"><span>Buscar <span class="num">2</span></span><div>Código, dirección o barrio…</div></div><div class="campo"><span>Región</span><div>Todas</div></div><div class="campo"><span>Departamento</span><div>Todos</div></div><div class="campo"><span>Municipio</span><div>Todos</div></div><div class="campo"><span>Hogares</span><div>Todos</div></div><span class="b out">Limpiar</span></div>
+        <div class="card" style="padding:0"><table><thead><tr><th>Vivienda</th><th>Dirección / Barrio</th><th>Ubicación cartográfica</th><th>Hogares (A.12)</th><th>Encuestas</th><th>Acciones <span class="num">3</span></th></tr></thead>
+        <tbody><tr><td class="mono">V-000104</td><td>Calle 45 # 12-30 · Chapinero Central</td><td>Sector 0123 · Manzana 07</td><td>2</td><td>1</td><td><u>Ver</u> · <u>Agregar hogar</u></td></tr>
+        <tr><td class="mono">V-000105</td><td>Carrera 13 # 44-18 · Chapinero Central</td><td>Sector 0123 · Manzana 08</td><td>1</td><td>0</td><td><u>Ver</u> · <u>Agregar hogar</u></td></tr></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+<figcaption>Figura 5.1 · Listado de viviendas</figcaption>
+</figure>
+<ol class="leyenda">
+  <li><span class="btn acc">+ Nueva vivienda</span> abre el formulario del Capítulo A.</li>
+  <li>Filtros: búsqueda libre, región, departamento, municipio, hogares y rango de fechas de creación («Creada desde» / «Creada hasta»).</li>
+  <li>Acciones de cada fila: ver el detalle de la vivienda o agregar sus hogares.</li>
+</ol>
+
+<h2>5.2 Registrar una vivienda</h2>
+<p>Pulse <span class="btn acc">+ Nueva vivienda</span> y complete el formulario, organizado como la portada del cuadernillo:</p>
+<table>
+  <thead><tr><th style="width:32%">Sección</th><th>Campos</th></tr></thead>
+  <tbody>
+    <tr><td>Ubicación político-administrativa</td><td>1. Región *, 2. Departamento *, 3. Municipio *, 4. Clase *</td></tr>
+    <tr><td>Códigos cartográficos y censales</td><td>5. Sector (4 dígitos), 6. Sección (2 dígitos), 7. Manzana, 8. Segmento</td></tr>
+    <tr><td>Edificación y dirección</td><td>10. Edificación número *, 11. Vivienda número *, 17. Teléfono de contacto, 15. Barrio, centro poblado o vereda *, 16. Dirección de la vivienda *</td></tr>
+  </tbody>
+</table>
+<p>Pulse <span class="btn">Guardar vivienda</span>. El total de hogares (A.12) no se escribe: lo calcula la aplicación a partir de los hogares registrados.</p>
+
+<h2>5.3 Detalle de la vivienda y sus hogares</h2>
+<figure class="figura">
+<div class="pantalla">
+  <div class="barra-ventana"><i></i><i></i><i></i>&nbsp; Vivienda V-000104</div>
+  <div class="cuerpo">
+    <div class="side"><div class="marca"><i>ENPH</i> Urbana</div><div class="it">Encuestas</div><div class="it on">Viviendas y hogares</div></div>
+    <div class="main">
+      <div class="top"><div class="migas">ENPH › Viviendas y hogares › V-000104<b>Vivienda</b></div><div class="user"><i></i>Laura Martínez · Encuestador</div></div>
+      <div class="cont">
+        <div class="desc">← Volver a viviendas</div>
+        <div class="card"><div class="fila" style="justify-content:space-between"><b>Identificación de la vivienda (Cap. A)</b><span class="b out">Editar vivienda</span></div>
+          <div class="grid4" style="margin-top:2mm"><div class="campo"><span>Región (A.1)</span><div>Oriental</div></div><div class="campo"><span>Departamento (A.2)</span><div>Santander</div></div><div class="campo"><span>Municipio (A.3)</span><div>Bucaramanga</div></div><div class="campo"><span>Clase (A.4)</span><div>1</div></div></div></div>
+        <div class="card" style="padding:0"><div class="fila" style="justify-content:space-between;padding:2mm 3mm"><b>Hogares de la vivienda</b><span class="b acc">+ Agregar hogar</span></div>
+        <table><thead><tr><th>Hogar N.º (A.13)</th><th>Total de personas (A.14)</th><th>Ciclo (A.9)</th><th>Encuesta</th><th>Acciones</th></tr></thead>
+        <tbody><tr><td>1</td><td>4</td><td>04</td><td class="mono">E-000005</td><td><u>Editar</u> · <u>Eliminar</u></td></tr><tr><td>2</td><td>2</td><td>04</td><td>Sin encuesta</td><td><u>Editar</u> · <u>Eliminar</u></td></tr></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+<figcaption>Figura 5.2 · Detalle de vivienda con sus hogares</figcaption>
+</figure>
+<p>Para <b>agregar un hogar</b> pulse <span class="btn acc">+ Agregar hogar</span> e indique el <i>Total de personas en el hogar (A.14)</i> * y, opcionalmente, el <i>Ciclo (A.9)</i> (quincena del operativo). El número de hogar (A.13) lo asigna la aplicación (el siguiente de la vivienda, de 1 a 99) y no se repite dentro de la vivienda.</p>
+<div class="nota"><b>Un hogar, una encuesta</b>Cada hogar puede tener una sola encuesta. Los hogares sin encuesta aparecen en <i>Encuestas › Nueva encuesta</i>.</div>
+
+<!-- ============================ 6 ============================ -->
+<h1>6. Encuestas</h1>
+<h2>6.1 Listado de encuestas</h2>
+<p>El encuestador ve <b>«Mis Encuestas»</b> (solo las suyas); el administrador y el crítico-digitador ven el listado global con filtros adicionales.</p>
+<figure class="figura">
+<div class="pantalla">
+  <div class="barra-ventana"><i></i><i></i><i></i>&nbsp; Encuestas</div>
+  <div class="cuerpo">
+    <div class="side"><div class="marca"><i>ENPH</i> Urbana</div><div class="it on">Encuestas</div><div class="it">Viviendas y hogares</div></div>
+    <div class="main">
+      <div class="top"><div class="migas">ENPH › Encuestas › Mis Encuestas<b>Encuestas</b></div><div class="user"><i></i>Laura Martínez · Encuestador</div></div>
+      <div class="cont">
+        <div class="fila" style="justify-content:space-between"><div><div class="tit">Mis Encuestas</div><div class="desc">Seguimiento y captura de cuadernillos asignados.</div></div><span class="b acc">+ Nueva encuesta</span></div>
+        <div class="card fila"><div class="campo" style="flex:1"><span>Buscar</span><div>Código, hogar, dirección…</div></div><div class="campo"><span>Estado</span><div>Todos</div></div><div class="campo"><span>Periodo</span><div>Todos</div></div><div class="campo"><span>Creada desde</span><div>dd/mm/aaaa</div></div><span class="b out">Limpiar</span></div>
+        <div class="card" style="padding:0"><table><thead><tr><th>ID encuesta</th><th>Hogar / Dirección</th><th>Estado</th><th>Fecha de inicio</th><th>Avance (14 días)</th><th>Acciones</th></tr></thead>
+        <tbody>
+        <tr><td class="mono">E-000001</td><td>H-000001 · Carrera 27 # 45-12</td><td><span class="badge b-curso">En curso</span></td><td>28/09/2026</td><td><span class="prog"><i style="width:57%"></i></span> Día 8</td><td><u>Ver / editar</u></td></tr>
+        <tr><td class="mono">E-000006</td><td>H-000006 · Carrera 15 # 10-22</td><td><span class="badge b-rech">Rechazada</span></td><td>15/09/2026</td><td><span class="prog"><i style="width:100%;background:#b8341b"></i></span> 14/14</td><td><u>Ver / editar</u></td></tr>
+        <tr><td class="mono">E-000008</td><td>H-000008 · Transversal 9 # 4-18</td><td><span class="badge b-pend">Pendiente de aprobación</span></td><td>01/10/2026</td><td><span class="prog"><i style="width:100%;background:#16895a"></i></span> 14/14</td><td><u>Ver</u></td></tr>
+        </tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+<figcaption>Figura 6.1 · Listado «Mis Encuestas» del encuestador</figcaption>
+</figure>
+<p>Filtros disponibles: búsqueda por código, hogar o dirección; región, departamento y municipio; estado; periodo; y rango de fechas de creación. La columna <b>Avance (14 días)</b> muestra en qué día del periodo va la encuesta.</p>
+
+<h2>6.2 Crear una nueva encuesta</h2>
+<p>Solo un <b>encuestador</b> crea encuestas y estas quedan asignadas a él.</p>
+<figure class="figura">
+<div class="pantalla"><div class="barra-ventana"><i></i><i></i><i></i>&nbsp; Nueva encuesta</div>
+<div class="velo"><div class="dialogo">
+  <div><div class="tit">Nueva encuesta</div><div class="desc">Selecciona el hogar. La encuesta queda asignada a ti.</div></div>
+  <div class="campo"><span>Buscar hogar</span><div>Dirección, barrio, vivienda (V-000104) o código de hogar…</div></div>
+  <div class="opcion sel"><span><b>Calle 45 # 12-30 · Hogar 2</b><br><span class="desc">Chapinero Central · 2 personas</span></span><span class="mono">H-000010<br>V-000104</span></div>
+  <div class="opcion"><span><b>Carrera 13 # 44-18, Apto 201 · Hogar 1</b><br><span class="desc">Chapinero Central · 3 personas</span></span><span class="mono">H-000011<br>V-000105</span></div>
+  <div class="desc">¿No encuentras el hogar? Regístralo en <u>Viviendas y hogares</u>.</div>
+  <div class="fila" style="justify-content:flex-end"><span class="b out">Cancelar</span><span class="b acc">Crear encuesta</span></div>
+</div></div></div>
+<figcaption>Figura 6.2 · Ventana «Nueva encuesta»</figcaption>
+</figure>
+<ol>
+  <li>En <i>Encuestas</i> pulse <span class="btn acc">+ Nueva encuesta</span>.</li>
+  <li>Busque y seleccione el hogar (solo aparecen hogares sin encuesta).</li>
+  <li>Pulse <span class="btn acc">Crear encuesta</span>. La encuesta queda <span class="badge b-curso">En curso</span> y se abre su detalle. La fecha de inicio del periodo se registra luego en la pestaña Cap. A.</li>
+</ol>
+
+<h2>6.3 Detalle de la encuesta</h2>
+<p>El detalle muestra el encabezado del caso (código, hogar, estado) y seis pestañas. Use <i>← Volver a encuestas</i> para regresar al listado.</p>
+<figure class="figura">
+<div class="pantalla"><div class="barra-ventana"><i></i><i></i><i></i>&nbsp; Encuesta E-000001</div>
+<div class="cuerpo"><div class="side"><div class="marca"><i>ENPH</i> Urbana</div><div class="it on">Encuestas</div><div class="it">Viviendas y hogares</div></div>
+<div class="main"><div class="top"><div class="migas">ENPH › Encuestas › E-000001<b>Encuesta</b></div><div class="user"><i></i>Laura Martínez · Encuestador</div></div>
+<div class="cont">
+  <div class="desc">← Volver a encuestas</div>
+  <div class="fila" style="justify-content:space-between"><div><div class="tit">E-000001 · Hogar 1</div><div class="desc">Carrera 27 # 45-12 · Periodo 28/09/2026 – 11/10/2026</div></div><span class="badge b-curso">En curso</span></div>
+  <div class="tabs"><span class="on">Control de visitas</span><span>Identificación y hogar (Cap. A)</span><span>Características del gasto (Cap. C)</span><span>Línea de 14 días (gastos)</span><span>Cierre (Cap. D)</span><span>Correcciones</span></div>
+  <div class="grid4"><div class="card kpi"><span>VISITAS REALIZADAS</span><b>3</b></div><div class="card kpi"><span>PRÓXIMA VISITA</span><b style="font-size:8pt">05/10 · 16:00</b></div><div class="card kpi"><span>AVANCE 14 DÍAS</span><b>8/14</b></div><div class="card kpi"><span>ÚLTIMA VISITA</span><b style="font-size:8pt">04/10/2026</b></div></div>
+  <div class="card" style="padding:0"><div class="fila" style="justify-content:space-between;padding:2mm 3mm"><b>Registro de control de visitas</b><span class="b acc">+ Registrar nueva visita</span></div>
+  <table><thead><tr><th>N.º visita</th><th>Fecha y hora</th><th>Resultado de la visita</th><th>Partes pendientes / observaciones</th><th>Próxima cita</th><th>Acciones</th></tr></thead>
+  <tbody><tr><td>1</td><td>28/09/2026 09:30–10:15</td><td>EI · Encuesta incompleta</td><td>Entrega del cuadernillo</td><td>01/10 · 16:00</td><td><u>Editar</u></td></tr></tbody></table></div>
+</div></div></div></div>
+<figcaption>Figura 6.3 · Detalle de encuesta, pestaña Control de visitas</figcaption>
+</figure>
+<div class="alerta"><b>Solo lectura</b>Cuando la encuesta está <i>Pendiente de aprobación</i> o <i>Aprobada</i>, los botones de agregar, editar y eliminar se ocultan y la aplicación no acepta cambios. Si está <i>Rechazada</i>, aparece un aviso con la observación del crítico-digitador.</div>
+
+<h2>6.4 Pestaña «Control de visitas» (Capítulo B)</h2>
+<p>Muestra el resumen operativo (visitas realizadas, próxima visita, avance de los 14 días, última visita) y la tabla de visitas. Máximo 14 visitas por hogar.</p>
+<ol>
+  <li>Pulse <span class="btn acc">+ Registrar nueva visita</span>.</li>
+  <li>Complete <b>Fecha</b> *, <b>Hora de inicio</b> * y <b>Hora de fin</b> (HH:mm), <b>Resultado de la visita</b> * (códigos EC, EI, NH, AT, R, OC, V, O; ver anexo) y <i>Partes pendientes / observaciones</i> (máx. 200 caracteres).</li>
+  <li>Opcional: en <i>PRÓXIMA CITA</i> indique fecha y hora acordadas con el informante.</li>
+  <li>Pulse <span class="btn">Guardar visita</span>. Si no indica el número, se asigna el siguiente.</li>
+</ol>
+<div class="tip"><b>Para poder aprobar</b>La verificación exige al menos una visita y que todas tengan <b>hora de terminación</b>. Además, para cerrar el caso debe existir la <b>visita de recolección</b> (la visita en que se recoge el cuadernillo, desde la fecha final del periodo).</div>
+
+<h2>6.5 Pestaña «Identificación y hogar (Cap. A)»</h2>
+<p>Contiene tres bloques:</p>
+<ul>
+  <li><b>Datos de la encuesta</b>: pulse <span class="btn out">Editar</span> para registrar el <i>Informante calificado</i> * (n.º de orden, ej. 01) y la <i>Fecha desde (A.21)</i> *. La <i>Fecha hasta (A.22)</i> se calcula sola: fecha desde + 13 días. Guarde con <span class="btn">Guardar datos</span>.</li>
+  <li><b>Vivienda (Cap. A)</b>: ubicación geográfica, cartográfica, dirección y edificación (solo lectura).</li>
+  <li><b>Hogar</b>: hogar número (A.13), total de personas (A.14) y ciclo (A.9) (solo lectura).</li>
+</ul>
+<div class="nota"><b>¿Dónde corrijo la vivienda?</b>Los datos de la vivienda y del hogar se editan en <i>Viviendas y hogares</i>, porque son compartidos con otras encuestas de la misma vivienda. La fecha de inicio no puede cambiarse cuando ya hay días registrados.</div>
+
+<h2>6.6 Pestaña «Características del gasto (Cap. C)»</h2>
+<p>Registra con qué frecuencia compra el hogar cada uno de los <b>25 grupos de alimentos</b> del cuadernillo.</p>
+<figure class="figura">
+<div class="pantalla"><div class="barra-ventana"><i></i><i></i><i></i>&nbsp; Cap. C</div>
+<div class="cont">
+  <div class="tabs"><span>Control de visitas</span><span>Cap. A</span><span class="on">Características del gasto (Cap. C)</span><span>Línea de 14 días</span><span>Cierre</span><span>Correcciones</span></div>
+  <div class="fila" style="justify-content:space-between"><b>C. Características del gasto en alimentos</b><span class="desc">18 de 25 grupos · Mostrar: Todos</span></div>
+  <div class="card" style="padding:0"><table><thead><tr><th>Código</th><th>1. Alimentos o grupos de alimentos</th><th>2. Frecuencia de compra *</th><th>3.1 Valor de la última compra</th><th>3.2 ¿Comprará en los 14 días?</th></tr></thead>
+  <tbody><tr><td>01</td><td>Arroz</td><td>Quincenal</td><td style="color:#b9b3a8">—</td><td style="color:#b9b3a8">—</td></tr>
+  <tr><td>02</td><td>Granos secos</td><td>Mensual</td><td>$ 18.500</td><td>Sí</td></tr>
+  <tr><td>05</td><td>Carnes</td><td>Semanal</td><td style="color:#b9b3a8">—</td><td style="color:#b9b3a8">—</td></tr></tbody></table></div>
+  <div class="fila" style="justify-content:flex-end"><span class="b out">Descartar cambios</span><span class="b">Guardar capítulo C</span></div>
+</div></div>
+<figcaption>Figura 6.4 · Capítulo C</figcaption>
+</figure>
+<ol>
+  <li>Para cada grupo elija la <b>Frecuencia de compra</b> (Nunca, Diario, Varias veces por semana, Semanal, Quincenal, Mensual, Bimestral, Trimestral, Esporádica).</li>
+  <li>Si la frecuencia <b>supera la bisemana</b> (mensual, bimestral, trimestral o esporádica) se habilitan la <b>3.1 Valor de la última compra</b> y la <b>3.2 ¿Comprará en los 14 días?</b>.</li>
+  <li>Pulse <span class="btn">Guardar capítulo C</span>. Con «Mostrar» puede filtrar los grupos pendientes o diligenciados.</li>
+</ol>
+<div class="alerta"><b>Requisito para los gastos diarios</b>Mientras falte alguno de los 25 grupos, la aplicación no permite crear días en la Línea de 14 días. Cuando el capítulo está completo aparece el aviso «Capítulo C completo» y el botón <i>Ir a la línea de 14 días</i>. La opción «Nunca» solo existe en este capítulo.</div>
+
+<h2>6.7 Pestaña «Línea de 14 días (gastos)» — Capítulos D y D1</h2>
+<figure class="figura">
+<div class="pantalla"><div class="barra-ventana"><i></i><i></i><i></i>&nbsp; Línea de 14 días</div>
+<div class="cont">
+  <div class="tabs"><span>Control de visitas</span><span>Cap. A</span><span>Cap. C</span><span class="on">Línea de 14 días (gastos)</span><span>Cierre</span><span>Correcciones</span></div>
+  <div class="card"><b>Línea de 14 días</b> <span class="num">1</span>
+    <div class="dias" style="margin-top:2mm"><span class="r">D1<br>6</span><span class="r">D2<br>4</span><span class="r">D3<br>5</span><span class="r">D4<br>3</span><span class="r">D5<br>7</span><span class="r">D6<br>2</span><span class="r">D7<br>4</span><span class="s">D8<br>3</span><span class="h">D9<br>hoy</span><span class="f">D10</span><span class="f">D11</span><span class="f">D12</span><span class="f">D13</span><span class="f">D14</span></div>
+    <div class="desc" style="margin-top:1.5mm">■ Registrado (n.º de renglones) · □ Hoy (borde rojo) · Futuro: no disponible · ■ Día seleccionado</div></div>
+  <div class="card" style="padding:0"><div class="fila" style="justify-content:space-between;padding:2mm 3mm"><span><b>D. Gastos diarios</b> <span class="num">2</span></span><span class="b acc">+ Agregar gasto</span></div>
+  <table><thead><tr><th>(3) N.º</th><th>(4) Artículo o servicio</th><th>(5.1) Cant.</th><th>(5.2) Unidad</th><th>(6) Forma</th><th>(7) Lugar</th><th>(8) Valor</th><th>(9) Frec.</th><th>(10) Tipo</th></tr></thead>
+  <tbody><tr><td>1</td><td>Leche entera en bolsa</td><td>2</td><td>Litro</td><td>1 Compra</td><td>Tienda</td><td>$ 9.800</td><td>Diario</td><td>Hogar</td></tr>
+  <tr><td>2</td><td>Huevos</td><td>12</td><td>Otra (unidad)</td><td>3 Regalo</td><td>—</td><td>$ 7.200</td><td>—</td><td>Hogar</td></tr></tbody></table></div>
+  <div class="card" style="padding:0"><div class="fila" style="justify-content:space-between;padding:2mm 3mm"><span><b>D1. Comidas preparadas fuera del hogar</b> <span class="num">3</span></span><span class="b acc">+ Agregar comida</span></div>
+  <table><thead><tr><th>(3) N.º</th><th>(4) Descripción</th><th>(4.1) Tipo de comida</th><th>(5) Cant.</th><th>(8) Valor</th><th>(10) Tipo</th><th>(11) Domicilio</th></tr></thead>
+  <tbody><tr><td>3</td><td>Almuerzo corriente</td><td>Almuerzo</td><td>1</td><td>$ 14.000</td><td>Personal</td><td>No</td></tr></tbody></table></div>
+</div></div>
+<figcaption>Figura 6.5 · Línea de 14 días con las tablas D y D1</figcaption>
+</figure>
+<ol class="leyenda">
+  <li><b>Línea de tiempo</b>: un recuadro por día del periodo con el número de renglones registrados. Los días futuros no están disponibles; el día de hoy tiene borde rojo. Haga clic en un día para seleccionarlo.</li>
+  <li><b>Tabla D · Gastos diarios</b>: artículos y servicios adquiridos por el hogar o sus miembros durante el día.</li>
+  <li><b>Tabla D1 · Comidas preparadas fuera del hogar</b>: desayunos, almuerzos, cenas y onces consumidos o pedidos fuera de casa.</li>
+</ol>
+<h3>Registrar un día</h3>
+<ol>
+  <li>Seleccione el día. Si no tiene registro, pulse <span class="btn acc">+ Crear registro del día</span>. La fecha del día se calcula como <i>fecha desde + número de día − 1</i>.</li>
+  <li>Agregue los renglones con <span class="btn acc">+ Agregar gasto</span> (tabla D) o <span class="btn acc">+ Agregar comida</span> (tabla D1).</li>
+  <li>Opcional: escriba las <i>Observaciones del día</i> (anotaciones al pie de la página del cuadernillo) y pulse <span class="btn">Guardar observaciones</span>.</li>
+</ol>
+<p>El encabezado <b>REGISTRO DIARIO · D.1.2</b> muestra el <i>Total de renglones con información</i> del día (suma de D y D1).</p>
+
+<h3>Formulario de renglón</h3>
+<table>
+  <thead><tr><th style="width:36%">Campo</th><th>Indicaciones</th></tr></thead>
+  <tbody>
+    <tr><td>(4) Nombre del artículo o servicio * / (4) Descripción de la comida *</td><td>Texto como aparece en el cuadernillo.</td></tr>
+    <tr><td>(4.1) Tipo de comida * <i>(solo D1)</i></td><td>Desayuno, Almuerzo, Cena u Onces/medias nueves/merienda.</td></tr>
+    <tr><td>(5.1) Cantidad *</td><td>Número mayor que cero.</td></tr>
+    <tr><td>(5.2) Unidad de medida * <i>(solo D)</i></td><td>Si es <b>8 Otra</b>, indique cuál y la <b>(5.3) Equivalencia</b> en gramos (sólidos) o cm³ (líquidos).</td></tr>
+    <tr><td>(6) Forma de adquisición *</td><td>1 Compra … 7 Otra (si es Otra, indique cuál).</td></tr>
+    <tr><td>(7) Lugar de compra</td><td>Solo si la forma es <b>Compra</b>; en otro caso queda vacío.</td></tr>
+    <tr><td>(8) Valor pagado *</td><td>En pesos, sin negativos. Si no fue compra, es el valor <b>estimado</b>.</td></tr>
+    <tr><td>(9) Frecuencia de compra *</td><td>Obligatoria si fue compra; vacía en otro caso. «Nunca» no se permite.</td></tr>
+    <tr><td>(10) Tipo de gasto *</td><td>Hogar o Personal. <b>Los gastos personales solo se aceptan del día 1 al 7.</b></td></tr>
+    <tr><td>(11) Pedida a domicilio <i>(solo D1)</i></td><td>Marque si la comida se pidió a domicilio.</td></tr>
+  </tbody>
+</table>
+<div class="tip"><b>Ayuda en pantalla</b>El enlace «Códigos del cuadernillo» muestra las unidades, formas de adquisición, lugares y frecuencias con sus códigos oficiales.</div>
+
+<h2>6.8 Pestaña «Cierre (Cap. D)» — D2 y cierre del caso</h2>
+<figure class="figura">
+<div class="pantalla"><div class="barra-ventana"><i></i><i></i><i></i>&nbsp; Cierre</div>
+<div class="cont">
+  <div class="tabs"><span>Control de visitas</span><span>Cap. A</span><span>Cap. C</span><span>Línea de 14 días</span><span class="on">Cierre (Cap. D)</span><span>Correcciones</span></div>
+  <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:3mm">
+    <div class="card" style="display:flex;flex-direction:column;gap:2mm"><b>D2. Preguntas al recoger el cuadernillo</b>
+      <div class="desc">1. ¿El hogar tuvo algún gasto en alimentos debido a fiestas, reuniones o invitados? *</div><div>◉ Sí (1) &nbsp; ○ No (2)</div>
+      <div class="desc">2. La principal forma de pago usada fue: *</div><div>○ a. Tarjeta débito · ○ b. Tarjeta de crédito · ◉ c. Efectivo · ○ d. Fiado · ○ e. Bonos · ○ f. Otra</div>
+      <div class="campo"><span>Resultado del cuadernillo (A.18) *</span><div>EC · Encuesta completa</div></div>
+      <div class="fila" style="justify-content:flex-end"><span class="b out">Descartar cambios</span><span class="b">Guardar respuestas</span></div></div>
+    <div class="card"><b>Verificación del caso</b>
+      <div class="check"><i></i>Periodo de 14 días terminado</div><div class="check"><i></i>Capítulo C completo</div><div class="check"><i></i>Línea de 14 días</div><div class="check"><i></i>Visita de recolección</div><div class="check"><i></i>Preguntas D2 respondidas</div><div class="check"><i class="no"></i>Resultado del cuadernillo (A.18)</div>
+      <div class="desc" style="margin:1.5mm 0">Falta 1 punto de la verificación.</div><span class="b acc" style="opacity:.55">Cerrar caso</span></div>
+  </div>
+</div></div>
+<figcaption>Figura 6.6 · Pestaña Cierre con la lista de chequeo</figcaption>
+</figure>
+<h3>Responder el D2</h3>
+<ol>
+  <li>Pregunta 1: ¿hubo gastos en alimentos por fiestas, reuniones o invitados? (Sí/No).</li>
+  <li>Pregunta 2: principal forma de pago (tarjeta débito, crédito, efectivo, fiado, bonos u otra; si es «Otra», indique cuál).</li>
+  <li>Observaciones (opcional) y <b>Resultado del cuadernillo (A.18)</b> *: «EC - Encuesta completa» cuando el hogar registró los 14 días.</li>
+  <li>Pulse <span class="btn">Guardar respuestas</span>.</li>
+</ol>
+<h3>Cerrar el caso</h3>
+<p>El botón <span class="btn acc">Cerrar caso</span> se habilita cuando la <b>lista de chequeo</b> está completa:</p>
+<ul>
+  <li>Periodo de 14 días terminado (la fecha actual es posterior a la fecha hasta).</li>
+  <li>Capítulo C completo (25 grupos).</li>
+  <li>Línea de 14 días con información (D y D1).</li>
+  <li>Visita de recolección registrada.</li>
+  <li>Preguntas D2 respondidas y guardadas.</li>
+  <li>Resultado del cuadernillo (A.18) registrado.</li>
+</ul>
+<p>Al pulsarlo se abre una confirmación con el resumen (periodo, resultado, días con información y visitas). Marque <i>«Revisé el cuadernillo con el informante y los datos están completos»</i> y pulse <span class="btn acc">Cerrar caso</span>. La encuesta pasa a <span class="badge b-pend">Pendiente de aprobación</span>, se registran la fecha y el usuario de cierre y queda en solo lectura.</p>
+<div class="alerta"><b>Reabrir (solo administrador)</b>Si hay que corregir algo de un caso cerrado o aprobado, el administrador ve el botón <span class="btn out">Reabrir caso</span> en esta pestaña. Tras confirmar, el estado vuelve a «En curso».</div>
+
+<h2>6.9 Pestaña «Correcciones»</h2>
+<p>Muestra las revisiones registradas por el crítico-digitador: número de <b>rechazos</b> (veces devuelta para corregir), <b>estado de la corrección</b>, <b>última revisión</b> y el <b>historial de revisiones</b> de la más reciente a la más antigua, con la observación de cada rechazo. Solo el último rechazo de una encuesta Rechazada aparece como pendiente.</p>
+<div class="tip"><b>Corregir una encuesta rechazada</b>1) Lea la observación en el aviso del detalle o en Correcciones. 2) Haga los cambios en las pestañas correspondientes. 3) Vuelva a <i>Cierre</i> y cierre el caso: regresa a «Pendiente de aprobación» para una nueva revisión.</div>
+
+<!-- ============================ 7 ============================ -->
+<h1>7. Verificación (crítico-digitador)</h1>
+<p>Módulo <b>«Verificación y consolidación»</b>: revisa los casos que el encuestador ya cerró, compáralos con el cuadernillo físico y apruébalos para exportarlos a Excel. Solo se aprueban casos sin errores en la validación cruzada.</p>
+<figure class="figura">
+<div class="pantalla"><div class="barra-ventana"><i></i><i></i><i></i>&nbsp; Verificación</div>
+<div class="cuerpo"><div class="side"><div class="marca"><i>ENPH</i> Urbana</div><div class="it">Reportes</div><div class="it">Encuestas</div><div class="it on">Verificación</div></div>
+<div class="main"><div class="top"><div class="migas">ENPH › Verificación<b>Verificación</b></div><div class="user"><i></i>Carlos Pérez · Crítico-digitador</div></div>
+<div class="cont">
+  <div class="fila" style="justify-content:space-between"><div class="tit">Verificación y consolidación</div><span><span class="b out">Exportar aprobadas a Excel</span> <span class="b">Sincronizar aprobadas</span> <span class="num">1</span></span></div>
+  <div class="grid2"><div class="card kpi"><span>Pendientes de aprobación · Cerradas por el encuestador</span><b>4</b></div><div class="card kpi"><span>Aprobadas · Listas para el sistema del DANE</span><b>7</b></div></div>
+  <div class="card fila"><div class="campo" style="flex:1"><span>Buscar <span class="num">2</span></span><div>Caso, hogar, dirección, barrio…</div></div><div class="campo"><span>Región</span><div>Todas</div></div><div class="campo"><span>Estado</span><div>Pendiente</div></div><div class="campo"><span>Encuestador</span><div>Todos</div></div><span class="b out">Limpiar</span></div>
+  <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:3mm">
+    <div class="card" style="padding:0"><table><thead><tr><th>Caso</th><th>Hogar / Dirección</th><th>Estado</th><th>Validación <span class="num">3</span></th></tr></thead>
+    <tbody><tr><td class="mono">E-000008</td><td>Transversal 9 # 4-18</td><td><span class="badge b-pend">Pendiente</span></td><td>9 correctas</td></tr>
+    <tr><td class="mono">E-000004</td><td>Calle 34 # 19-50</td><td><span class="badge b-pend">Pendiente</span></td><td>1 error · 1 aviso</td></tr>
+    <tr><td class="mono">E-000003</td><td>Carrera 15 # 10-22</td><td><span class="badge b-apr">Aprobada</span></td><td>9 correctas</td></tr></tbody></table></div>
+    <div class="card"><b>E-000004</b> <span class="num">4</span><div class="sec" style="margin:1.5mm 0">Validación cruzada</div>
+      <div class="check"><i></i>Cap. A · Informante y resultado</div><div class="check"><i></i>Control de visitas (B)</div><div class="check"><i></i>Cap. C · Grupos de alimentos</div><div class="check"><i class="w"></i>Cap. C · Última compra (C.3)</div><div class="check"><i class="e"></i>Línea de 14 días (D y D1)</div><div class="check"><i></i>… 4 reglas más</div>
+      <div class="campo" style="margin-top:1.5mm"><span>Observación para el encuestador (obligatoria al rechazar)</span><div>Falta el registro del día 9…</div></div>
+      <div class="fila" style="margin-top:2mm"><span class="b out">Abrir encuesta</span><span class="b acc">Rechazar</span><span class="b ok" style="opacity:.55">Aprobar</span></div>
+      <div class="sec" style="margin-top:2mm">Historial del caso <span class="num">5</span></div></div>
+  </div>
+</div></div></div></div>
+<figcaption>Figura 7.1 · Bandeja de verificación con el panel del caso</figcaption>
+</figure>
+<ol class="leyenda">
+  <li>Acciones globales: <b>Exportar aprobadas a Excel</b> y <b>Sincronizar aprobadas</b>.</li>
+  <li>Filtros: búsqueda, región, departamento, municipio, estado y encuestador.</li>
+  <li>Bandeja de casos <i>Pendientes de aprobación</i>, <i>Rechazados</i> y <i>Aprobados</i>, con el resumen de su validación.</li>
+  <li>Panel lateral del caso seleccionado: dirección, barrio, periodo, cierre, validación cruzada y acciones.</li>
+  <li>Historial del caso: cada aprobación y rechazo con fecha, usuario y observación.</li>
+</ol>
+
+<h2>7.1 Validación cruzada (9 reglas)</h2>
+<p>Al seleccionar un caso, la aplicación evalúa estas reglas. Cada una resulta <b style="color:#1f6b3a">Correcta</b>, <b style="color:#7a420a">Aviso</b> o <b style="color:#8f2f14">Error</b>. <b>Los errores impiden aprobar; los avisos no.</b></p>
+<table>
+  <thead><tr><th style="width:5%">#</th><th style="width:36%">Regla</th><th>Qué revisa</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Cap. A · Informante y resultado</td><td>Que haya informante calificado y resultado del cuadernillo (A.18).</td></tr>
+    <tr><td>2</td><td>Control de visitas (B)</td><td>Que exista al menos una visita y todas tengan hora de terminación.</td></tr>
+    <tr><td>3</td><td>Cap. C · Grupos de alimentos</td><td>Los 25 grupos con frecuencia de compra.</td></tr>
+    <tr><td>4</td><td>Cap. C · Última compra (C.3)</td><td>Valor de la última compra y C.3.2 en los grupos con frecuencia mayor a la bisemana.</td></tr>
+    <tr><td>5</td><td>Línea de 14 días (D y D1)</td><td>Cuántos de los 14 días tienen renglones.</td></tr>
+    <tr><td>6</td><td>Gastos personales solo en los días 1 a 7</td><td>Que no haya gastos personales después del día 7.</td></tr>
+    <tr><td>7</td><td>Valores según la forma de adquisición</td><td>Compras con valor pagado mayor a $0; pagos, regalos, trueques y producción propia con valor estimado.</td></tr>
+    <tr><td>8</td><td>Lugar de compra</td><td>Que todas las compras tengan lugar de compra.</td></tr>
+    <tr><td>9</td><td>D2 · Cierre del caso</td><td>Respuestas de fiestas y forma de pago.</td></tr>
+  </tbody>
+</table>
+
+<h2>7.2 Aprobar o rechazar</h2>
+<ul>
+  <li><span class="btn out">Abrir encuesta</span>: abre el detalle del caso en el módulo Encuestas para revisarlo contra el cuadernillo físico.</li>
+  <li><span class="btn acc">Rechazar</span>: exige escribir la <b>observación para el encuestador</b> (máximo 1000 caracteres). El caso pasa a <span class="badge b-rech">Rechazada</span> y vuelve a ser editable.</li>
+  <li><span class="btn" style="background:#16895a">Aprobar</span>: disponible si no hay errores. El caso pasa a <span class="badge b-apr">Aprobada</span> y ya no admite cambios.</li>
+</ul>
+
+<h2>7.3 Exportar a Excel</h2>
+<ul>
+  <li><b>Un caso</b>: en el panel de un caso <i>Aprobado</i> pulse <span class="btn out">Exportar a Excel</span> y elija dónde guardar el archivo. El libro tiene una hoja por capítulo: A/D2, B, C, D y D1.</li>
+  <li><b>Todas las aprobadas</b>: pulse <span class="btn out">Exportar aprobadas a Excel</span> en el encabezado. Genera un solo libro con las encuestas aprobadas de la región, departamento y municipio elegidos en los filtros (los demás filtros no aplican): una hoja resumen «Encuestas aprobadas» y las hojas B, C, D y D1 con el código de cada encuesta en la primera columna. Si no hay casos aprobados para el filtro, la aplicación lo informa.</li>
+</ul>
+<p>Exportar no cambia el estado de los casos.</p>
+
+<h2>7.4 Sincronizar aprobadas</h2>
+<p><span class="btn">Sincronizar aprobadas</span> envía todas las encuestas aprobadas al esquema central: agrega las nuevas y reemplaza las que se volvieron a aprobar. No tiene en cuenta los filtros. Al terminar muestra cuántas encuestas fueron <b>nuevas</b> y cuántas <b>actualizadas</b>.</p>
+<div class="nota"><b>Si aparece «No está configurado el esquema destino»</b>El equipo técnico debe configurar la propiedad <code>db.esquemaDestino</code> (ver Manual técnico).</div>
+
+<!-- ============================ 8 ============================ -->
+<h1>8. Reportes</h1>
+<p>Tablero con el avance del operativo de campo y el gasto registrado en el Cuadernillo 2. Un encuestador con este módulo solo ve la información de sus propias encuestas.</p>
+<figure class="figura">
+<div class="pantalla"><div class="barra-ventana"><i></i><i></i><i></i>&nbsp; Reportes</div>
+<div class="cuerpo"><div class="side"><div class="marca"><i>ENPH</i> Urbana</div><div class="it on">Reportes</div><div class="it">Encuestas</div><div class="it">Viviendas y hogares</div><div class="it">Verificación</div><div class="it">Usuarios</div></div>
+<div class="main"><div class="top"><div class="migas">ENPH › Reportes<b>Reportes</b></div><div class="user"><i></i>Administrador ENPH · ADMIN</div></div>
+<div class="cont">
+  <div class="fila" style="justify-content:space-between"><div class="tit">Reportes</div><span class="b out">Exportar a Excel</span></div>
+  <div class="card fila"><div class="campo"><span>Región</span><div>Todas</div></div><div class="campo"><span>Departamento</span><div>Todos</div></div><div class="campo"><span>Municipio</span><div>Todos</div></div><div class="campo"><span>Inicio desde</span><div>dd/mm/aaaa</div></div><div class="campo"><span>Inicio hasta</span><div>dd/mm/aaaa</div></div><span class="b">Filtrar</span><span class="b out">Limpiar</span></div>
+  <div class="kpis"><div class="card kpi"><span>Encuestas</span><b>24</b></div><div class="card kpi"><span>En curso</span><b>9</b></div><div class="card kpi"><span>Casos cerrados</span><b>15</b></div><div class="card kpi"><span>Visitas realizadas</span><b>71</b></div><div class="card kpi"><span>Gasto registrado</span><b style="font-size:9pt">$ 8,4 M</b></div></div>
+  <div class="grid2"><div class="card barras"><b>Gasto por forma de adquisición</b><div>Compra <i style="width:60%"></i></div><div>Regalo <i style="width:18%"></i></div><div>Pago por trabajo <i style="width:9%"></i></div><div>Producción propia <i style="width:6%"></i></div></div>
+  <div class="card barras"><b>Grupos de alimento más comprados</b><div>Arroz <i style="width:62%;background:var(--navy)"></i></div><div>Carnes <i style="width:52%;background:var(--navy)"></i></div><div>Lácteos <i style="width:44%;background:var(--navy)"></i></div><div>Frutas <i style="width:30%;background:var(--navy)"></i></div></div></div>
+</div></div></div></div>
+<figcaption>Figura 8.1 · Tablero de reportes</figcaption>
+</figure>
+<h3>Uso de los filtros</h3>
+<ol>
+  <li>Elija región, departamento y municipio, y/o un rango de fechas de inicio de la encuesta (<i>Inicio desde</i> / <i>Inicio hasta</i>; la final no puede ser anterior a la inicial).</li>
+  <li>Pulse <span class="btn">Filtrar</span>. Mientras haya cambios sin aplicar se muestra «Hay filtros sin aplicar».</li>
+  <li><span class="btn out">Limpiar</span> borra los filtros y recarga el tablero.</li>
+</ol>
+<h3>Secciones del tablero</h3>
+<ul>
+  <li><b>Indicadores</b>: encuestas, en curso, casos cerrados, visitas realizadas y gasto registrado.</li>
+  <li><b>Estado de las encuestas</b>.</li>
+  <li><b>Gasto del hogar y gasto personal</b> (columna 10) y renglones registrados.</li>
+  <li><b>Grupos de alimento más comprados</b> (Cap. C: hogares que compran cada grupo, frecuencia distinta de «Nunca»).</li>
+  <li><b>Gasto por forma de adquisición</b> (columna 6 de D y D1, valor pagado o estimado en COP).</li>
+  <li><b>Compras por lugar de compra</b> (columna 7, solo lo adquirido por compra).</li>
+  <li><b>Rendimiento por encuestador</b>: encuestas, pendientes, aprobadas, rechazadas y visitas, paginado de a 10 con una fila Total en cada página.</li>
+</ul>
+<p><span class="btn out">Exportar a Excel</span> genera un archivo .xlsx con una hoja por sección (la tabla por encuestador incluye todas las filas, no solo la página visible).</p>
+
+<!-- ============================ 9 ============================ -->
+<h1>9. Usuarios</h1>
+<p>Administración de las cuentas: datos de acceso, rol y estado.</p>
+<figure class="figura">
+<div class="pantalla"><div class="barra-ventana"><i></i><i></i><i></i>&nbsp; Usuarios</div>
+<div class="cuerpo"><div class="side"><div class="marca"><i>ENPH</i> Urbana</div><div class="it">Encuestas</div><div class="it on">Usuarios</div><div class="it">Roles y permisos</div></div>
+<div class="main"><div class="top"><div class="migas">ENPH › Usuarios<b>Usuarios</b></div><div class="user"><i></i>Administrador ENPH · ADMIN</div></div>
+<div class="cont">
+  <div class="fila" style="justify-content:space-between"><div><div class="tit">Usuarios</div><div class="desc">Roles, permisos y estado de acceso.</div></div><span class="b acc">+ Nuevo usuario</span></div>
+  <div class="card fila"><div class="campo" style="flex:1"><span>Buscar</span><div>Nombre o correo…</div></div><div class="campo"><span>Rol</span><div>Todos</div></div><div class="campo"><span>Estado</span><div>Activos</div></div><span class="b out">Limpiar</span></div>
+  <div class="card" style="padding:0"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
+  <tbody><tr><td>Laura Martínez</td><td>lmartinez@enph.udi.edu.co</td><td><span class="badge b-curso">Encuestador</span></td><td><span class="badge b-apr">Activo</span></td><td><u>Editar</u></td></tr>
+  <tr><td>Carlos Pérez</td><td>cperez@enph.udi.edu.co</td><td><span class="badge b-pend">Crítico-digitador</span></td><td><span class="badge b-apr">Activo</span></td><td><u>Editar</u></td></tr>
+  <tr><td>Rosa Castillo</td><td>rcastillo@enph.udi.edu.co</td><td><span class="badge b-curso">Encuestador</span></td><td><span class="badge b-rech">Inactivo</span></td><td><u>Editar</u></td></tr></tbody></table></div>
+</div></div></div></div>
+<figcaption>Figura 9.1 · Listado de usuarios</figcaption>
+</figure>
+<h2>9.1 Crear o editar un usuario</h2>
+<ol>
+  <li>Pulse <span class="btn acc">+ Nuevo usuario</span> (o <i>Editar</i> en una fila).</li>
+  <li><b>Datos personales</b>: Nombre *, Apellido *, Correo electrónico *, Teléfono.</li>
+  <li><b>Acceso</b>: Rol *, Contraseña * y Confirmar contraseña (mínimo 6 caracteres; al editar, déjelas en blanco para conservar la actual).</li>
+  <li>Pulse <span class="btn">Guardar</span>. Al asignar el rol Encuestador se crea automáticamente su registro de encuestador.</li>
+</ol>
+<h2>9.2 Desactivar o eliminar</h2>
+<ul>
+  <li><span class="btn out">Desactivar</span> / Activar: baja lógica; un usuario inactivo no puede iniciar sesión.</li>
+  <li><span class="btn out">Eliminar</span>: solo si el usuario no tiene datos registrados; en otro caso desactívelo.</li>
+</ul>
+<div class="alerta"><b>Restricciones</b>No se permiten correos repetidos ni con formato inválido. Un usuario no puede desactivarse ni eliminarse a sí mismo. Solo un administrador crea, edita o asigna el rol Administrador.</div>
+
+<!-- ============================ 10 ============================ -->
+<h1>10. Roles y permisos</h1>
+<p>Pantalla <b>«Configuración de permisos»</b>: marque los módulos a los que puede entrar cada rol.</p>
+<figure class="figura">
+<div class="pantalla"><div class="barra-ventana"><i></i><i></i><i></i>&nbsp; Roles y permisos</div>
+<div class="cuerpo"><div class="side"><div class="marca"><i>ENPH</i> Urbana</div><div class="it">Usuarios</div><div class="it on">Roles y permisos</div></div>
+<div class="main"><div class="top"><div class="migas">ENPH › Roles y permisos<b>Roles y permisos</b></div><div class="user"><i></i>Administrador ENPH · ADMIN</div></div>
+<div class="cont">
+  <div class="fila" style="justify-content:space-between"><div class="tit">Configuración de permisos</div><span><span class="b out">+ Nuevo rol</span> <span class="b acc">Guardar cambios</span></span></div>
+  <div class="card" style="padding:0"><table><thead><tr><th>Roles</th><th>Reportes</th><th>Encuestas</th><th>Viviendas y hogares</th><th>Verificación</th><th>Usuarios</th><th>Roles y permisos</th></tr></thead>
+  <tbody><tr><td><b>Administrador</b><br><span class="desc">Acceso total</span></td><td><span class="cb lock"></span></td><td><span class="cb lock"></span></td><td><span class="cb lock"></span></td><td><span class="cb lock"></span></td><td><span class="cb lock"></span></td><td><span class="cb lock"></span></td></tr>
+  <tr><td><b>Crítico-digitador</b></td><td><span class="cb on"></span></td><td><span class="cb on"></span></td><td><span class="cb"></span></td><td><span class="cb on"></span></td><td><span class="cb"></span></td><td><span class="cb"></span></td></tr>
+  <tr><td><b>Encuestador</b></td><td><span class="cb"></span></td><td><span class="cb on"></span></td><td><span class="cb on"></span></td><td><span class="cb"></span></td><td><span class="cb"></span></td><td><span class="cb"></span></td></tr></tbody></table></div>
+  <div class="desc">El rol Administrador tiene acceso total y no se puede modificar.</div>
+</div></div></div></div>
+<figcaption>Figura 10.1 · Matriz de roles × módulos</figcaption>
+</figure>
+<ol>
+  <li>Marque o desmarque las casillas de cada rol y módulo.</li>
+  <li>Pulse <span class="btn acc">Guardar cambios</span>: todos los permisos se guardan en una sola operación.</li>
+  <li>Los cambios aplican en el siguiente inicio de sesión de cada usuario (el rol del usuario en sesión se recarga de inmediato).</li>
+</ol>
+<h2>10.1 Crear y eliminar roles</h2>
+<ul>
+  <li><span class="btn out">+ Nuevo rol</span>: escriba el nombre (ej. SUPERVISOR). Se guarda en mayúsculas, con «_» en lugar de espacios y máximo 30 caracteres. El rol se crea sin módulos; asígnelos en la matriz.</li>
+  <li>Los roles no se renombran. Los roles del sistema <b>Administrador</b> y <b>Encuestador</b> no se pueden eliminar (los permisos del Encuestador sí se editan). No se elimina un rol que tenga usuarios.</li>
+</ul>
+
+<!-- ============================ 11 ============================ -->
+<h1>11. Mensajes frecuentes y solución de problemas</h1>
+<table>
+  <thead><tr><th style="width:40%">Mensaje o situación</th><th>Causa y solución</th></tr></thead>
+  <tbody>
+    <tr><td>Credenciales inválidas / usuario inactivo</td><td>Revise el correo y la contraseña; si el usuario está inactivo, pida al administrador que lo active.</td></tr>
+    <tr><td>Acceso denegado</td><td>Su rol no tiene el módulo de esa pantalla. Solicítelo al administrador y vuelva a iniciar sesión.</td></tr>
+    <tr><td>La encuesta está cerrada (no admite cambios)</td><td>Está Pendiente de aprobación o Aprobada. Solo un administrador puede reabrirla.</td></tr>
+    <tr><td>No puedo crear días en la Línea de 14 días</td><td>Falta completar el Capítulo C (25 grupos) o el día es futuro.</td></tr>
+    <tr><td>Gasto personal después del día 7</td><td>Los gastos de tipo Personal solo se registran del día 1 al 7. Cambie el tipo a Hogar o el día.</td></tr>
+    <tr><td>La fecha del día no corresponde al periodo</td><td>La fecha se calcula desde la fecha de inicio; revise la <i>Fecha desde</i> en Cap. A.</td></tr>
+    <tr><td>El botón «Cerrar caso» está deshabilitado</td><td>Revise la lista de chequeo de la pestaña Cierre: indica qué punto falta.</td></tr>
+    <tr><td>No se puede aprobar el caso</td><td>La validación cruzada tiene al menos un Error. Rechace con observación para que el encuestador corrija.</td></tr>
+    <tr><td>Falta la observación del rechazo</td><td>Escriba la observación para el encuestador antes de pulsar Rechazar.</td></tr>
+    <tr><td>No hay encuestas aprobadas para exportar</td><td>No hay casos aprobados en la ubicación elegida; cambie los filtros de región/departamento/municipio.</td></tr>
+    <tr><td>Error de conexión con la base de datos</td><td>Verifique la red y que el servidor Oracle esté disponible; si persiste, contacte al equipo técnico.</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================ ANEXO ============================ -->
+<h1>Anexo A. Códigos del cuadernillo</h1>
+<h3>Resultado de la entrevista / del cuadernillo (A.18, visitas)</h3>
+<table><thead><tr><th style="width:12%">Código</th><th>Descripción</th><th style="width:12%">Código</th><th>Descripción</th></tr></thead>
+<tbody><tr><td>EC</td><td>Encuesta completa</td><td>R</td><td>Rechazo</td></tr><tr><td>EI</td><td>Encuesta incompleta</td><td>OC</td><td>Ocupado</td></tr><tr><td>NH</td><td>Nadie en el hogar</td><td>V</td><td>Vacante</td></tr><tr><td>AT</td><td>Ausente temporal</td><td>O</td><td>Otro motivo</td></tr></tbody></table>
+<h3>(6) Forma de adquisición</h3>
+<table><thead><tr><th style="width:12%">Código</th><th>Descripción</th></tr></thead>
+<tbody><tr><td>1</td><td>Compra</td></tr><tr><td>2</td><td>Recibidos como pago por trabajo</td></tr><tr><td>3</td><td>Regalo o donación</td></tr><tr><td>4</td><td>Intercambio o trueque</td></tr><tr><td>5</td><td>Traídos de la finca o producidos por el hogar</td></tr><tr><td>6</td><td>Tomados de un negocio del hogar</td></tr><tr><td>7</td><td>Otra</td></tr></tbody></table>
+<h3>(5.2) Unidad de medida</h3>
+<table><thead><tr><th style="width:12%">Código</th><th>Unidad</th><th style="width:12%">Código</th><th>Unidad</th></tr></thead>
+<tbody><tr><td>1</td><td>Centímetros cúbicos</td><td>5</td><td>Libra</td></tr><tr><td>2</td><td>Litro</td><td>6</td><td>Kilo</td></tr><tr><td>3</td><td>Gramos</td><td>7</td><td>Arroba</td></tr><tr><td>4</td><td>Onzas</td><td>8</td><td>Otra (requiere equivalencia)</td></tr></tbody></table>
+<h3>(9) Frecuencia de compra</h3>
+<table><thead><tr><th style="width:12%">Código</th><th>Frecuencia</th><th style="width:12%">Código</th><th>Frecuencia</th></tr></thead>
+<tbody><tr><td>1</td><td>Nunca (solo Cap. C)</td><td>5</td><td>Mensual *</td></tr><tr><td>2</td><td>Diario</td><td>6</td><td>Bimestral *</td></tr><tr><td>2.1</td><td>Varias veces por semana</td><td>7</td><td>Trimestral *</td></tr><tr><td>3</td><td>Semanal</td><td>9</td><td>Esporádica *</td></tr><tr><td>4</td><td>Quincenal</td><td colspan="2" class="desc">* Supera la bisemana: habilita C.3.1 y C.3.2</td></tr></tbody></table>
+<h3>Otros</h3>
+<ul>
+  <li><b>(10) Tipo de gasto</b>: 1 Gasto del hogar · 2 Gasto personal (solo días 1 a 7).</li>
+  <li><b>(4.1) Tipo de comida</b>: Desayuno · Almuerzo · Cena · Onces, medias nueves, merienda, snacks.</li>
+  <li><b>D2 forma de pago</b>: a. Tarjeta débito · b. Tarjeta de crédito · c. Efectivo · d. Fiado · e. Bonos · f. Otra.</li>
+  <li><b>(7) Lugares de compra</b> y <b>grupos de alimentos</b> (1 a 25): se usan los códigos oficiales del cuadernillo, visibles en «Códigos del cuadernillo» dentro de la aplicación.</li>
+</ul>
+
+</body>
+</html>

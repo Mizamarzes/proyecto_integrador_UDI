@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Manual técnico · ENPH Urbana</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&family=IBM+Plex+Sans:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap">
+<link rel="stylesheet" href="estilos_manual.css">
+</head>
+<body>
+
+<section class="portada">
+  <div class="logo">ENPH</div>
+  <div class="sup">Manual técnico</div>
+  <h1>ENPH Urbana<br>Panel de campo</h1>
+  <p class="sub">Arquitectura, instalación, base de datos Oracle, PL/SQL y guía de mantenimiento de la aplicación del Cuadernillo 2 urbano (ENPH · DANE).</p>
+  <div class="meta">
+    <div><b>Proyecto</b>Proyecto Integrador · IV semestre</div>
+    <div><b>Programa</b>Ingeniería de Sistemas · UDI</div>
+    <div><b>Stack</b>Java 21 · JavaFX 21.0.5 · Oracle 10g · Maven</div>
+    <div><b>Periodo</b>II-2026 · Versión 1.0</div>
+    <div><b>Dirigido a</b>Desarrolladores, DBA y soporte técnico</div>
+    <div><b>Fecha</b>Noviembre de 2026</div>
+  </div>
+</section>
+
+<section class="indice">
+  <h1>Contenido</h1>
+  <ol>
+    <li><span>1</span>Introducción y alcance</li>
+    <li><span>2</span>Arquitectura del sistema</li>
+    <li><span>3</span>Tecnologías y requisitos</li>
+    <li><span>4</span>Estructura del proyecto</li>
+    <li><span>5</span>Instalación y despliegue</li>
+    <li class="sub">5.1 Base de datos (Docker y servidor UDI) · 5.2 Configuración · 5.3 Compilar y ejecutar</li>
+    <li><span>6</span>Capas de la aplicación</li>
+    <li><span>7</span>Control de acceso y seguridad</li>
+    <li><span>8</span>Base de datos</li>
+    <li><span>9</span>PL/SQL: funciones, procedimientos, disparadores y reportes</li>
+    <li><span>10</span>Flujo de estados de la encuesta</li>
+    <li><span>11</span>Sincronización entre esquemas</li>
+    <li><span>12</span>Exportación a Excel</li>
+    <li><span>13</span>Interfaz de usuario (vistas y estilos)</li>
+    <li><span>14</span>Guía de mantenimiento y extensión</li>
+    <li><span>15</span>Solución de problemas</li>
+  </ol>
+</section>
+
+<!-- 1 -->
+<h1>1. Introducción y alcance</h1>
+<p>Este documento describe la construcción técnica de <b>ENPH Urbana · Panel de campo</b>, una aplicación de escritorio para registrar y procesar el <b>Cuadernillo 2 (gastos diarios urbanos del hogar)</b> de la Encuesta Nacional de Presupuestos de los Hogares (ENPH) del DANE. Integra las asignaturas Ingeniería de Software I, Bases de Datos II y Programación II.</p>
+<p>Restricciones del enunciado: diseño <b>orientado a objetos</b>, arquitectura <b>cliente–servidor</b> y persistencia en una <b>base de datos relacional Oracle</b>. La interfaz se construye con JavaFX.</p>
+<h2>1.1 Requisitos funcionales cubiertos</h2>
+<table>
+<thead><tr><th style="width:11%">RF</th><th>Descripción</th><th style="width:34%">Componentes principales</th></tr></thead>
+<tbody>
+<tr><td>RF-01</td><td>Autenticación y autorización por módulos</td><td><code>AuthService</code>, <code>middleware/*</code>, <code>Sesion</code></td></tr>
+<tr><td>RF-02</td><td>Gestión de usuarios</td><td><code>UsuarioService</code>, <code>UsuarioDAO</code>, <code>EncuestadorDAO</code></td></tr>
+<tr><td>RF-03</td><td>Viviendas, hogares y apertura de la encuesta</td><td><code>HogarService</code>, <code>EncuestaService</code></td></tr>
+<tr><td>RF-04 / RF-09</td><td>Gastos diarios (D) y comidas fuera del hogar (D1)</td><td><code>GastoDiarioService</code></td></tr>
+<tr><td>RF-05</td><td>CRUD de registros mientras el caso es editable</td><td>Servicios + <code>trg_val_*</code></td></tr>
+<tr><td>RF-06</td><td>Cierre (D2) y reapertura</td><td><code>EncuestaService</code>, <code>pr_cerrar_encuesta</code>, <code>pr_reabrir_encuesta</code></td></tr>
+<tr><td>RF-07</td><td>Capítulo C (25 grupos)</td><td><code>CaracteristicaService</code></td></tr>
+<tr><td>RF-08</td><td>Control de visitas (Cap. B)</td><td><code>VisitaService</code></td></tr>
+<tr><td>RF-10</td><td>Verificación, aprobación y rechazo</td><td><code>VerificacionService</code>, <code>pr_aprobar_encuesta</code>, <code>pr_rechazar_encuesta</code></td></tr>
+<tr><td>RF-11</td><td>Roles y permisos por módulo</td><td><code>RolService</code>, <code>rol_modulo</code></td></tr>
+<tr><td>RF-12</td><td>Reportes y tablero</td><td><code>ReporteService</code>, <code>ReporteDAO</code>, <code>plsql/reportes.sql</code></td></tr>
+<tr><td>RF-13</td><td>Exportación de aprobados a Excel</td><td><code>util/LibroExcel</code>, <code>pr_exportar_aprobadas</code></td></tr>
+<tr><td>RF-14</td><td>Auditoría y seguridad en la BD</td><td><code>trg_cud_*</code>, <code>auditoria</code>, <code>usuarios_roles.sql</code></td></tr>
+</tbody></table>
+
+<!-- 2 -->
+<h1>2. Arquitectura del sistema</h1>
+<p>Aplicación JavaFX con arquitectura <b>cliente–servidor</b>. El cliente se organiza con el patrón <b>MVC</b>, con el modelo dividido en capas, y se conecta por JDBC a <b>Oracle 10g</b>, que actúa como servidor.</p>
+<div class="capas">
+  <div><b>Vista</b>FXML + CSS en <code style="background:none;color:#f1ede6">resources/com/udi/ui</code>. Sin lógica.</div>
+  <div><b>Controlador</b><code style="background:none;color:#f1ede6">controller.&lt;modulo&gt;</code>. Lee campos, llama servicios, muestra resultados.</div>
+  <div><b>Servicio</b><code style="background:none;color:#f1ede6">service.&lt;modulo&gt;</code>. Reglas de negocio; lanza <i>ReglaNegocioException</i>.</div>
+  <div><b>DAO</b><code style="background:none;color:#f1ede6">dao.&lt;modulo&gt;</code>. SQL JDBC, uno por tabla, extiende <i>BaseDAO</i>.</div>
+  <div class="srv"><b>Servidor Oracle 10g</b>Tablas, secuencias, PL/SQL, disparadores de validación y auditoría.</div>
+</div>
+<p>Las entidades de <code>model</code> (que extienden <code>Entidad</code>/<code>EntidadAuditable</code>) y los enums de <code>model/enums</code> atraviesan las capas sin depender de ninguna.</p>
+<h2>2.1 Reglas de dependencia</h2>
+<ul>
+  <li>La <b>vista</b> solo conoce a su controlador (<code>fx:controller</code>, <code>onAction="#metodo"</code>; los manejadores son métodos <code>@FXML private</code>).</li>
+  <li>El <b>controlador</b> solo llama a servicios, siempre mediante <code>util/Tareas.ejecutar</code> (segundo plano, una tarea a la vez, errores con <code>util/Alertas</code>). <b>Nunca usa un DAO ni escribe SQL.</b></li>
+  <li>El <b>servicio</b> valida y coordina uno o varios DAO dentro de una lectura o transacción.</li>
+  <li>El <b>DAO</b> solo ejecuta SQL y convierte filas en objetos.</li>
+  <li><code>model</code> no depende de ninguna capa.</li>
+</ul>
+<h2>2.2 Doble barrera de reglas</h2>
+<p>Las reglas de negocio viven en los servicios (mensajes claros al usuario) y la base de datos repite las críticas como segunda barrera: disparadores <code>trg_val_&lt;tabla&gt;</code> y procedimientos de cambio de estado. Un error <code>ORA-20000…20999</code> se convierte en <code>ReglaNegocioException</code> con la primera línea del mensaje.</p>
+
+<!-- 3 -->
+<h1>3. Tecnologías y requisitos</h1>
+<table>
+<thead><tr><th style="width:32%">Componente</th><th>Versión / detalle</th></tr></thead>
+<tbody>
+<tr><td>Java</td><td>JDK 21+ (<code>maven-compiler-plugin</code> con <code>release 21</code>), Java Platform Module System</td></tr>
+<tr><td>JavaFX</td><td>21.0.5 (<code>javafx-controls</code>, <code>javafx-fxml</code>), <code>javafx-maven-plugin</code> 0.0.8</td></tr>
+<tr><td>Build</td><td>Apache Maven 3.6+</td></tr>
+<tr><td>Base de datos</td><td>Oracle 10g (Docker <code>oracle-xe-10g</code> en desarrollo; servidor UDI en producción)</td></tr>
+<tr><td>Driver JDBC</td><td><code>ojdbc6</code> 11.2.0.4 (los drivers más nuevos no conectan con un servidor 10g)</td></tr>
+<tr><td>Excel</td><td>Sin librerías externas: <code>util/LibroExcel</code> escribe Office Open XML con <code>java.util.zip</code></td></tr>
+<tr><td>Charset de la BD</td><td><code>ZHS16GBK</code>; el cliente SQL*Plus requiere <code>NLS_LANG=AMERICAN_AMERICA.AL32UTF8</code></td></tr>
+</tbody></table>
+<h2>3.1 Módulos Java (module-info.java)</h2>
+<pre><code>module com.udi {
+    requires javafx.controls;  requires javafx.fxml;
+    requires java.sql;         // JDBC
+    requires java.prefs;       // "Recordarme" del login
+    requires ojdbc6;           // módulo automático
+    opens com.udi.controller.auth to javafx.fxml;   // uno por cada paquete de controladores
+    opens com.udi.componentes   to javafx.fxml;
+    ...
+}</code></pre>
+<div class="alerta"><b>Importante</b>Cada paquete nuevo de controladores necesita su <code>opens … to javafx.fxml</code>, y cada dependencia nueva su <code>requires</code>. No se debe declarar <code>opens</code> de un paquete que aún no existe: la compilación falla. Los controladores usan <i>cell factories</i> con lambdas (no <code>PropertyValueFactory</code>), por lo que <code>model</code> no necesita <code>opens</code>.</div>
+
+<!-- 4 -->
+<h1>4. Estructura del proyecto</h1>
+<pre><code>proyecto_integrador_UDI/
+├── pom.xml
+├── docs/
+│   ├── arquitectura/arquitectura.md          # Árbol completo y reglas de capas
+│   ├── db-documentacion/                      # Modelo (dbml/md), diagramas, migraciones, pruebas
+│   ├── sql-creaciones-servidor-udi/
+│   │   ├── db-origen/                         # Esquema de la aplicación
+│   │   └── db-destino/                        # Esquema central (sincronización)
+│   ├── referencias/                           # Enunciado, diseño, Cuadernillo 2, guías (PDF)
+│   └── manuales/                              # Este manual y el de usuario
+└── src/main/
+    ├── java/module-info.java
+    ├── java/com/udi/
+    │   ├── App.java                           # Arranque, escena única, setRoot / cargar
+    │   ├── config/ConexionBD.java             # Conexión única, consultar / enTransaccion
+    │   ├── model/ (32) + model/enums/ (9)     # Entidades y enums
+    │   ├── dao/BaseDAO.java + dao/&lt;modulo&gt;/   # 22 DAO
+    │   ├── service/&lt;modulo&gt;/                  # 13 servicios
+    │   ├── controller/&lt;modulo&gt;/               # 26 controladores
+    │   ├── middleware/                        # Rutas, RutasModulo, middlewares
+    │   ├── componentes/                       # SelectBuscable, Paginador
+    │   ├── exception/                         # ReglaNegocio, AccesoDenegado, Datos
+    │   └── util/                              # Sesion, Seguridad, Validar, Alertas, Formato,
+    │                                          # LibroExcel, Modal, Tareas, ...
+    └── resources/com/udi/
+        ├── config/db.properties(.example)
+        └── ui/
+            ├── shared/  (estilos.css, layout/navbar.fxml, layout/pendiente.fxml)
+            └── modulos/&lt;modulo&gt;/*.fxml (+ partials/, estilos.css)</code></pre>
+<p>Módulos (subpaquetes de <code>controller</code>, <code>service</code> y <code>dao</code>): <code>auth</code>, <code>shared</code> (solo <code>NavbarController</code>), <code>usuarios</code>, <code>roles</code>, <code>viviendas</code>, <code>encuestas</code>, <code>reportes</code>, <code>verificacion</code> y <code>catalogos</code> (regiones, departamentos, municipios, grupos de alimento y lugares de compra).</p>
+
+<!-- 5 -->
+<h1>5. Instalación y despliegue</h1>
+<h2>5.1 Base de datos</h2>
+<p>El proyecto usa <b>dos esquemas</b> en la misma base Oracle:</p>
+<table><thead><tr><th style="width:30%">Esquema</th><th>Rol</th><th style="width:28%">Carpeta de instalación</th></tr></thead>
+<tbody><tr><td><code>DJGCJDCMPI</code> (origen)</td><td>Esquema con el que trabaja la aplicación: tablas, catálogos, datos de prueba, auditoría, PL/SQL y vistas de sincronización</td><td><code>db-origen/</code></td></tr>
+<tr><td><code>DJGCJDCMPI_CENTRAL</code> (destino)</td><td>Esquema central que recibe las encuestas APROBADAS: mismas tablas, solo catálogos, PL/SQL y <code>pr_sincronizar_aprobadas</code></td><td><code>db-destino/</code></td></tr></tbody></table>
+<div class="alerta"><b>Nombres de esquema</b>En el servidor existen esquemas <code>ENPH*</code> de otros equipos: no use esos nombres. Revise <code>db.properties</code> antes de ejecutar scripts.</div>
+
+<h3>Contenido de cada carpeta</h3>
+<table><thead><tr><th style="width:36%">Script</th><th>Contenido</th></tr></thead>
+<tbody>
+<tr><td><code>01_crear_usuario.sql &lt;usuario&gt;</code></td><td>Crea el usuario Oracle (como SYSTEM). Se niega si ya existe.</td></tr>
+<tr><td><code>02_tablas.sql</code></td><td>Secuencias, tablas, PK, FK, CHECK e índices.</td></tr>
+<tr><td><code>03_catalogos.sql</code></td><td>Módulos, roles, grupos de alimento, lugares de compra y ubicaciones (<code>ubicaciones/</code>).</td></tr>
+<tr><td><code>04_datos_iniciales.sql</code> <i>(origen)</i></td><td>Datos de prueba con ids fijos (solo en esquema vacío).</td></tr>
+<tr><td><code>05_auditoria.sql</code> / <code>04_auditoria.sql</code></td><td>Tabla <code>auditoria</code> y <code>seq_auditoria</code>.</td></tr>
+<tr><td><code>06_vistas_sincronizacion.sql &lt;DESTINO&gt;</code> <i>(origen)</i></td><td>Vistas <code>vis_sinc_*</code> y <code>GRANT SELECT</code> al destino.</td></tr>
+<tr><td><code>05_procedimiento_sincronizacion.sql &lt;ORIGEN&gt;</code> <i>(destino)</i></td><td><code>pr_sincronizar_aprobadas</code> y sus <code>GRANT EXECUTE</code>.</td></tr>
+<tr><td><code>plsql/</code></td><td><code>funciones.sql</code>, <code>procedimientos.sql</code>, <code>disparadores.sql</code>, <code>reportes.sql</code>.</td></tr>
+<tr><td><code>instalar.sql</code></td><td>Ejecuta todo en orden; se detiene en el primer error, se niega si el esquema ya tiene tablas y verifica objetos inválidos.</td></tr>
+<tr><td><code>usuarios_roles.sql &lt;owner&gt;</code> <i>(origen)</i></td><td>Cuentas Oracle <code>&lt;owner&gt;_APP</code>, <code>_CONSULTA</code> y <code>_AUDITOR</code> (opcional).</td></tr>
+<tr><td><code>prueba_sincronizacion.sql &lt;DESTINO&gt;</code></td><td>Prueba de la sincronización (termina en ROLLBACK).</td></tr>
+</tbody></table>
+
+<h3>Desarrollo con Docker (contenedor <code>oracle-xe-10g</code>, puerto 1522, SID XE)</h3>
+<pre><code>docker cp docs/sql-creaciones-servidor-udi/db-origen  oracle-xe-10g:/tmp/db-origen
+docker cp docs/sql-creaciones-servidor-udi/db-destino oracle-xe-10g:/tmp/db-destino
+O="docker exec -it -w /tmp/db-origen  -e NLS_LANG=AMERICAN_AMERICA.AL32UTF8 oracle-xe-10g"
+D="docker exec -it -w /tmp/db-destino -e NLS_LANG=AMERICAN_AMERICA.AL32UTF8 oracle-xe-10g"
+
+$O sqlplus system/oracle @01_crear_usuario.sql DJGCJDCMPI
+$D sqlplus system/oracle @01_crear_usuario.sql DJGCJDCMPI_CENTRAL     # el destino debe existir antes
+$O sqlplus DJGCJDCMPI/&lt;clave&gt; @instalar.sql DJGCJDCMPI_CENTRAL
+$O sqlplus system/oracle @usuarios_roles.sql DJGCJDCMPI               # opcional
+$D sqlplus DJGCJDCMPI_CENTRAL/DJGCJDCMPI_CENTRAL @instalar.sql DJGCJDCMPI
+$O sqlplus DJGCJDCMPI/&lt;clave&gt; @prueba_sincronizacion.sql DJGCJDCMPI_CENTRAL</code></pre>
+
+<h3>Servidor de la UDI (192.168.254.215:1521, SID ORCL)</h3>
+<p>Se ejecuta desde dentro de cada carpeta, con <code>NLS_LANG</code> definido. El orden importa: primero los dos usuarios, luego el origen y al final el destino.</p>
+<pre><code>export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+cd db-origen
+sqlplus system/&lt;clave&gt;@192.168.254.215:1521/ORCL @01_crear_usuario.sql DJGCJDCMPI
+cd ../db-destino
+sqlplus system/&lt;clave&gt;@192.168.254.215:1521/ORCL @01_crear_usuario.sql DJGCJDCMPI_CENTRAL
+cd ../db-origen
+sqlplus DJGCJDCMPI/DJGCJDCMPI@192.168.254.215:1521/ORCL @instalar.sql DJGCJDCMPI_CENTRAL
+#   → "Origen instalado. Siga con db-destino/instalar.sql (parametro: este esquema)."
+cd ../db-destino
+sqlplus DJGCJDCMPI_CENTRAL/DJGCJDCMPI_CENTRAL@192.168.254.215:1521/ORCL @instalar.sql DJGCJDCMPI
+#   → "Destino instalado. Configure db.esquemaDestino con este esquema en la aplicacion."
+cd ../db-origen
+sqlplus DJGCJDCMPI/DJGCJDCMPI@192.168.254.215:1521/ORCL @prueba_sincronizacion.sql DJGCJDCMPI_CENTRAL</code></pre>
+<div class="nota"><b>Reinstalar</b><code>instalar.sql</code> solo funciona en un esquema vacío porque los datos de prueba usan ids fijos (1, 2, 3…). Para reinstalar: <code>DROP USER &lt;usuario&gt; CASCADE</code> y repetir desde el paso 1. Si se recrea el destino, vuelva a ejecutar <code>06_vistas_sincronizacion.sql</code> en el origen.</div>
+
+<h2>5.2 Configuración de la aplicación</h2>
+<p>Copie <code>src/main/resources/com/udi/config/db.properties.example</code> como <code>db.properties</code> en la misma carpeta:</p>
+<pre><code>db.url=jdbc:oracle:thin:@192.168.254.215:1521:ORCL     # Docker: jdbc:oracle:thin:@localhost:1522:XE
+db.usuario=DJGCJDCMPI
+db.contrasena=&lt;clave&gt;
+db.esquema=                       # dueño de las tablas si se conecta con &lt;owner&gt;_APP
+db.esquemaDestino=DJGCJDCMPI_CENTRAL   # esquema central para "Sincronizar aprobadas"</code></pre>
+<p>Cada valor se puede sobrescribir al ejecutar con <code>-Ddb.url</code>, <code>-Ddb.usuario</code>, <code>-Ddb.contrasena</code>, <code>-Ddb.esquema</code> y <code>-Ddb.esquemaDestino</code> (este último se valida como identificador Oracle). Para conectarse con la cuenta de mínimos privilegios: <code>db.usuario=DJGCJDCMPI_APP</code>, <code>db.contrasena=DJGCJDCMPI_APP</code>, <code>db.esquema=DJGCJDCMPI</code>.</p>
+<div class="alerta"><b>Credenciales</b><code>db.properties</code> está en <code>.gitignore</code> pero sigue versionado en git; evite publicar contraseñas reales en el repositorio.</div>
+
+<h2>5.3 Compilar y ejecutar</h2>
+<pre><code>mvn clean javafx:run     # ejecuta la aplicación (clase principal com.udi.App)
+mvn clean package        # compila y empaqueta
+mvn compile              # solo compila</code></pre>
+<p>Usuarios de prueba (contraseña <code>123456</code>, guardada como SHA-256 hex): <code>admin@enph.udi.edu.co</code> (ADMIN), <code>cperez@…</code> (CRITICO_DIGITADOR), <code>lmartinez@…</code> y otros (ENCUESTADOR), <code>rcastillo@…</code> (inactivo).</p>
+
+<!-- 6 -->
+<h1>6. Capas de la aplicación</h1>
+<h2>6.1 Conexión: <code>config/ConexionBD</code></h2>
+<ul>
+  <li><b>Una sola conexión compartida</b> durante la sesión; se reabre si se cae. Abrir una por operación agota los procesos de Oracle XE (<code>ORA-12519</code>). <code>App.stop()</code> la cierra.</li>
+  <li><code>ConexionBD.consultar(c -&gt; …)</code> para lecturas; <code>ConexionBD.enTransaccion(c -&gt; …)</code> para escrituras: commit si todo sale bien, rollback ante cualquier excepción.</li>
+  <li>Al abrir una conexión nueva aplica <code>ALTER SESSION SET CURRENT_SCHEMA = &lt;db.esquema&gt;</code> y vuelve a identificar al usuario de la sesión (<code>pr_iniciar_sesion</code>).</li>
+  <li>Traduce <code>ORA-20000…20999</code> a <code>ReglaNegocioException</code>; los demás errores a <code>DatosException</code>.</li>
+</ul>
+<h2>6.2 DAO: <code>dao/BaseDAO</code></h2>
+<ul>
+  <li>Un DAO por tabla que extiende <code>BaseDAO</code> (<code>buscarPorId</code>, <code>listar</code>, <code>eliminar</code>, <code>contar</code>). Cada método recibe la <code>Connection</code> como primer parámetro, para que un servicio agrupe varias operaciones en una transacción.</li>
+  <li><b>Ids</b>: <code>insertar</code> toma <code>seq_&lt;tabla&gt;.NEXTVAL</code>; <code>asignarId</code> respeta un id ya asignado (los catálogos usan el código oficial del cuadernillo).</li>
+  <li><b>Auditoría de fila</b>: <code>actualizar</code> pone <code>updated_at = SYSTIMESTAMP</code>; <code>created_by</code> viene de <code>util/Sesion</code>.</li>
+  <li><b>Conversión de tipos</b>: <code>LocalDate ↔ DATE</code>, <code>LocalDateTime ↔ TIMESTAMP</code>, <code>boolean ↔ CHAR(1) 'S'/'N'</code>, enum ↔ <code>VARCHAR2</code> con el <b>nombre</b> de la constante (no el código numérico).</li>
+  <li><b>Paginación</b>: <code>consultarPagina</code> con <code>ROWNUM</code> (Oracle 10g no tiene <code>OFFSET</code>); búsqueda sin tildes con <code>patron</code>/<code>sinTildes</code>; devuelve <code>model/Pagina&lt;T&gt;</code>.</li>
+  <li><b>Procedimientos</b>: <code>llamar(c, "pr_…", args)</code> con <code>CallableStatement</code> (solo parámetros IN, sin COMMIT).</li>
+  <li>Excepciones: <code>ReporteDAO</code> (consultas agregadas, usa el público <code>asignarParametros</code>), <code>ExportacionDAO</code> (lee el <code>SYS_REFCURSOR</code> de <code>pr_exportar_aprobadas</code> con <code>OracleTypes.CURSOR</code>) y <code>SincronizacionDAO</code> no extienden <code>BaseDAO</code>.</li>
+</ul>
+<h2>6.3 Servicios</h2>
+<table><thead><tr><th style="width:30%">Servicio</th><th>Responsabilidad</th></tr></thead>
+<tbody>
+<tr><td><code>auth/AuthService</code></td><td>Login (SHA-256), usuario activo, <code>ultimo_acceso</code>, carga de permisos en <code>Sesion</code>, <code>pr_iniciar_sesion</code>/<code>pr_cerrar_sesion</code>.</td></tr>
+<tr><td><code>usuarios/UsuarioService</code></td><td>CRUD de usuarios, encuestador automático, contraseña, activar/desactivar; reglas sobre el propio usuario y el rol ADMIN.</td></tr>
+<tr><td><code>roles/RolService</code></td><td>Roles y matriz <code>rol_modulo</code> (<code>guardarPermisos</code> en una transacción); protege roles del sistema.</td></tr>
+<tr><td><code>viviendas/HogarService</code></td><td>Viviendas y hogares; visibilidad por <code>created_by</code> para el encuestador; número de hogar 1–99.</td></tr>
+<tr><td><code>encuestas/EncuestaService</code></td><td>Crear encuesta, periodo (<code>fecha_hasta = fecha_desde + 13</code>), cerrar, reabrir, <code>revisiones</code>.</td></tr>
+<tr><td><code>encuestas/VisitaService</code></td><td>Control de visitas (Cap. B).</td></tr>
+<tr><td><code>encuestas/CaracteristicaService</code></td><td>25 grupos del Cap. C; C.3.1/C.3.2 solo si la frecuencia supera la bisemana.</td></tr>
+<tr><td><code>encuestas/GastoDiarioService</code></td><td>Días, gastos D y comidas D1: fecha del día, personales días 1–7, reglas por forma de adquisición.</td></tr>
+<tr><td><code>encuestas/ReglasEncuesta</code></td><td>Regla compartida: no se modifica una encuesta PENDIENTE_APROBACION o APROBADA.</td></tr>
+<tr><td><code>catalogos/UbicacionService</code>, <code>CatalogoService</code></td><td>Regiones, departamentos, municipios, grupos y lugares (escritura solo ADMIN).</td></tr>
+<tr><td><code>reportes/ReporteService</code></td><td>Tablero; el encuestador solo ve lo suyo.</td></tr>
+<tr><td><code>verificacion/VerificacionService</code></td><td>Validación cruzada (9 reglas), aprobar, rechazar, exportar uno/todos, sincronizar.</td></tr>
+</tbody></table>
+<h3>Reglas de negocio principales</h3>
+<table><thead><tr><th>Regla</th><th style="width:30%">Dónde</th></tr></thead>
+<tbody>
+<tr><td>Usuario inactivo no inicia sesión; cada login actualiza <code>ultimo_acceso</code></td><td><code>AuthService</code></td></tr>
+<tr><td>Sin visitas, Cap. C, días, gastos ni comidas en encuesta PENDIENTE_APROBACION o APROBADA (RF-06)</td><td>Servicios de encuesta + <code>trg_val_*</code></td></tr>
+<tr><td><code>fecha_hasta = fecha_desde + 13</code>; fecha del día = <code>fecha_desde + numero_dia − 1</code></td><td><code>EncuestaService</code>, <code>GastoDiarioService</code>, <code>trg_val_registro_diario</code></td></tr>
+<tr><td>Gastos <code>PERSONAL</code> solo días 1 a 7</td><td><code>GastoDiarioService</code> + <code>trg_val_gasto_diario</code>/<code>comida</code></td></tr>
+<tr><td>Cap. C con los 25 grupos antes de los registros diarios</td><td><code>CaracteristicaService</code>/<code>GastoDiarioService</code></td></tr>
+<tr><td>No compra ⇒ lugar y frecuencia vacíos; compra ⇒ frecuencia obligatoria; <code>NUNCA</code> solo en Cap. C; «Otra» exige ¿cuál?; equivalencia solo con unidad OTRA</td><td><code>GastoDiarioService</code></td></tr>
+<tr><td>Roles no se renombran; ADMIN y ENCUESTADOR no se eliminan; permisos del ADMIN no se editan; no se elimina un rol con usuarios</td><td><code>RolService</code></td></tr>
+<tr><td>Solo un ENCUESTADOR crea encuestas; solo ADMIN reabre o asigna/edita usuarios ADMIN</td><td><code>EncuestaService</code>, <code>UsuarioService</code></td></tr>
+<tr><td>La lista de chequeo del cierre solo se exige en la UI; <code>cerrar</code> verifica que sea editable (dentro de <code>pr_cerrar_encuesta</code>)</td><td><code>EncuestaCierreController</code>, <code>EncuestaService</code></td></tr>
+</tbody></table>
+<h2>6.4 Controladores y navegación</h2>
+<ul>
+  <li><code>App</code> mantiene una única <code>Scene</code> (con <code>ui/shared/estilos.css</code>) y arranca en <code>modulos/auth/login</code>. <code>App.setRoot("&lt;vista&gt;")</code> cambia la ventana completa.</li>
+  <li><code>NavbarController.abrir("&lt;vista&gt;", migas…)</code> carga una vista en el área de contenido y devuelve su controlador (p. ej. <code>editar(id)</code>). Tras el login abre el primer módulo visible.</li>
+  <li><code>EncuestaDetalleController.abrir(id, Pestana.X)</code> abre el detalle; cada pestaña implementa <code>SeccionEncuesta</code>. Lo editable depende solo de <code>esEditable()</code>.</li>
+  <li>Modales con <code>util/Modal.cargar("&lt;vista&gt;", titulo)</code> → <code>modal.controlador()</code> → <code>modal.mostrar()</code>.</li>
+  <li>Un manejador global de excepciones no capturadas en el hilo FX (en <code>App.start</code>) muestra los errores como alertas.</li>
+</ul>
+<h2>6.5 Componentes reutilizables (<code>com.udi.componentes</code>)</h2>
+<ul>
+  <li><b><code>SelectBuscable&lt;T&gt;</code></b>: select con búsqueda y paginación («Ver más»), alimentado por una <code>Fuente</code> que llama a un servicio que devuelve <code>Pagina&lt;T&gt;</code>. <code>controller/viviendas/SelectoresUbicacion</code> encadena región → departamento → municipio.</li>
+  <li><b><code>Paginador&lt;T&gt;</code></b>: paginación en memoria de 10 filas; <code>vincular(tabla, filtradas, "singular", "plural")</code>, ordena toda la lista con un <code>SortedList</code>. <code>setFilaFinal(supplier)</code> repite una fila en cada página (Total de Reportes) y <code>ajustarAlto(altoFila)</code> fija la altura.</li>
+</ul>
+
+<!-- 7 -->
+<h1>7. Control de acceso y seguridad</h1>
+<h2>7.1 Middlewares (<code>com.udi.middleware</code>)</h2>
+<p>Inspirado en un router Express (<code>router.get('/x', isAuth, ModulePermission, controller)</code>): <code>Rutas</code> asigna a cada prefijo de vista una cadena de <code>Middleware</code>, y <code>App.cargar</code> ejecuta <code>Rutas.exigir(vista)</code> antes de cargar cualquier pantalla, pestaña, formulario o modal, lanzando <code>AccesoDenegadoException</code>.</p>
+<table><thead><tr><th style="width:46%">Prefijo de vista</th><th>Cadena</th></tr></thead>
+<tbody>
+<tr><td><code>modulos/auth/</code></td><td>Pública</td></tr>
+<tr><td><code>modulos/usuarios/</code>, <code>roles/</code>, <code>viviendas/</code>, <code>encuestas/</code>, <code>reportes/</code>, <code>verificacion/</code></td><td><code>AutenticacionMiddleware</code> → <code>PermisoModuloMiddleware</code></td></tr>
+<tr><td>Cualquier otra (<code>shared/layout/navbar</code>…)</td><td><code>AutenticacionMiddleware</code></td></tr>
+</tbody></table>
+<p><code>PermisoModuloMiddleware</code> deja pasar al ADMIN y, para otros roles, resuelve el slug con <code>RutasModulo.slugsDe(vista)</code> (prefijo más largo) y lo compara con los <code>rol_modulo</code> de la sesión. Los controladores no validan roles: ocultan botones con <code>Rutas.permitir(nodo, vista)</code>. Los servicios repiten la verificación con <code>Sesion.exigirModulo(RutasModulo.X)</code> (y <code>Sesion.exigirAdmin()</code> para catálogos y ubicaciones).</p>
+<h2>7.2 Seguridad de la aplicación</h2>
+<ul>
+  <li>Contraseñas con hash <b>SHA-256</b> en hexadecimal (<code>util/Seguridad</code>); nunca se registran en la auditoría.</li>
+  <li>Permisos cargados al iniciar sesión; los cambios aplican en el siguiente login (salvo el rol propio, que <code>RolService</code> recarga).</li>
+  <li>Encuestador: solo ve y modifica las viviendas/hogares que creó (<code>created_by</code>), filtrado en el DAO y verificado en las escrituras.</li>
+</ul>
+<h2>7.3 Cuentas y roles de Oracle (<code>usuarios_roles.sql &lt;owner&gt;</code>)</h2>
+<table><thead><tr><th style="width:28%">Cuenta</th><th style="width:32%">Rol Oracle</th><th>Privilegios</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;owner&gt;_APP</code></td><td><code>ROL_&lt;owner&gt;_APLICACION</code></td><td>DML, secuencias y EXECUTE; sin DDL</td></tr>
+<tr><td><code>&lt;owner&gt;_CONSULTA</code></td><td><code>ROL_&lt;owner&gt;_LECTURA</code></td><td>SELECT salvo <code>usuario</code>; EXECUTE de funciones</td></tr>
+<tr><td><code>&lt;owner&gt;_AUDITOR</code></td><td><code>ROL_&lt;owner&gt;_AUDITOR</code></td><td>SELECT de <code>auditoria</code> y <code>auditoria_encuesta</code></td></tr>
+</tbody></table>
+<p>Las contraseñas son iguales al nombre de usuario; el owner admite máximo 16 caracteres. Los permisos son por objeto: vuelva a ejecutar el script tras agregar tablas o PL/SQL.</p>
+
+<!-- 8 -->
+<h1>8. Base de datos</h1>
+<p>Fuente de verdad del esquema: <code>docs/db-documentacion/modelo_relacional.dbml</code> (documentado en <code>modelo_relacional.md</code>, con el diccionario de datos completo).</p>
+<figure class="figura"><img src="../db-documentacion/diagramas/modelo-entidad-relacion.png" alt="Modelo entidad-relación"><figcaption>Figura 8.1 · Modelo entidad–relación</figcaption></figure>
+<figure class="figura"><img src="../db-documentacion/diagramas/relacional_Db_diagram.png" alt="Modelo relacional"><figcaption>Figura 8.2 · Modelo relacional</figcaption></figure>
+<h2>8.1 Tablas</h2>
+<table><thead><tr><th style="width:26%">Grupo</th><th>Tablas</th></tr></thead>
+<tbody>
+<tr><td>Seguridad</td><td><code>modulo</code>, <code>rol</code>, <code>rol_modulo</code>, <code>usuario</code>, <code>encuestador</code></td></tr>
+<tr><td>Ubicación</td><td><code>region</code> (6), <code>departamento</code> (33, id = código DANE), <code>municipio</code> (1102)</td></tr>
+<tr><td>Cap. A, B y D2</td><td><code>vivienda</code>, <code>hogar</code>, <code>encuesta</code>, <code>visita</code></td></tr>
+<tr><td>Cap. C</td><td><code>grupo_alimento</code> (25, códigos oficiales), <code>caracteristica_gasto</code></td></tr>
+<tr><td>Cap. D y D1</td><td><code>lugar_compra</code> (códigos oficiales), <code>registro_diario</code>, <code>gasto_diario</code>, <code>comida_fuera_hogar</code></td></tr>
+<tr><td>Verificación y auditoría</td><td><code>auditoria_encuesta</code> (APROBADA/RECHAZADA con observación), <code>auditoria</code> (INSERCION/MODIFICACION/ELIMINACION)</td></tr>
+</tbody></table>
+<h2>8.2 Convenciones</h2>
+<ul>
+  <li>Columnas de auditoría: <code>created_at</code> (default <code>SYSTIMESTAMP</code>), <code>updated_at</code>, <code>created_by</code> (FK a <code>usuario</code>).</li>
+  <li>Enums como <code>VARCHAR2 + CHECK</code> con el nombre de la constante; booleanos <code>CHAR(1)</code> <code>'S'/'N'</code>.</li>
+  <li>Secuencias <code>seq_&lt;tabla&gt;</code>; empiezan en 7 (<code>region</code>), 100 (<code>departamento</code>), 1103 (<code>municipio</code>) y 26 (<code>grupo_alimento</code>, <code>lugar_compra</code>) para no chocar con los ids cargados.</li>
+  <li><code>vivienda</code> no guarda el total de hogares (A.12): lo calcula <code>ViviendaDAO</code>, que además une los nombres de municipio, departamento y región.</li>
+  <li><code>gasto_diario</code> no tiene grupo de alimento: la gráfica de grupos de Reportes cuenta hogares desde <code>caracteristica_gasto</code>.</li>
+</ul>
+<div class="alerta"><b>Charset ZHS16GBK</b>No tiene <code>ñ</code>/<code>Ñ</code> ni mayúsculas con tilde: <code>ñ</code> se guarda como <code>?</code> y <code>Á</code> pasa a <code>á</code>. Los mensajes PL/SQL y las descripciones de auditoría evitan esos caracteres. Sin <code>NLS_LANG</code> el texto acentuado se corrompe.</div>
+<h2>8.3 Migraciones</h2>
+<p><code>docs/db-documentacion/migraciones/</code> convierte esquemas antiguos: <code>migracion_estados_encuesta.sql</code> (de cinco estados a cuatro), <code>migracion_unificar_modulos.sql</code> (de 10 a 6 módulos), <code>migracion_verificacion.sql</code> (agrega <code>auditoria_encuesta</code>), <code>migracion_quitar_total_hogares.sql</code> y <code>migracion_auditoria.sql</code>.</p>
+<div class="nota"><b>Cambios de esquema</b>Orden de actualización: <code>.dbml</code> → <code>modelo_relacional.md</code> → todas las copias de <code>02_tablas.sql</code>/<code>03_catalogos.sql</code>/auditoría/<code>plsql/</code> (origen, destino y <code>db-documentacion</code>) → vistas y procedimiento de sincronización si la tabla se sincroniza → listas de columnas de los DAO.</div>
+
+<!-- 9 -->
+<h1>9. PL/SQL</h1>
+<p>Vive en <code>plsql/</code> de cada carpeta de instalación y se ejecuta al final de <code>instalar.sql</code>. En un esquema existente se vuelve a ejecutar el archivo modificado.</p>
+<h2>9.1 Funciones (<code>funciones.sql</code>)</h2>
+<table><thead><tr><th style="width:36%">Función</th><th>Uso</th></tr></thead>
+<tbody>
+<tr><td><code>fn_codigo_encuesta(id)</code></td><td>Código visible <code>E-000005</code>.</td></tr>
+<tr><td><code>fn_estado_encuesta</code>, <code>fn_descripcion_estado</code></td><td>Estado y su texto.</td></tr>
+<tr><td><code>fn_encuesta_editable</code></td><td>¿La encuesta admite cambios? (EN_CURSO o RECHAZADA).</td></tr>
+<tr><td><code>fn_fecha_dia</code>, <code>fn_dia_registro</code></td><td>Fecha esperada de un día del periodo.</td></tr>
+<tr><td><code>fn_encuesta_hogar</code>, <code>fn_encuesta_registro</code></td><td>Encuesta a la que pertenece un hogar o registro diario.</td></tr>
+<tr><td><code>fn_gasto_total_encuesta</code></td><td>Gasto total (D + D1); usada por <code>ReporteDAO</code>.</td></tr>
+<tr><td><code>fn_usuario_sesion</code></td><td>Usuario de la sesión (<code>CLIENT_IDENTIFIER</code>) para la auditoría.</td></tr>
+<tr><td><code>fn_columna</code></td><td>Relleno de columnas de reportes (RPAD cuenta tildes como ancho 2 en ZHS16GBK).</td></tr>
+</tbody></table>
+<h2>9.2 Procedimientos (<code>procedimientos.sql</code>)</h2>
+<table><thead><tr><th style="width:36%">Procedimiento</th><th>Uso</th></tr></thead>
+<tbody>
+<tr><td><code>pr_cerrar_encuesta</code></td><td>EN_CURSO/RECHAZADA → PENDIENTE_APROBACION; llena <code>fecha_cierre</code> y <code>cerrada_por</code>.</td></tr>
+<tr><td><code>pr_reabrir_encuesta</code></td><td>PENDIENTE_APROBACION/APROBADA → EN_CURSO (solo ADMIN en el servicio).</td></tr>
+<tr><td><code>pr_rechazar_encuesta</code></td><td>PENDIENTE_APROBACION → RECHAZADA con observación; registra la revisión.</td></tr>
+<tr><td><code>pr_aprobar_encuesta</code></td><td>PENDIENTE_APROBACION → APROBADA; registra la revisión.</td></tr>
+<tr><td><code>pr_incluir_revision</code></td><td>Inserta en <code>auditoria_encuesta</code>.</td></tr>
+<tr><td><code>pr_exportar_aprobadas</code></td><td>OUT <code>SYS_REFCURSOR</code> con el resumen de aprobadas por ubicación (solo lectura).</td></tr>
+<tr><td><code>pr_iniciar_sesion</code>, <code>pr_cerrar_sesion</code></td><td><code>DBMS_SESSION.SET_IDENTIFIER</code> / limpiar.</td></tr>
+<tr><td><code>incluir_auditoria</code></td><td>Inserta una fila en <code>auditoria</code> (la llaman los <code>trg_cud_*</code>).</td></tr>
+</tbody></table>
+<p>Ningún procedimiento hace COMMIT: quedan dentro de <code>enTransaccion</code>.</p>
+<h2>9.3 Disparadores (<code>disparadores.sql</code>)</h2>
+<ul>
+  <li><b>Validación</b> <code>trg_val_&lt;tabla&gt;</code> (<code>encuesta</code>, <code>visita</code>, <code>caracteristica_gasto</code>, <code>registro_diario</code>, <code>gasto_diario</code>, <code>comida_fuera_hogar</code>): BEFORE INSERT OR UPDATE (nunca DELETE, para evitar <code>ORA-04091</code> en cascadas). Repiten caso cerrado, fecha del día, gastos personales y transiciones válidas de estado.</li>
+  <li><b>Auditoría</b> <code>trg_cud_&lt;tabla&gt;</code> en las 19 tablas: AFTER INSERT OR UPDATE OR DELETE, FOR EACH ROW. Solo leen <code>:NEW</code>/<code>:OLD</code> (sin consultas) y nunca registran la contraseña. <code>auditoria.usuario_id</code> = <code>CLIENT_IDENTIFIER</code> de la sesión o, en inserciones, el <code>created_by</code> de la fila.</li>
+</ul>
+<h2>9.4 Reportes en el SGBDR (<code>reportes.sql</code>)</h2>
+<p>Funciones con cursores (estilo de la guía de Bases de Datos II) que devuelven un <code>VARCHAR2</code> multilínea (máx. 32000 caracteres, luego «... (reporte recortado)»):</p>
+<ul>
+  <li><code>fn_reporte_encuestas(estado)</code> · <code>fn_reporte_encuestadores(desde, hasta)</code> · <code>fn_reporte_gasto_ubicacion</code> · <code>fn_reporte_revisiones(encuesta)</code></li>
+</ul>
+<pre><code>SET SERVEROUTPUT ON
+SET LINESIZE 32767          -- con líneas más cortas el texto se parte
+BEGIN
+  DBMS_OUTPUT.PUT_LINE(fn_reporte_encuestas('APROBADA'));
+END;
+/</code></pre>
+<h2>9.5 Códigos de error propios</h2>
+<table><thead><tr><th style="width:16%">Código</th><th>Significado</th></tr></thead>
+<tbody>
+<tr><td>-20001</td><td>No existe la encuesta</td></tr>
+<tr><td>-20002</td><td>La encuesta está cerrada (no admite cambios)</td></tr>
+<tr><td>-20003</td><td>El estado de la encuesta no permite la acción</td></tr>
+<tr><td>-20004</td><td>Falta la observación del rechazo</td></tr>
+<tr><td>-20005</td><td>La fecha del día no corresponde al periodo de la encuesta</td></tr>
+<tr><td>-20006</td><td>Gasto personal después del día 7</td></tr>
+<tr><td>-20007</td><td>Cambio de estado no permitido</td></tr>
+<tr><td>-20008</td><td>Parámetro no válido en un reporte o en <code>pr_exportar_aprobadas</code></td></tr>
+</tbody></table>
+<p>Pruebas: <code>docs/db-documentacion/pruebas/bloques_anonimos.sql</code> (demostración de funciones, procedimientos y disparadores; termina en ROLLBACK) y <code>pruebas_seguridad.sql</code> (permisos por cuenta).</p>
+
+<!-- 10 -->
+<h1>10. Flujo de estados de la encuesta</h1>
+<p>Enum <code>EstadoEncuesta</code>: <code>EN_CURSO</code>, <code>PENDIENTE_APROBACION</code>, <code>APROBADA</code>, <code>RECHAZADA</code>. Todos los cambios pasan por procedimientos llamados desde <code>EncuestaDAO</code> con <code>BaseDAO.llamar</code>.</p>
+<table><thead><tr><th>Desde</th><th>Hacia</th><th>Acción / procedimiento</th><th>Quién</th><th>¿Historial?</th></tr></thead>
+<tbody>
+<tr><td><span class="badge b-curso">EN_CURSO</span></td><td><span class="badge b-pend">PENDIENTE_APROBACION</span></td><td>Cerrar · <code>pr_cerrar_encuesta</code></td><td>Encuestador</td><td>No</td></tr>
+<tr><td><span class="badge b-rech">RECHAZADA</span></td><td><span class="badge b-pend">PENDIENTE_APROBACION</span></td><td>Cerrar de nuevo · <code>pr_cerrar_encuesta</code></td><td>Encuestador</td><td>No</td></tr>
+<tr><td><span class="badge b-pend">PENDIENTE_APROBACION</span></td><td><span class="badge b-apr">APROBADA</span></td><td>Aprobar · <code>pr_aprobar_encuesta</code> (tras las 9 reglas sin errores)</td><td>Crítico-digitador</td><td>Sí</td></tr>
+<tr><td><span class="badge b-pend">PENDIENTE_APROBACION</span></td><td><span class="badge b-rech">RECHAZADA</span></td><td>Rechazar · <code>pr_rechazar_encuesta</code> (observación ≤ 1000)</td><td>Crítico-digitador</td><td>Sí</td></tr>
+<tr><td><span class="badge b-pend">PENDIENTE</span> / <span class="badge b-apr">APROBADA</span></td><td><span class="badge b-curso">EN_CURSO</span></td><td>Reabrir · <code>pr_reabrir_encuesta</code></td><td>ADMIN</td><td>No</td></tr>
+</tbody></table>
+<p><code>auditoria_encuesta.accion</code> (<code>AccionAuditoria</code>) solo admite APROBADA y RECHAZADA: cerrar, reabrir y exportar no quedan en el historial (sí en la tabla <code>auditoria</code>).</p>
+<h2>10.1 Validación cruzada (<code>VerificacionService</code>)</h2>
+<p>Nueve reglas, cada una <code>CORRECTA</code>, <code>AVISO</code> o <code>ERROR</code> (<code>ReglaVerificacion</code>): Cap. A informante y resultado; control de visitas (B); Cap. C grupos; Cap. C última compra (C.3); línea de 14 días (D y D1); gastos personales días 1–7; valores según forma de adquisición; lugar de compra; D2 cierre. Los errores bloquean <code>aprobar</code>.</p>
+
+<!-- 11 -->
+<h1>11. Sincronización entre esquemas</h1>
+<p>Sigue la guía <i>SincronizaciónOracle (Esquema a esquema)</i>: vistas en el origen con <code>GRANT SELECT</code> y un procedimiento con cursores en el destino.</p>
+<div class="flujo">
+  <div class="paso"><b>Origen · DJGCJDCMPI</b>Vistas <code>vis_sinc_&lt;tabla&gt;</code> (12) + <code>GRANT SELECT</code> al destino.</div><div class="flecha">›</div>
+  <div class="paso"><b>Aplicación</b>«Sincronizar aprobadas» → <code>SincronizacionDAO</code> dentro de <code>enTransaccion</code>.</div><div class="flecha">›</div>
+  <div class="paso" style="border-top-color:var(--accent)"><b>Destino · DJGCJDCMPI_CENTRAL</b><code>pr_sincronizar_aprobadas(OUT nuevas, OUT actualizadas)</code></div>
+</div>
+<p>El procedimiento:</p>
+<ol>
+  <li>Conserva los ids del origen; inserta los <code>rol</code>, <code>usuario</code> y <code>encuestador</code> que falten; hace MERGE de <code>vivienda</code> y <code>hogar</code>.</li>
+  <li>Para cada encuesta APROBADA: si ya existe y su <code>updated_at</code> es más reciente, la elimina (cascada + visitas del hogar) y la vuelve a insertar; si no cambió, no la toca.</li>
+  <li>Inserta la encuesta como EN_CURSO, luego sus capítulos, y la pasa a PENDIENTE_APROBACION y APROBADA (con el <code>updated_at</code> del origen), porque los <code>trg_val_*</code> del destino rechazan filas de una encuesta cerrada.</li>
+</ol>
+<div class="nota"><b>Mantenimiento</b>Las columnas están listadas explícitamente en las vistas y en el procedimiento: manténgalas sincronizadas al cambiar una tabla. En SQL*Plus <code>&amp;origen..vista</code> requiere doble punto. Vuelva a ejecutar <code>05_procedimiento_sincronizacion.sql</code> tras <code>usuarios_roles.sql</code> (otorga EXECUTE a <code>ROL_&lt;origen&gt;_APLICACION</code>).</div>
+
+<!-- 12 -->
+<h1>12. Exportación a Excel</h1>
+<p><code>util/LibroExcel</code> es un escritor mínimo de Office Open XML sobre <code>java.util.zip</code> (varias hojas, formato de pesos y porcentajes), sin dependencias nuevas en <code>module-info</code>.</p>
+<table><thead><tr><th style="width:28%">Exportación</th><th>Contenido</th><th style="width:30%">Implementación</th></tr></thead>
+<tbody>
+<tr><td>Reportes</td><td>Una hoja por sección del tablero; la tabla por encuestador con todas las filas.</td><td><code>ReporteController</code> + <code>LibroExcel</code></td></tr>
+<tr><td>Un caso aprobado</td><td>Hojas A/D2, B, C, D y D1.</td><td><code>VerificacionService</code> + <code>Capitulos</code></td></tr>
+<tr><td>Todas las aprobadas</td><td>Hoja «Encuestas aprobadas» (de <code>pr_exportar_aprobadas</code>) + hojas B, C, D y D1 con el código de cada encuesta en la primera columna. Filtra por región/departamento/municipio. Archivo <code>ENPH_C2_aprobadas_&lt;fecha&gt;.xlsx</code>.</td><td><code>VerificacionService.exportarAprobadas</code>, <code>ExportacionDAO</code> (<code>OracleTypes.CURSOR</code>)</td></tr>
+</tbody></table>
+<p>Ninguna exportación cambia el estado de los casos.</p>
+
+<!-- 13 -->
+<h1>13. Interfaz de usuario</h1>
+<h2>13.1 Vistas</h2>
+<p>Las vistas se nombran por su ruta dentro de <code>ui</code> sin extensión (p. ej. <code>"modulos/encuestas/encuesta"</code>). Pantallas por módulo:</p>
+<table><thead><tr><th style="width:20%">Módulo</th><th>FXML</th></tr></thead>
+<tbody>
+<tr><td>auth</td><td><code>login</code></td></tr>
+<tr><td>shared</td><td><code>layout/navbar</code> (barra lateral + encabezado), <code>layout/pendiente</code> («en construcción»)</td></tr>
+<tr><td>encuestas</td><td><code>encuesta</code>, <code>encuesta_detalle</code>; partials: <code>nueva_encuesta</code>, <code>encuesta_visitas</code>, <code>visita_form</code>, <code>encuesta_hogar</code>, <code>encuesta_capitulo_c</code>, <code>encuesta_gastos</code>, <code>renglon_form</code>, <code>encuesta_cierre</code>, <code>cerrar_caso</code>, <code>encuesta_correcciones</code></td></tr>
+<tr><td>viviendas</td><td><code>vivienda</code>, <code>vivienda_detalle</code>; partials: <code>vivienda_form</code>, <code>hogar_form</code></td></tr>
+<tr><td>verificacion</td><td><code>verificacion</code></td></tr>
+<tr><td>reportes</td><td><code>reporte</code></td></tr>
+<tr><td>usuarios</td><td><code>usuario</code>, <code>usuario_form</code></td></tr>
+<tr><td>roles</td><td><code>rol</code>; partials: <code>rol_form</code></td></tr>
+</tbody></table>
+<h2>13.2 Diseño visual</h2>
+<p>La interfaz sigue el diseño «ENPH Urbana – Pantallas» y su sistema de diseño: fondo arena (<code>#e8e1d5</code>), barra lateral azul marino (<code>#1a2332</code>), acento terracota (<code>#b8431f</code>), tarjetas blancas, títulos con tipografía serif y texto sans; insignias de estado <span class="badge b-curso">En curso</span> <span class="badge b-pend">Pendiente</span> <span class="badge b-apr">Aprobada</span> <span class="badge b-rech">Rechazada</span>.</p>
+<h2>13.3 Hojas de estilo</h2>
+<ul>
+  <li><code>ui/shared/estilos.css</code>: tokens de color (<code>-color-tinta</code>, <code>-color-suave</code>…) y componentes comunes (botones, campos, tablas, tarjetas, insignias, avisos, modales, <code>SelectBuscable</code>, <code>Paginador</code>). Se adjunta a la escena y a cada modal.</li>
+  <li><code>ui/modulos/&lt;modulo&gt;/estilos.css</code>: estilos propios; <code>App.cargar</code> los adjunta a la raíz de cada vista de la carpeta (el FXML no declara hojas).</li>
+  <li><code>ui/shared/layout/estilos.css</code>: estructura (barra lateral y encabezado).</li>
+  <li>Una clase usada por un segundo módulo se mueve a la hoja compartida. Los popups de <code>SelectBuscable</code> copian solo las hojas de la escena.</li>
+</ul>
+
+<!-- 14 -->
+<h1>14. Guía de mantenimiento y extensión</h1>
+<h2>14.1 Agregar un módulo nuevo</h2>
+<ol>
+  <li>Crear la carpeta de vistas <code>ui/modulos/&lt;modulo&gt;/</code> (y <code>estilos.css</code> si hace falta).</li>
+  <li>Crear los paquetes <code>controller/&lt;modulo&gt;/</code> y, si aplica, <code>service/&lt;modulo&gt;/</code> y <code>dao/&lt;modulo&gt;/</code>.</li>
+  <li>Agregar <code>opens com.udi.controller.&lt;modulo&gt; to javafx.fxml;</code> en <code>module-info.java</code>.</li>
+  <li>Registrar el slug en <code>middleware/RutasModulo</code> y la ruta en <code>Rutas</code>.</li>
+  <li>Insertar el módulo en la tabla <code>modulo</code> (y su copia en <code>03_catalogos.sql</code>) y asignarlo en <code>rol_modulo</code>.</li>
+  <li>Agregar el botón en <code>navbar.fxml</code>/<code>NavbarController</code>.</li>
+  <li>En los servicios, proteger las escrituras con <code>Sesion.exigirModulo(RutasModulo.X)</code>.</li>
+</ol>
+<h2>14.2 Agregar o cambiar una tabla</h2>
+<ol>
+  <li>Actualizar <code>modelo_relacional.dbml</code> y <code>modelo_relacional.md</code>; regenerar diagramas.</li>
+  <li>Cambiar todas las copias de <code>02_tablas.sql</code> (origen, destino) y, si aplica, catálogos, auditoría (<code>trg_cud_&lt;tabla&gt;</code>) y <code>trg_val_&lt;tabla&gt;</code>.</li>
+  <li>Si la tabla se sincroniza: vista <code>vis_sinc_&lt;tabla&gt;</code> y columnas de <code>pr_sincronizar_aprobadas</code>.</li>
+  <li>Entidad en <code>model</code>, DAO que extienda <code>BaseDAO</code> (lista de columnas), servicio con reglas.</li>
+  <li>Para esquemas existentes, escribir una migración en <code>docs/db-documentacion/migraciones/</code> (sin PL/SQL) y volver a ejecutar <code>usuarios_roles.sql</code> por los permisos por objeto.</li>
+</ol>
+<h2>14.3 Buenas prácticas del proyecto</h2>
+<ul>
+  <li>Código, textos de la UI y documentación en español.</li>
+  <li>No agregar validaciones de rol en controladores: usar rutas y <code>Rutas.permitir</code>.</li>
+  <li>Llamar servicios desde controladores solo con <code>Tareas.ejecutar</code>.</li>
+  <li>Para catálogos largos usar <code>SelectBuscable</code> en lugar de <code>ComboBox</code>; tablas con <code>Paginador</code>.</li>
+  <li>Mensajes PL/SQL sin <code>ñ</code> ni mayúsculas acentuadas.</li>
+</ul>
+
+<!-- 15 -->
+<h1>15. Solución de problemas</h1>
+<table><thead><tr><th style="width:34%">Síntoma</th><th>Causa / solución</th></tr></thead>
+<tbody>
+<tr><td><code>ORA-12519</code> (sin procesos disponibles)</td><td>Demasiadas conexiones abiertas. La aplicación usa una conexión única; revise que ningún código abra conexiones por operación y que no haya sesiones colgadas.</td></tr>
+<tr><td>No conecta a Oracle 10g con un driver nuevo</td><td>Use <code>ojdbc6</code> 11.2.0.4.</td></tr>
+<tr><td>Textos con tildes corruptos</td><td>Definir <code>NLS_LANG=AMERICAN_AMERICA.AL32UTF8</code> al ejecutar SQL*Plus.</td></tr>
+<tr><td><code>instalar.sql</code> se niega a ejecutar</td><td>El esquema ya tiene tablas. <code>DROP USER … CASCADE</code>, recrear y reinstalar.</td></tr>
+<tr><td><code>ORA-04091</code> (tabla mutante)</td><td>Un disparador consulta su propia tabla en una cascada. Los <code>trg_val_*</code> no se disparan en DELETE y los <code>trg_cud_*</code> solo leen <code>:NEW</code>/<code>:OLD</code>; mantener esa regla.</td></tr>
+<tr><td>Error FXML «module does not open …»</td><td>Falta <code>opens com.udi.controller.&lt;modulo&gt; to javafx.fxml</code>.</td></tr>
+<tr><td>«No está configurado el esquema destino de la sincronización»</td><td>Definir <code>db.esquemaDestino</code> en <code>db.properties</code> o con <code>-Ddb.esquemaDestino</code>.</td></tr>
+<tr><td>«No se pudo ejecutar &lt;destino&gt;.pr_sincronizar_aprobadas»</td><td>Falta el procedimiento o el <code>GRANT EXECUTE</code>: reinstalar el destino o volver a ejecutar <code>05_procedimiento_sincronizacion.sql</code>.</td></tr>
+<tr><td>Las vistas <code>vis_sinc_*</code> no son visibles para el destino</td><td>Se recreó el usuario destino: volver a ejecutar <code>06_vistas_sincronizacion.sql &lt;DESTINO&gt;</code> en el origen.</td></tr>
+<tr><td>Permiso denegado con <code>&lt;owner&gt;_APP</code> en un objeto nuevo</td><td>Los grants son por objeto: volver a ejecutar <code>usuarios_roles.sql</code>.</td></tr>
+<tr><td>Reporte PL/SQL partido en varias líneas</td><td>Usar <code>SET LINESIZE 32767</code>.</td></tr>
+</tbody></table>
+
+</body>
+</html>
