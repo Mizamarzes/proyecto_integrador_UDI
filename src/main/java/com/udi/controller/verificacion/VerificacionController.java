@@ -19,6 +19,7 @@ import com.udi.service.verificacion.VerificacionService;
 import com.udi.util.Alertas;
 import com.udi.util.Formato;
 import com.udi.util.Tareas;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -149,6 +150,8 @@ public class VerificacionController {
     private Button btnAbrir;
     @FXML
     private Button btnRechazar;
+    @FXML
+    private Button btnSincronizar;
     @FXML
     private Button btnAprobar;
     @FXML
@@ -434,6 +437,31 @@ public class VerificacionController {
                 total -> avisar("Se guardó " + archivo + " con " + plural(total, "encuesta aprobada", "encuestas aprobadas")
                         + (filtrado ? " de la ubicación elegida" : "")
                         + ": resumen y capítulos B, C, D y D1."));
+    }
+
+    /**
+     * Envía todas las encuestas aprobadas al esquema central (sin filtros).
+     * No cambia los estados del origen, así que la bandeja no se recarga.
+     */
+    @FXML
+    private void sincronizar() {
+        if (!Alertas.confirmar("Sincronizar aprobadas",
+                "Se enviarán todas las encuestas aprobadas al esquema central. Las que ya estén allí y no "
+                        + "hayan cambiado no se tocan; las que se volvieron a aprobar se reemplazan. ¿Continuar?")) {
+            return;
+        }
+        btnSincronizar.setDisable(true);
+        Tareas.ejecutar(() -> {
+            try {
+                return verificacionService.sincronizarAprobadas();
+            } finally {
+                Platform.runLater(() -> btnSincronizar.setDisable(false));
+            }
+        }, r -> avisar(r.sinCambios()
+                ? "Sincronización terminada: el esquema central ya tenía todas las encuestas aprobadas al día."
+                : "Sincronización terminada: " + plural(r.getNuevas(), "encuesta nueva", "encuestas nuevas")
+                        + " y " + plural(r.getActualizadas(), "actualizada", "actualizadas")
+                        + " en el esquema central."));
     }
 
     private Path elegirArchivo(long id) {

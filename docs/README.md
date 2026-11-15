@@ -9,12 +9,15 @@ Software para el registro y procesamiento del **Cuadernillo 2 (gastos diarios de
 | `referencias/` | `Proyecto Integrador IV.pdf` | Enunciado del proyecto: requerimientos, entregables y fechas |
 | | `Proyecto integrador IV semestre … .pdf` | Documento de diseño del equipo: requisitos funcionales (RF-01 a RF-09), prototipos, casos de uso y diagramas |
 | | `Cuadernillo 2 urbano.pdf` | Formulario oficial del DANE con los campos que captura la aplicación |
+| | `SincronizaciónOracle(EsquemaAesquema).pdf` | Guía de Bases de Datos II para pasar datos de un esquema a otro (vistas + procedimiento) |
 | `arquitectura/` | `arquitectura.md` | Arquitectura MVC en capas, estructura de carpetas del código, acceso a datos y reglas de negocio |
 | `db/` | `modelo_relacional.dbml` | Modelo relacional en formato dbdiagram.io. Es la fuente de verdad del esquema |
 | | `modelo_relacional.md` | Explicación del paso del modelo entidad-relación al relacional, y diccionario de datos |
 | | `esquema_oracle10g.sql` | Script para Oracle 10g: tablas, restricciones, secuencias, catálogos, datos de prueba, auditoría y PL/SQL |
 | `db/plsql/` | `funciones.sql`, `procedimientos.sql`, `disparadores.sql`, `reportes.sql` | Funciones, procedimientos almacenados, disparadores de validación y reportes (los ejecuta `esquema_oracle10g.sql`) |
 | `db/seguridad/` | `usuarios_roles.sql` | Usuarios y roles de Oracle (`<esquema>_APP`, `<esquema>_CONSULTA`, `<esquema>_AUDITOR`, p. ej. `DJGCJDCMPI_APP`). Se ejecuta como SYSTEM |
+| `sql-creaciones-servidor-udi/db-origen/` | `instalar.sql` y sus partes | Instala el esquema ORIGEN (el de la aplicación) completo: usuario (`01_crear_usuario.sql`, SYSTEM), tablas, catálogos, datos de prueba, auditoría, PL/SQL y las vistas `vis_sinc_*` de la sincronización. El orden completo está en su encabezado |
+| `sql-creaciones-servidor-udi/db-destino/` | `instalar.sql` y sus partes | Instala el esquema DESTINO (central): usuario, mismas tablas, solo catálogos, PL/SQL y `pr_sincronizar_aprobadas`, que recibe las encuestas aprobadas del origen (guía `referencias/SincronizaciónOracle(EsquemaAesquema).pdf`) |
 | `db/pruebas/` | `bloques_anonimos.sql`, `pruebas_seguridad.sql` | Bloques que invocan funciones, procedimientos y disparadores, y prueba de los permisos de cada usuario de Oracle |
 | `db/diagramas/` | `modelo-entidad-relacion.png` | Diagrama entidad-relación |
 | | `relacional_Db_diagram.png` | Diagrama del modelo relacional (exportado de dbdiagram.io) |

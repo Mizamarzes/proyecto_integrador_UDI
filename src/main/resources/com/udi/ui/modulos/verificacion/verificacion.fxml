@@ -43,6 +43,13 @@
             <Tooltip text="Un solo Excel con todas las encuestas aprobadas de la región, departamento y municipio elegidos en los filtros." />
          </tooltip>
       </Button>
+      <!-- Sincronización con el esquema central (procedimiento <destino>.pr_sincronizar_aprobadas) -->
+      <Button fx:id="btnSincronizar" text="Sincronizar aprobadas" onAction="#sincronizar"
+              styleClass="boton-secundario" minWidth="-Infinity">
+         <tooltip>
+            <Tooltip text="Envía todas las encuestas aprobadas al esquema central: agrega las nuevas y reemplaza las que se volvieron a aprobar. No tiene en cuenta los filtros." />
+         </tooltip>
+      </Button>
    </HBox>
 
    <Label fx:id="lblAviso" styleClass="banner-ok" wrapText="true" maxWidth="Infinity" />

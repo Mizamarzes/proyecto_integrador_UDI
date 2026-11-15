@@ -13,6 +13,7 @@ import com.udi.dao.usuarios.EncuestadorDAO;
 import com.udi.dao.usuarios.UsuarioDAO;
 import com.udi.dao.verificacion.AuditoriaEncuestaDAO;
 import com.udi.dao.verificacion.ExportacionDAO;
+import com.udi.dao.verificacion.SincronizacionDAO;
 import com.udi.dao.viviendas.HogarDAO;
 import com.udi.dao.viviendas.ViviendaDAO;
 import com.udi.exception.DatosException;
@@ -32,6 +33,7 @@ import com.udi.model.LugarCompra;
 import com.udi.model.RegistroDiario;
 import com.udi.model.ReglaVerificacion;
 import com.udi.model.ReglaVerificacion.Nivel;
+import com.udi.model.ResultadoSincronizacion;
 import com.udi.model.Usuario;
 import com.udi.model.Visita;
 import com.udi.model.Vivienda;
@@ -96,6 +98,7 @@ public class VerificacionService {
     private final UsuarioDAO usuarioDao = new UsuarioDAO();
     private final AuditoriaEncuestaDAO auditoriaDao = new AuditoriaEncuestaDAO();
     private final ExportacionDAO exportacionDao = new ExportacionDAO();
+    private final SincronizacionDAO sincronizacionDao = new SincronizacionDAO();
 
     /**
      * Casos de la bandeja (pendientes de aprobación, rechazados y aprobados)
@@ -208,6 +211,46 @@ public class VerificacionService {
         });
         guardar(libro, archivo);
         return total[0];
+    }
+
+    /**
+     * Envía todas las encuestas APROBADAS al esquema central configurado en
+     * {@code db.esquemaDestino}, con el procedimiento
+     * {@code <destino>.pr_sincronizar_aprobadas}
+     * (docs/sql-creaciones-servidor-udi/db-destino/). Las que el destino no tenía se insertan y
+     * las que se volvieron a aprobar después de la última sincronización se
+     * reemplazan; volver a sincronizar no duplica nada. Todo va en una
+     * transacción: si algo falla, el destino queda como estaba. No cambia el
+     * estado de ninguna encuesta del origen.
+     */
+    public ResultadoSincronizacion sincronizarAprobadas() {
+        Sesion.exigirModulo(RutasModulo.VERIFICACION);
+        String destino;
+        try {
+            destino = ConexionBD.esquemaDestino();
+        } catch (IllegalStateException ex) {
+            throw new ReglaNegocioException(ex.getMessage());
+        }
+        if (destino == null) {
+            throw new ReglaNegocioException("No está configurado el esquema destino de la sincronización "
+                    + "(db.esquemaDestino en db.properties).");
+        }
+        return ConexionBD.enTransaccion(c -> {
+            try {
+                return sincronizacionDao.sincronizar(c, destino);
+            } catch (SQLException ex) {
+                // ORA-06550/PLS-00201: no existe el procedimiento o falta el GRANT EXECUTE;
+                // ORA-00942/04063: el procedimiento no ve las vistas del origen o quedó inválido
+                int codigo = ex.getErrorCode();
+                if (codigo == 6550 || codigo == 942 || codigo == 4063 || codigo == 1031) {
+                    throw new ReglaNegocioException("No se pudo ejecutar " + destino
+                            + ".pr_sincronizar_aprobadas. Revise que el esquema destino exista, que se hayan "
+                            + "instalado docs/sql-creaciones-servidor-udi/db-origen y docs/sql-creaciones-servidor-udi/db-destino y que este usuario tenga permiso "
+                            + "para ejecutarlo.");
+                }
+                throw ex;
+            }
+        });
     }
 
     /** Nombre sugerido del archivo de exportación. */

@@ -9,3 +9,10 @@ db.contrasena=contrasena
 #   db.contrasena=ENPH_APP
 #   db.esquema=ENPH
 db.esquema=
+
+# Opcional. Esquema central al que el botón «Sincronizar aprobadas» del
+# módulo Verificación envía las encuestas APROBADAS (procedimiento
+# <destino>.pr_sincronizar_aprobadas, se instala con docs/sql-creaciones-servidor-udi/db-destino/).
+# Vacío = la sincronización avisa que no está configurada.
+#   db.esquemaDestino=ENPH_CENTRAL
+db.esquemaDestino=

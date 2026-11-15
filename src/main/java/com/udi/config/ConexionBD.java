@@ -115,6 +115,23 @@ public final class ConexionBD {
         }
     }
 
+    /**
+     * Dueño del esquema central al que se sincronizan las encuestas aprobadas
+     * ({@code db.esquemaDestino}), en mayúsculas, o null si no se configuró.
+     * Se valida como nombre de usuario de Oracle porque va pegado en la
+     * llamada al procedimiento.
+     */
+    public static String esquemaDestino() {
+        String destino = valor("db.esquemaDestino");
+        if (destino == null || destino.trim().isEmpty()) {
+            return null;
+        }
+        if (!IDENTIFICADOR.matcher(destino.trim()).matches()) {
+            throw new IllegalStateException("db.esquemaDestino no es un nombre de usuario de Oracle válido: " + destino);
+        }
+        return destino.trim().toUpperCase();
+    }
+
     public static synchronized void cerrar() {
         if (conexion != null) {
             try {
